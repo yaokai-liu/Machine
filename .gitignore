@@ -1,5 +1,7 @@
 .idea
 .vscode
 .vs
+__pycache__
 json
-.json
+out
+*.json
