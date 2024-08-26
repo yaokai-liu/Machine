@@ -1,0 +1,4 @@
+[submodule "liu-machine"]
+	path = liu-machine
+	url = git@gitlab.com:yaokai-liu/xnf.git
+	branch = liu-machine
