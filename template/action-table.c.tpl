@@ -1,6 +1,6 @@
 /**
  * Project Name: regex
- * Module Name:
+ * Module Name: template
  * Filename: action-table.gen.c
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/

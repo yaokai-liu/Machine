@@ -1,6 +1,6 @@
 /**
  * Project Name: regex
- * Module Name: grammar/templates
+ * Module Name: template
  * Filename: target.gen.c
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
