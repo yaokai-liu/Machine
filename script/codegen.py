@@ -4,11 +4,11 @@ import json
 from string import Template as Tp
 from DATA import *
 
-__DIR__ = Path(os.path.dirname(__file__))
-PROJECT_ROOT = __DIR__
+PROJECT_ROOT = Path(os.path.dirname(__file__)).parent
 JSON_DIR = PROJECT_ROOT / "json"
 TEMPLATE_DIR = PROJECT_ROOT / "template"
-OUT_DIR = PROJECT_ROOT / "out"
+OUT_DIR = PROJECT_ROOT / "grammar"
+GRAMMAR_TARGET = "Machine"
 
 
 def get_json_from(filename: str):
@@ -39,7 +39,7 @@ class Rule:
         target, items = rules[name].split('->')
         self.target = target.strip()
         if self.target == '~':
-            self.target = 'Regexp'
+            self.target = GRAMMAR_TARGET
         items = items.strip()
         if len(items) > 0:
             self.items = items.split(' ')
@@ -126,7 +126,7 @@ def gen_reduces():
     enum_reduces = sorted(f"{r} = {i}" for i, r in enumerate(rule_names))
     reduces = sorted(f"{r.split('_')[0]} * p_{r}" + args
                      if r != '__EXTEND_RULE__'
-                     else f"Regexp * p_{r}" + args
+                     else f"{GRAMMAR_TARGET} * p_{r}" + args
                      for r in rule_names)
     assign_reduces = sorted([f"[{r}] = (fn_product *) p_{r}" for r in rule_names])
     template = Tp(get_temp_from("reduce.h.tpl"))

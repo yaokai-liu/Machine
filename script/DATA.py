@@ -5,6 +5,7 @@ TERMINALS = {
     "REGISTER": "register",
     "INSTRUCTION": "instruction",
     "BITS": 0,
+    "TICKS": 0,
     "LEFT_BRACKET": "{",
     "EQUAL": "=",
     "COLON": ":",

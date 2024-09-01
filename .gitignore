@@ -2,6 +2,8 @@
 .vscode
 .vs
 __pycache__
+cmake-*
 json
-out
+*.gen.h
+*.gen.c
 *.json
