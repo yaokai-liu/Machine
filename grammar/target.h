@@ -31,6 +31,9 @@ typedef Array SetItems;  // Array<SetItem>
 typedef struct Layout Layout;
 typedef struct MappingItem MappingItem;
 typedef Array MappingItems;  // Array<MappingItem>
+typedef struct Evaluable Evaluable;
+typedef Array PatternArgs;  // Array<IDENTIFIER>
+typedef struct Pattern Pattern;
 
 #include "allocator.h"
 

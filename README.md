@@ -222,7 +222,7 @@ There's a lot of symbols as macro to terse the grammar.
 
 An identifier is a text string only consists with letters and digits.
 
-#### pattern of instrunction form
+#### pattern of instruction form
 
 A pattern of an InstructionForm is consist of identifiers seperated with comma and bracketed with `[` and `]`.
 Items of a pattern called arguments or parameters.
