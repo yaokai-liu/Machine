@@ -74,7 +74,8 @@ def gen_terminals():
     template = Tp(get_temp_from("terminal.c.tpl"))
     body = ',\n  '.join([f'enum_{t}' for t in terminals if TERMINALS[t] != 0])
     strings = ',\n  '.join([f'[enum_{t}] = string_t("{TERMINALS[t]}")' for t in terminals if TERMINALS[t] != 0])
-    terminals_entry = template.substitute(strings=strings, terminals=body)
+    string_lens = ',\n  '.join([f'[enum_{t}] = {len(TERMINALS[t])}' for t in terminals if TERMINALS[t] != 0])
+    terminals_entry = template.substitute(strings=strings, string_lens=string_lens, terminals=body)
     with open(OUT_DIR / "terminal.gen.c", 'w') as fp:
         fp.write(terminals_entry)
 

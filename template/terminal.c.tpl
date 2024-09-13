@@ -10,7 +10,12 @@ const char_t TERMINALS[] = {
   ${terminals}
 };
 
-const char_t * const TERMINAL_STRINGS[] = {
+const char_t * TERMINAL_STRINGS[] = {
   ${strings}
 };
+
+const uint32_t TERMINAL_STRING_LENS[] = {
+  ${string_lens}
+};
+
 const int32_t N_TERMINAL = sizeof(TERMINALS);

@@ -57,19 +57,18 @@ Write it in a more fromal grammar:
 An example of a RegisterGroup would be like:
 ```
 register ax [64-bit] {
-    r~: [63-0] = 0x00;
-    e~: [31-0] = 0x00;
-    ~ : [15-0] = 0x00;
-    ah: [15-8] = 0x04;
-    al: [7-0]  = 0x00;
+    rax: [63-0] = 0x00;
+    eax: [31-0] = 0x00;
+    ax : [15-0] = 0x00;
+    ah : [15-8] = 0x04;
+    al : [7-0]  = 0x00;
 };
 ```
-Here `~` is a special identifier macro of the language. It means the group's name, and `r~` means concat `~` after `r`.
 
 The text above defines a RegisterGroup named `ax` and full width is 64 bits.
 In this RegisterGroup, there are 5 registers, named `rax`, `eax`, `ax`, `ah` and `al`.
 For `rax`, it occupies all 0 to 63th bit (total 64 bits) and will be encoded as `0x00` in instructions.
-But or `ah`, it only takes 8 to 15th bit (total 8 bits) and will be encoded as `0x04` in instructions.
+But for `ah`, it only takes 8 to 15th bit (total 8 bits) and will be encoded as `0x04` in instructions.
 The others could be read in same way.
 
 Therefore, it is easy to know that **registers in the same group will exclude each other**.
@@ -210,21 +209,18 @@ Examples:
 
 There's a lot of symbols as macro to terse the grammar.
 
-| symbol   |    where    |  means         |
-|:--------:|:-----------:|:--------------:|
-| `^`      | Instruction | prefix         |
-| `&`      | Instruction | suffix         |
-| `$`      | Memory      | base           |
-| `>`      | Memory      | offset         |
-| `~`      | register    | group name     |
-| `~`      | Instruction | principal part |
+| symbol |    where    |  means         |
+|:------:|:-----------:|:--------------:|
+|  `^`   | Instruction | prefix         |
+|  `&`   | Instruction | suffix         |
+|  `~`   | Instruction | principal part |
+|  `$`   | Memory      | base           |
+|  `>`   | Memory      | offset         |
 
 
 #### identifier
 
 An identifier is a text string only consists with letters and digits.
-
-In a registered group, the `~` macro will be treated as the string of the group name.
 
 #### pattern of instrunction form
 
@@ -255,19 +251,17 @@ the order of the parameters doesn't matter.
 <InstructionForm>   ->      <Pattern> = <width> <time-tick>? { <Part>!3 } ;
 <Patten>            ->      [ <idnetifier>+ ]
 <Part>              ->      <part> : <width> = <Layout> ;
-<Layout>            ->      <evaluatable>
+<Layout>            ->      <evaluable>
 <Layout>            ->      <Mapping>
 <Mapping>           ->      { <MappingItem>+ }
-<MappingItem>       ->      <bit-field> = <evaluatable>
+<MappingItem>       ->      <bit-field> = <evaluable>
 ```
 
 and for
 
 ```
-<evaluatable>       ->      <number>
-<evaluatable>       ->      <variable>
-<evaluatable>       ->      <evaluatable>.<identifier>
-<evaluatable>       ->      <evaluatable>[<bit-feild>]
+<evaluable>       ->        <number>
+<evaluable>       ->        <identifier>( . <identifier> <bit-feild>?)*
 ```
 
 ## Source Code Generate

@@ -1,7 +1,7 @@
 #BasedOnStyle: GNU
 Language: Cpp
-ColumnLimit: 100
-AlignAfterOpenBracket: Align
+ColumnLimit: 120
+AlignAfterOpenBracket: BlockIndent
 AlignArrayOfStructures: Left
 AlignConsecutiveAssignments: false
 AlignConsecutiveBitFields: Consecutive
@@ -17,12 +17,13 @@ AllowShortFunctionsOnASingleLine: Inline
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortLoopsOnASingleLine: true
 AllowShortEnumsOnASingleLine: false
-AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortIfStatementsOnASingleLine: WithoutElse
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
 BinPackArguments: true
 BinPackParameters: true
 BitFieldColonSpacing: Both
+BreakArrays: true
 BreakBeforeBraces: Attach
 BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeTernaryOperators: false
@@ -65,13 +66,14 @@ SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 2
 SpacesInCStyleCastParentheses: false
 SpacesInConditionalStatement: false
-SpacesInContainerLiterals: false
+SpacesInContainerLiterals: true
 SpacesInLineCommentPrefix:
   Maximum: 4
   Minimum: 1
 StatementMacros:
-  - _tokenize_keyword
+  - fn_try_keyword
 TabWidth: 2
 UseCRLF: false
 UseTab: Never
 PenaltyBreakOpenParenthesis: 1000
+InsertNewlineAtEOF: true
