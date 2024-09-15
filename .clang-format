@@ -72,6 +72,7 @@ SpacesInLineCommentPrefix:
   Minimum: 1
 StatementMacros:
   - fn_try_keyword
+  - add_test_for
 TabWidth: 2
 UseCRLF: false
 UseTab: Never

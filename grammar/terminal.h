@@ -15,11 +15,21 @@
 #include <stdint.h>
 
 typedef struct {
-  uint8_t type;
+  uint16_t type;
   void *value;
 } Terminal;
 
-Terminal *tokenize(const char_t *input, uint32_t *cost, uint32_t *n_tokens, const Allocator *allocator);
+const Terminal *tokenize(const char_t *input, uint32_t *cost, uint32_t *n_tokens, const Allocator *allocator);
+
+typedef struct {
+    const char_t *ptr;
+    uint32_t len;
+} String;
+
+typedef struct BitField {
+    uint32_t upper;
+    uint32_t lower;
+} BitField;
 
 extern const char_t TERMINALS[];
 extern const char_t *TERMINAL_STRINGS[];
