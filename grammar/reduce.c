@@ -65,30 +65,30 @@ Entry *p_Entry_4(void *argv[], const Allocator *allocator) {
 
 Evaluable *p_Evaluable_0(void *argv[], const Allocator *) {
     Evaluable * evaluable = (Evaluable *) argv[0];
-//    String * identifier = (String *) ((Terminal *) argv[2])->value;
+    String * identifier = (String *) ((Terminal *) argv[2])->value;
     // TODO:
-    return evaluable;
+    return evaluable->target = identifier;
 }
 
 Evaluable *p_Evaluable_1(void *argv[], const Allocator *) {
     Evaluable *evaluable = (Evaluable *) argv[0];
     BitField * bit_field = (BitField *) ((Terminal *) argv[1])->value;
     // TODO:
-    return evaluable;
+    return evaluable->target = bit_field;
 }
 
 Evaluable *p_Evaluable_2(void *argv[], const Allocator *allocator) {
     String *identifier = (String *) ((Terminal *) argv[0])->value;
     Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
     // TODO:
-    return evaluable;
+    return evaluable->target = identifier;
 }
 
 Evaluable *p_Evaluable_3(void *argv[], const Allocator *allocator) {
     uint64_t number = (uint64_t) ((Terminal *) argv[0])->value;
     Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
     // TODO:
-    return evaluable;
+    return evaluable->target = (void *) number;
 }
 
 Immediate *p_Immediate_0(void *argv[], const Allocator *allocator) {

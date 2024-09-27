@@ -168,17 +168,14 @@ inline uint32_t t_IDENTIFIER(const char_t * const input, Terminal * const result
     const char_t pattern[] = string_t(#_kw);                                                                    \
     for (uint32_t i = 2; i < sizeof(pattern) - 1; i++) {                                                        \
       if (input[i - 2] != pattern[i]) {                                                                         \
-        String *identifier = allocator->calloc(1, sizeof(String));                                              \
-        identifier->ptr = input - 2;                                                                            \
-        identifier->len = i;                                                                                    \
-        result->type = enum_IDENTIFIER;                                                                         \
-        result->value = identifier;                                                                             \
-        return i;                                                                                               \
+      goto __failed_kw_##_kw;                                                                                                          \
       }                                                                                                         \
     }                                                                                                           \
     result->type = enum_##_type;                                                                                \
     result->value = nullptr;                                                                                    \
     return lenof(#_kw);                                                                                         \
+  __failed_kw_##_kw:                                                                                            \
+    return t_IDENTIFIER(input - 2, result, allocator);                                                          \
   }
 
 fn_try_keyword(immediate, IMMEDIATE)
@@ -259,6 +256,11 @@ uint32_t
   uint32_t length = t_NUMBER_r10(input, result, allocator);
   uint32_t value = (uint32_t) (uint64_t) result->value;
   const char_t *pText = input + length;
+  if (strcmp_o(pText, "]") == lenof("]")) {
+      result->type = enum_WIDTH;
+      result->value = (void *) (uint64_t) value;
+      return (pText + lenof("]") - input);
+  }
   if (*pText != '-') { return 0; }
   pText++;
   length = t_NUMBER_r10(pText, result, allocator);
@@ -300,6 +302,11 @@ uint32_t
   if ('0' <= input[0] && input[0] <= '9') {
     uint32_t length = tokenize_startswith_number(input, result, allocator);
     if (length > 0) { return length + 1; }
+  }
+  if (strcmp_o(input, "...]") == lenof("...]")) {
+      result->type = enum_BIT_FIELD;
+      result->value = nullptr;
+      return lenof("...]");
   }
   result->type = enum_LEFT_SQUARE_BRACKET;
   result->value = nullptr;
@@ -380,7 +387,7 @@ inline uint32_t
       result->value = (void *) (uint64_t) PART_SUFFIX;
       return 1;
     }
-    case '@': {
+    case '~': {
       result->type = enum_PART_KEY;
       result->value = (void *) (uint64_t) PART_PRINCIPAL;
       return 1;
