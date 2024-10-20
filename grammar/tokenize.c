@@ -306,7 +306,7 @@ uint32_t
   if (strcmp_o(input, "...]") == lenof("...]")) {
       result->type = enum_BIT_FIELD;
       result->value = nullptr;
-      return lenof("...]");
+      return lenof("...]") + 1;
   }
   result->type = enum_LEFT_SQUARE_BRACKET;
   result->value = nullptr;

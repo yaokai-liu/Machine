@@ -42,6 +42,26 @@ START_TEST(test_BIT_FIELD) {
 }
 END_TEST
 
+START_TEST(test_BIT_FIELD_OTHER) {
+    const char_t *string = "[...]";
+    uint32_t cost, n_tokens;
+    const Terminal *terminals = tokenize(string, &cost, &n_tokens, &STDAllocator);
+    ck_assert_uint_eq(cost, lenof("[...]"));
+    ck_assert_uint_eq(n_tokens, 2);
+    ck_assert_ptr_ne(terminals, nullptr);
+
+    ck_assert_uint_eq(terminals[0].type, enum_BIT_FIELD);
+    ck_assert_str_eq(get_name(terminals[0].type), "BIT_FIELD");
+    ck_assert_ptr_eq(terminals[0].value, nullptr);
+
+    ck_assert_uint_eq(terminals[1].type, enum_TERMINATOR);
+    ck_assert_str_eq(get_name(terminals[1].type), "TERMINATOR");
+    ck_assert_ptr_eq(terminals[1].value, nullptr);
+    STDAllocator.free((void *) terminals);
+}
+END_TEST
+
+
 START_TEST(test_WIDTH_bit) {
     const char_t *string = "[23-bit]";
     uint32_t cost, n_tokens;
@@ -100,12 +120,13 @@ START_TEST(test_TIME_TICK) {
 END_TEST
 
 Suite * united_suite() {
-  Suite *suite = suite_create("Uniteds");
-  TCase *tc_uniteds = tcase_create("uniteds");
-  tcase_add_test(tc_uniteds, test_BIT_FIELD);
-  tcase_add_test(tc_uniteds, test_WIDTH_bit);
-  tcase_add_test(tc_uniteds, test_WIDTH_byte);
-  tcase_add_test(tc_uniteds, test_TIME_TICK);
-  suite_add_tcase(suite, tc_uniteds);
+  Suite *suite = suite_create("United");
+  TCase *tc_united = tcase_create("united");
+  tcase_add_test(tc_united, test_BIT_FIELD);
+  tcase_add_test(tc_united, test_BIT_FIELD_OTHER);
+  tcase_add_test(tc_united, test_WIDTH_bit);
+  tcase_add_test(tc_united, test_WIDTH_byte);
+  tcase_add_test(tc_united, test_TIME_TICK);
+  suite_add_tcase(suite, tc_united);
   return suite;
 }
