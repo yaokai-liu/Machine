@@ -37,7 +37,9 @@ int main() {
       printf("failed to lex at <%d>.\n", cost);
       return -3;
   }
-  for (uint32_t i = 0; i < n_tokens; i++) { printf("%s :: %p\n", get_name(terminals[i].type), terminals[i].value); }
+  for (uint32_t i = 0; i < n_tokens; i++) {
+      printf("%s :: %p\n", get_name(terminals[i].type), terminals[i].value);
+  }
   const Machine * machine = parse(terminals, &STDAllocator);
   if (!machine) {
       printf("failed to parse.\n");

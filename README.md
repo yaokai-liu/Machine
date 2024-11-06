@@ -64,7 +64,7 @@ A RegisterGroup should have one or more register. Every register is a unique ite
 A register definition item is composed by an identifier as register's name, a [bit field](#width-bit-field-and-time-tick) and a code.
 The bit field presents which bits would be modified if the register be involved a computation.
 The code is the encoding form of register in instructions. It will be used in machine code generation.
-Write it in a more fromal grammar:
+Write it in a more formal grammar:
 ```
 <identifier> : <bit field> = <code> ;
 ```
