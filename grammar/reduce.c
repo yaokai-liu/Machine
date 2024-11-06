@@ -65,9 +65,9 @@ Entry *p_Entry_4(void *argv[], const Allocator *allocator) {
 
 Evaluable *p_Evaluable_0(void *argv[], const Allocator *) {
     Evaluable * evaluable = (Evaluable *) argv[0];
-    String * identifier = (String *) ((Terminal *) argv[2])->value;
+    Terminal * memKey = ((Terminal *) argv[2])->value;
     // TODO:
-    return evaluable->target = identifier;
+    return evaluable->target = memKey;
 }
 
 Evaluable *p_Evaluable_1(void *argv[], const Allocator *) {
@@ -79,6 +79,7 @@ Evaluable *p_Evaluable_1(void *argv[], const Allocator *) {
 
 Evaluable *p_Evaluable_2(void *argv[], const Allocator *allocator) {
     String *identifier = (String *) ((Terminal *) argv[0])->value;
+    // todo: verify identifier in global identifier table.
     Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
     // TODO:
     return evaluable->target = identifier;
@@ -87,12 +88,17 @@ Evaluable *p_Evaluable_2(void *argv[], const Allocator *allocator) {
 Evaluable *p_Evaluable_3(void *argv[], const Allocator *allocator) {
     uint64_t number = (uint64_t) ((Terminal *) argv[0])->value;
     Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
+    evaluable->type = enum_NUMBER;
+    uint64_t * num_ptr = allocator->calloc(1, sizeof(uint64_t));
+    *num_ptr = number;
     // TODO:
-    return evaluable->target = (void *) number;
+    evaluable->target = num_ptr;
+    return evaluable;
 }
 
 Immediate *p_Immediate_0(void *argv[], const Allocator *allocator) {
     String * identifier = (String *) ((Terminal *) argv[1])->value;
+    // todo: verify identifier not in global identifier table.
     uint32_t width = (uint32_t) (uint64_t) ((Terminal *) argv[2])->value;
     uint32_t type = (uint64_t) ((Terminal *) argv[3])->type;
     Immediate * immediate = allocator->calloc(1, sizeof(Immediate));
@@ -197,6 +203,7 @@ Layout *p_Layout_1(void *argv[], const Allocator *allocator) {
 
 Machine *p_Machine_0(void *argv[], const Allocator *allocator) {
     String *identifier = (String *) ((Terminal *) argv[1])->value;
+    // todo: verify identifier not in global identifier table.
     Entries * entries = argv[3];
     Machine * machine = allocator->calloc(1, sizeof(Machine));
     machine->name = identifier;
@@ -245,6 +252,7 @@ MemItem *p_MemItem_0(void *argv[], const Allocator *allocator) {
 
 Memory *p_Memory_0(void *argv[], const Allocator *allocator) {
     String *identifier = (String *) ((Terminal *) argv[1])->value;
+    // todo: verify identifier not in global identifier table.
     uint32_t width = (uint32_t) (uint64_t) ((Terminal *) argv[2])->value;
     MemItem * item1 = (MemItem *) argv[4];
     MemItem * item2 = (MemItem *) argv[5];
@@ -271,6 +279,7 @@ Pattern *p_Pattern_0(void *argv[], const Allocator *allocator) {
 PatternArgs *p_PatternArgs_0(void *argv[], const Allocator *allocator) {
     PatternArgs * args = (PatternArgs *)argv[0];
     String *identifier = (String *) ((Terminal *) argv[2])->value;
+    // todo: verify identifier in global identifier table.
     Array_append(args, identifier, 1);
     allocator->free(identifier);
     return args;
@@ -278,6 +287,7 @@ PatternArgs *p_PatternArgs_0(void *argv[], const Allocator *allocator) {
 
 PatternArgs *p_PatternArgs_1(void *argv[], const Allocator *allocator) {
     String *identifier = (String *) ((Terminal *) argv[0])->value;
+    // todo: verify identifier in global identifier table.
     PatternArgs *args = Array_new(sizeof(String), allocator);
     Array_append(args, identifier, 1);
     allocator->free(identifier);
@@ -286,6 +296,7 @@ PatternArgs *p_PatternArgs_1(void *argv[], const Allocator *allocator) {
 
 Register *p_Register_0(void *argv[], const Allocator *allocator) {
     String *identifier = (String *) ((Terminal *) argv[0])->value;
+    // todo: verify identifier not in global identifier table.
     BitField *bit_field = (BitField *) ((Terminal *) argv[2])->value;
     uint64_t number = (uint64_t) ((Terminal *) argv[4])->value;
     Register * reg = allocator->calloc(1, sizeof(Register));
@@ -297,6 +308,7 @@ Register *p_Register_0(void *argv[], const Allocator *allocator) {
 
 RegisterGroup *p_RegisterGroup_0(void *argv[], const Allocator *allocator) {
     String *identifier = (String *) ((Terminal *) argv[1])->value;
+    // todo: verify identifier not in global identifier table.
     uint32_t width = (uint32_t) (uint64_t) ((Terminal *) argv[2])->value;
     Registers * registers = (Registers *) argv[4];
     RegisterGroup * group = allocator->calloc(1, sizeof(RegisterGroup));
@@ -324,6 +336,7 @@ Registers *p_Registers_1(void *argv[], const Allocator *allocator) {
 
 Set *p_Set_0(void *argv[], const Allocator *allocator) {
     String *identifier = (String *) ((Terminal *) argv[0])->value;
+    // todo: verify identifier not in global identifier table.
     SetItems * items = (SetItems *) argv[1];
     Set * set = allocator->calloc(1, sizeof(Set));
     set->name = identifier;
@@ -334,6 +347,7 @@ Set *p_Set_0(void *argv[], const Allocator *allocator) {
 SetItems *p_SetItems_0(void *argv[], const Allocator *allocator) {
     SetItems *items = (SetItems *) argv[0];
     String *identifier = (String *) ((Terminal *) argv[2])->value;
+    // todo: verify identifier in global identifier table.
     Array_append(items, identifier, 1);
     allocator->free(identifier);
     return items;
@@ -341,9 +355,46 @@ SetItems *p_SetItems_0(void *argv[], const Allocator *allocator) {
 
 SetItems *p_SetItems_1(void *argv[], const Allocator *allocator) {
     String *identifier = (String *) ((Terminal *) argv[0])->value;
+    // todo: verify identifier in global identifier table.
     SetItems *items = Array_new(sizeof(String), allocator);
     Array_append(items, identifier, 1);
     allocator->free(identifier);
     return items;
 }
 
+#include "stack.h"
+
+Machine *failed_to_get_next_state(Stack *state_stack, Stack *token_stack, void *result,
+                                  uint32_t result_type, const Allocator *allocator);
+
+Machine *failed_to_produce(Stack *state_stack, Stack *token_stack, uint64_t *argv, uint32_t argc,
+                           const Allocator *allocator);
+
+Machine *failed_to_get_action(Stack *state_stack, Stack *token_stack, const Allocator *allocator);
+
+Machine *failed_to_get_next_state(Stack *state_stack, Stack *token_stack, void *result,
+                                  uint32_t result_type, const Allocator *allocator) {
+    int32_t state = 0;
+    Stack_top(state_stack, (&state), sizeof(int32_t));
+    switch (result_type) {
+        // TODO: release memory allocated.
+    }
+    allocator->free(result);
+    return failed_to_get_action(state_stack, token_stack, allocator);
+}
+
+Machine *failed_to_produce(Stack *state_stack, Stack *token_stack,
+                           uint64_t * argv [[maybe_unused]], uint32_t argc [[maybe_unused]],
+                           const Allocator *allocator) {
+  // TODO：release memory allocated.
+  return failed_to_get_action(state_stack, token_stack, allocator);
+}
+
+Machine *failed_to_get_action(Stack *state_stack, Stack *token_stack, const Allocator *allocator) {
+    // TODO：release memory allocated.
+    Stack_clear(token_stack);
+    Stack_clear(state_stack);
+    allocator->free(token_stack);
+    allocator->free(state_stack);
+    return nullptr;
+}

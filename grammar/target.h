@@ -15,6 +15,7 @@
 
 typedef struct Entry {
     uint32_t type;
+    uint32_t id;
     void * target;
 } Entry;
 typedef Array Entries;  // Array<Entry>
@@ -71,10 +72,12 @@ typedef struct Memory {
     BitField *base;
     BitField *offset;
 }Memory;
+typedef struct RegisterGroup RegisterGroup;
 typedef struct Register {
     String * name;
     BitField * field;
     uint64_t code;
+    RegisterGroup * group;
 } Register;
 typedef Array Registers;  // Array<Registers>
 typedef struct RegisterGroup {

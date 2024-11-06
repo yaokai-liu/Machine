@@ -5,7 +5,7 @@ if [ -d "json" ]; then
 else
   mkdir json
 fi
-python liu-machine/generate.py json --compact
+python liu-machine/generate.py json
 if [ -d "grammar" ]; then
   echo ''
 else

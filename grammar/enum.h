@@ -11,12 +11,12 @@
 #define MACHINE_ENUM_H
 
 enum MEM_KEY {
-  MEM_BASE,
+  MEM_BASE = 1,
   MEM_OFFSET,
 };
 
 enum PART_KEY {
-  PART_PREFIX,
+  PART_PREFIX = 1,
   PART_SUFFIX,
   PART_PRINCIPAL
 };

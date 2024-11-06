@@ -13,15 +13,17 @@
 #include "tokens.gen.h"
 
 #define lenof(str_literal) ((sizeof str_literal) - 1)
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#define min(a, b) ((a) < (b) ? (a) : (b))
 
 uint32_t strcmp_o(const char_t *str1, const char_t *str2);
 uint32_t stridx_o(const char_t chr, const char_t *str);
 
 uint32_t t_IDENTIFIER(const char_t *input, Terminal *result, const Allocator *allocator);
-uint32_t t_NUMBER_r16(const char_t *input, Terminal *result, const Allocator *allocator);
-uint32_t t_NUMBER_r10(const char_t *input, Terminal *result, const Allocator *allocator);
-uint32_t t_NUMBER_r8(const char_t *input, Terminal *result, const Allocator *allocator);
-uint32_t t_NUMBER_r2(const char_t *input, Terminal *result, const Allocator *allocator);
+uint32_t t_NUMBER_adic16(const char_t *input, Terminal *result, const Allocator *allocator);
+uint32_t t_NUMBER_adic10(const char_t *input, Terminal *result, const Allocator *allocator);
+uint32_t t_NUMBER_adic8(const char_t *input, Terminal *result, const Allocator *allocator);
+uint32_t t_NUMBER_adic2(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_instruction(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_immediate(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_machine(const char_t *input, Terminal *result, const Allocator *allocator);
@@ -43,7 +45,7 @@ inline uint32_t stridx_o(const char_t chr, const char_t * const str) {
   return len;
 }
 
-inline uint32_t t_NUMBER_r16(
+inline uint32_t t_NUMBER_adic16(
   const char_t * const input, Terminal * const result, const Allocator * const allocator [[maybe_unused]]
 ) {
   const char_t *pText = input;
@@ -69,7 +71,7 @@ inline uint32_t t_NUMBER_r16(
   return pText - input;
 }
 
-inline uint32_t t_NUMBER_r10(
+inline uint32_t t_NUMBER_adic10(
   const char_t * const input, Terminal * const result, const Allocator * const allocator [[maybe_unused]]
 ) {
   const char_t *pText = input;
@@ -92,7 +94,7 @@ inline uint32_t t_NUMBER_r10(
 }
 
 inline uint32_t
-  t_NUMBER_r8(const char_t * const input, Terminal * const result, const Allocator * const allocator [[maybe_unused]]) {
+  t_NUMBER_adic8(const char_t * const input, Terminal * const result, const Allocator * const allocator [[maybe_unused]]) {
   const char_t *pText = input;
   uint64_t value = 0;
   while (true) {
@@ -115,7 +117,7 @@ inline uint32_t
 }
 
 inline uint32_t
-  t_NUMBER_r2(const char_t * const input, Terminal * const result, const Allocator * const allocator [[maybe_unused]]) {
+  t_NUMBER_adic2(const char_t * const input, Terminal * const result, const Allocator * const allocator [[maybe_unused]]) {
   const char_t *pText = input;
   uint64_t value = 0;
   while (true) {
@@ -253,7 +255,7 @@ uint32_t tokenize_letter_u(const char_t * const input, Terminal * const result, 
 
 uint32_t
   tokenize_startswith_number(const char_t * const input, Terminal * const result, const Allocator * const allocator) {
-  uint32_t length = t_NUMBER_r10(input, result, allocator);
+  uint32_t length = t_NUMBER_adic10(input, result, allocator);
   uint32_t value = (uint32_t) (uint64_t) result->value;
   const char_t *pText = input + length;
   if (strcmp_o(pText, "]") == lenof("]")) {
@@ -263,12 +265,13 @@ uint32_t
   }
   if (*pText != '-') { return 0; }
   pText++;
-  length = t_NUMBER_r10(pText, result, allocator);
+  length = t_NUMBER_adic10(pText, result, allocator);
   if (length > 0) { // parse bit field
     if (pText[length] != ']') { return 0; }
     BitField *bitField = allocator->calloc(1, sizeof(BitField));
-    bitField->upper = value;
     bitField->lower = (uint32_t) (uint64_t) result->value;
+    bitField->upper = max(value, bitField->lower);
+    bitField->lower = min(value, bitField->lower);
     result->type = enum_BIT_FIELD;
     result->value = bitField;
     return (pText + length - input + 1);
@@ -289,7 +292,7 @@ uint32_t
 
 uint32_t
   tokenize_symbol_LPAREN(const char_t * const input, Terminal * const result, const Allocator * const allocator) {
-  uint32_t length = t_NUMBER_r10(input, result, allocator);
+  uint32_t length = t_NUMBER_adic10(input, result, allocator);
   if (length == 0) { return 0; }
   const char_t *pText = input + length;
   if (strcmp_o(pText, "-tick)") != lenof("-tick)")) { return 0; }
@@ -319,24 +322,24 @@ uint32_t tokenize_number(const char_t * const input, Terminal * const result, co
     switch (input[1]) {
       case 'x':
       case 'X': {
-        length = t_NUMBER_r16(input + 2, result, allocator);
+        length = t_NUMBER_adic16(input + 2, result, allocator);
         return length == 0 ? 0 : length + 2;
       }
       case 'o':
       case 'O': {
-        length = t_NUMBER_r8(input + 2, result, allocator);
+        length = t_NUMBER_adic8(input + 2, result, allocator);
         return length == 0 ? 0 : length + 2;
       }
       case 'b':
       case 'B': {
-        length = t_NUMBER_r2(input + 2, result, allocator);
+        length = t_NUMBER_adic2(input + 2, result, allocator);
         return length == 0 ? 0 : length + 2;
       }
       default: {
       }
     }
   }
-  return t_NUMBER_r10(input, result, allocator);
+  return t_NUMBER_adic10(input, result, allocator);
 }
 
 const uint32_t TERMINAL_TYPE_LITERALS[] = {
