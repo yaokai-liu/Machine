@@ -2,20 +2,35 @@
 
 This project tries to provide a method to generate C/C++ source files to describe a backend's structure.
 
+## Functions
+
+With this program, users can:
+
+1. call a function `Array<uint32_t> * listRegisters(Machine *)` to get register-ids of a machine;
+2. call a function `Array<uint32_t> * listInstructions(Machine *)` to get instruction-forms of a machine;
+3. call a function `Array<uint32_t> * listMemoryModel(Machine *)` to get memory-models of a machine;
+4. call a function `char * getRegisterName(Machine *, uint32_t)` to get the name of a register-id in a machine;
+5. call a function `char * getInstrOp(Machine *, uint32_t)` to get the opcode(in assembly) of an instruction-form in a machine;
+6. call a function `char * getMemModelName(Machine *, uint32_t)` to get the name of a memory-model in a machine;
+7. call a function `Array<uint8_t> * encodeInstr(char *, uint32_t)` to encode an instruction in assembly;
+8. call a function `uint32_t decodeInstr(Array<uint8_t> *, char *, uint32_t)` to decode an instruction to assembly;
+9. call a function `uint32_t emitInstr(Array<uint8_t> *, uint32_t, ...)` to emit an instruction and record registers' allocation;
+10. call a function `uint32_t dumpRegAllocation(void *)` to dump the registers' allocation;
+11. call a function `uint32_t loadRegAllocation(void *)` to load a registers' allocation;
+12. call a function `bool isAllocated(Machine *, uint32_t)` to query if the register is used.
+13. call a function `bool popNotAllocated(Machine *, uint32_t)` to populate a number of not allocated registers.
+
+## Grammar of machine file
+
 The machine (or backend) is supposed to be defined with a special text grammar.
 
 The generator read text inputs and analysis by the grammar and then generate C/C++ source files if no error.
 
-## Grammar
-
-Let's write the grammar as `G` and input as `T` for short.
-
-If there's a machine are going defined, denotes as `M`. It is supposed to specify three things: **register groups**, **memories** and **instructions**.
-Those three denote as `M.reg`, `M.mem`, `M.instr`.
+If there's a machine are going defined, denotes as `M`. It is supposed to specify three kinds of things: **register groups**, **memories** and **instructions**.
 To define the machine `M`, there's a keyword should be presented: `machine`.
 Then an identifier should be provided as `M`'s name.
 The definitions of these three properties should be placed in a `{` and `}` pair and follow the machine's name.
-The properties' order doesn't matter. And every kind of properties should contains one or more definition items.
+Every kind of properties should contain one or more definition items.
 Those properties definition items should also be led by keywords: `register`, `memory` or `instruction`.
 Every definition item's contents should be bracketed with `{` and `}` and ended with `;`.
 
@@ -257,11 +272,13 @@ the order of the parameters doesn't matter.
 <MappingItem>       ->      <bit-field> = <evaluable>
 ```
 
-and for
+and
 
 ```
+<evaluable>       ->        <identifier> . <identifier>
+<evaluable>       ->        <identifier> <bit-feild>
+<evaluable>       ->        <identifier>
 <evaluable>       ->        <number>
-<evaluable>       ->        <identifier>( . <identifier> <bit-feild>?)*
 ```
 
 ## Source Code Generate
