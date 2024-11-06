@@ -1,6 +1,6 @@
 # xMachine - A Backend Generator for Compilers
 
-This project tries to provide a method to generate C/C++ source files to describe a backend's structure.
+This project tries to provide a method to generate C lib to describe a backend's structure.
 
 ## Functions
 
@@ -24,7 +24,7 @@ With this program, users can:
 
 The machine (or backend) is supposed to be defined with a special text grammar.
 
-The generator read text inputs and analysis by the grammar and then generate C/C++ source files if no error.
+The generator read text inputs and analysis by the grammar and then generate a C lib if no error.
 
 If there's a machine are going defined, denotes as `M`. It is supposed to specify three kinds of things: **register groups**, **memories** and **instructions**.
 To define the machine `M`, there's a keyword should be presented: `machine`.
