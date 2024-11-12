@@ -82,7 +82,7 @@ register ax [64-bit] {
 
 The text above defines a RegisterGroup named `ax` and full width is 64 bits.
 In this RegisterGroup, there are 5 registers, named `rax`, `eax`, `ax`, `ah` and `al`.
-For `rax`, it occupies all 0 to 63th bit (total 64 bits) and will be encoded as `0x00` in instructions.
+For `rax`, it occupies all 0 to 63rd bit (total 64 bits) and will be encoded as `0x00` in instructions.
 But for `ah`, it only takes 8 to 15th bit (total 8 bits) and will be encoded as `0x04` in instructions.
 The others could be read in same way.
 
@@ -112,10 +112,10 @@ The text above defines a Memory addressing mode named `local`, which has total 1
 An Instruction definition item provides the byte code layouts of an Instruction's machine code.
 
 An Instruction definition item led by a keyword `instruction` and an identifier as its name.
-Like other machine properties, contents of Instruction defninition items should be bracketed with `{` and `}`.
+Like other machine properties, contents of Instruction definition items should be bracketed with `{` and `}`.
 
-A statement in a instrucntion definition item are called a **form** of the instrucntion.
-A form consists with a [pattern](#pattern-of-instrunction-form) and a description.
+A statement in an instruction definition item are called a **form** of the instruction.
+A form consists with a [pattern](#pattern-of-instruction-form) and a description.
 The pattern given arguments the form used and the description provides the width, the time cost and the main body of the form.
 
 contents of a form body will be bracketed with `{` and `}`.
@@ -156,14 +156,14 @@ and it will cost 4 cpu [time tick](#width-bit-field-and-time-tick) for executing
 An Immediate provides a type data with fixed width.
 
 Every Immediate should start with a keyword `immediate`.
-And an ideintifier follows as its name.
-A [width](#width-bit-field-and-time-tick) must be provided for an inmmediate. 
+And an identifier follows as its name.
+A [width](#width-bit-field-and-time-tick) must be provided for an immediate. 
 Then an optional field can be set as its type.
 The type can be one of the following table:
 
-|   type   |  means          |
-|:--------:|:---------------:|
-| unsigned | unsigned integer|
+|   type   |      means       |
+|:--------:|:----------------:|
+| unsigned | unsigned integer |
 
 
 Example:
@@ -171,15 +171,15 @@ Example:
 immediate refer [23-bit] unsigned;
 ```
 
-Immediates only used in Sets or Instructions.
+Immediate only used in Sets or Instructions.
 
 #### Set
 
-A Set is a special collection of registers, memories or Immediates.
+A Set is a special collection of registers, memories or Immediate.
 
 Every Set definition item starts with a keyword `set` and an identifier as its name.
 Its contents are bracketed with `{` and `}`, and seperated with commas.
-Every element of a Set is a Register, Memorie or Immediate.
+Every element of a Set is a Register, Memories or Immediate.
 And all elements of a Set should be items of same type. 
 
 For example
@@ -197,8 +197,8 @@ Sets only used in Instructions.
 
 A width is a number with data units and bracketed with `[` and `]`. 
 The data units can be `bit` or `byte`.
-The data units can be ommit. When data unit ommitted, the default data unit is `bit`.
-If the data unit not ommitted, the data unit should be contacted with `-`.
+The data units can be omitted. When data unit omitted, the default data unit is `bit`.
+If the data unit not omitted, the data unit should be contacted with `-`.
 For examples
 
 ```
@@ -224,13 +224,13 @@ Examples:
 
 There's a lot of symbols as macro to terse the grammar.
 
-| symbol |    where    |  means         |
+| symbol |    where    |     means      |
 |:------:|:-----------:|:--------------:|
-|  `^`   | Instruction | prefix         |
-|  `&`   | Instruction | suffix         |
+|  `^`   | Instruction |     prefix     |
+|  `&`   | Instruction |     suffix     |
 |  `~`   | Instruction | principal part |
-|  `$`   | Memory      | base           |
-|  `>`   | Memory      | offset         |
+|  `$`   |   Memory    |      base      |
+|  `>`   |   Memory    |     offset     |
 
 
 #### identifier
