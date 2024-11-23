@@ -15,7 +15,7 @@
 Entries *p_Entries_0(void *argv[], const Allocator * allocator) {
     Entries * entries = (Entries *) argv[0];
     Entry * entry = (Entry *) argv[1];
-    Array_append(entries,entry, 1);
+    Array_append(entries, entry, 1);
     allocator->free(entry);
     return entries;
 }
