@@ -86,9 +86,11 @@ for s, p in enumerate(table.keys()):
 
 
 def state_to_enum(p):
-    _state = '_'.join(p.strip('()').split(', '))
+    p = p.strip('()').split(', ')
+    _state = '_'.join(p)
+    current = 'TERMINATOR' if len(p) == 1 and p[0] == '' else p[-1]
     _state = ('__' + _state) if _state else '__EMPTY__'
-    return _state
+    return _state, current
 
 
 class Action:
@@ -103,7 +105,7 @@ class Action:
             self.action = "stack"
             self.type = 0
             self.count = 0
-            self.offset = f"{state_to_enum(p)}"
+            self.offset = f"{state_to_enum(p)[0]}"
 
     def __eq__(self, other):
         return self.action == other.action \
@@ -146,9 +148,9 @@ def gen_reduces():
 
 def gen_action_table():
     global table, terminals, targets
-    state_enum, states, actions, jumps, units = [], [], [], [], []
+    state_enum, states, actions, jumps, units, currents = [], [], [], [], [], []
     for p, q in table.items():
-        _state = state_to_enum(p)
+        _state, current = state_to_enum(p)
         state_enum.append(f'{_state} = {len(state_enum)}')
         _tokens = q.keys()
         _terminals = sorted(_tokens & set(terminals))
@@ -167,20 +169,23 @@ def gen_action_table():
             items[t] = addend.index(act)
         actions += [a.toString() for a in addend]
         for i, t in enumerate(_targets):
-            jumps.append(f"{state_to_enum(q[t])}")
+            jumps.append(f"{state_to_enum(q[t])[0]}")
             items[t] = i
         for i, t in enumerate(sorted(_tokens)):
             ndx.append(str(i))
             units.append(f"{{.type = enum_{t}, .offset = {items[t]}}}")
         string = ', '.join([f".{k} = {v}" for k, v in state.items()])
         states.append(f"[{_state}] = {{{string}}}")
+        currents.append(f"[{_state}] = enum_{current}")
+
     template = Tp(get_temp_from("action-table.c.tpl"))
     content = template.substitute(
         state_enum=',\n  '.join(state_enum),
         actions=",\n  ".join(actions),
         jumps=", ".join(jumps),
         units=", \n  ".join(units),
-        states=",\n  ".join(states)
+        states=",\n  ".join(states),
+        currents=",\n  ".join(currents),
     )
     with open(OUT_DIR / "action-table.gen.c", 'w') as fp:
         fp.write(content)

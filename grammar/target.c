@@ -151,4 +151,3 @@ void releaseSet(Set *set, const Allocator *allocator) {
   Array_reset(set->items, (fn_free_t *) releaseSetItem);
   Array_destroy(set->items);
 }
-

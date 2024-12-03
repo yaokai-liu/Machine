@@ -14,24 +14,24 @@
 #include "target.h"
 
 Machine *failed_to_get_next_state(
-    Stack *state_stack, Stack *token_stack, void *result, uint32_t result_type,
-    const Allocator *allocator
+    Stack *state_stack, Stack *token_stack, void *result, uint32_t type, const Allocator *allocator
 );
 
 Machine *failed_to_produce(
-    Stack *state_stack, Stack *token_stack, uint64_t *argv, uint32_t argc,
+    Stack *state_stack, Stack *token_stack, void *produceArgs[], int32_t *states, uint32_t argc,
     const Allocator *allocator
 );
 
-Machine *failed_to_get_action(Stack *state_stack, Stack *token_stack, const Allocator *allocator);
+Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocator *allocator);
 
 #define MAX_ARGC       0x10
 #define _sizeof(_type) ((int32_t) sizeof(_type))
 
-Machine *parse(const Terminal *tokens, const Allocator *allocator) {
+Machine *parse(const Terminal *tokens, uint32_t *cost, const Allocator *allocator) {
   void *result;
   const Terminal *tp = tokens;
-  uint64_t argv[MAX_ARGC] = {};
+  void *produceArgs[MAX_ARGC] = {};
+  int32_t tempStateArea[MAX_ARGC] = {};
   Stack *state_stack = Stack_new(allocator);
   Stack *token_stack = Stack_new(allocator);
   int32_t state = 0;
@@ -39,23 +39,30 @@ Machine *parse(const Terminal *tokens, const Allocator *allocator) {
 
   while (true) {
     const struct grammar_action *act = getAction(state, tp->type);
-    if (!act) { return failed_to_get_action(state_stack, token_stack, allocator); }
+    if (!act) {
+      *cost = (uint32_t) (uint64_t) (tp - tokens);
+      return clean_parse_stack(state_stack, token_stack, allocator);
+    }
     if (act->action == stack) {
       state = act->offset;
-      Stack_push(token_stack, &tp, sizeof(void *));
+      Stack_push(token_stack, &(tp->value), sizeof(void *));
       Stack_push(state_stack, &state, sizeof(int32_t));
       tp++;
     } else if (act->action == reduce) {
-      Stack_pop(token_stack, argv, act->count * _sizeof(void *));
-      Stack_pop(state_stack, nullptr, act->count * _sizeof(int32_t));
-      Stack_top(state_stack, (int32_t *) &state, _sizeof(int32_t));
+      Stack_pop(token_stack, produceArgs, act->count * sizeof(void *));
+      Stack_pop(state_stack, tempStateArea, act->count * sizeof(int32_t));
+      Stack_top(state_stack, (int32_t *) &state, sizeof(int32_t));
       fn_product *func = PRODUCTS[act->offset];
-      result = func((void **) argv, allocator);
+      result = func(produceArgs, allocator);
       if (!result) {
-        return failed_to_produce(state_stack, token_stack, argv, act->count, allocator);
+        *cost = (uint32_t) (uint64_t) (tp - tokens);
+        return failed_to_produce(
+            state_stack, token_stack, produceArgs, tempStateArea, act->count, allocator
+        );
       }
       state = jump(state, act->type);
       if (state < 0) {
+        *cost = (uint32_t) (uint64_t) (tp - tokens);
         return failed_to_get_next_state(state_stack, token_stack, result, act->type, allocator);
       }
       Stack_push(token_stack, &result, sizeof(void *));
@@ -69,5 +76,6 @@ Machine *parse(const Terminal *tokens, const Allocator *allocator) {
   Stack_clear(state_stack);
   allocator->free(token_stack);
   allocator->free(state_stack);
+  *cost = (uint32_t) (uint64_t) (tp - tokens);
   return result;
 }

@@ -7,6 +7,7 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
+#include "action-table.h"
 #include "enum.h"
 #include "target.h"
 #include "terminal.h"
@@ -64,9 +65,9 @@ Entry *p_Entry_4(void *argv[], const Allocator *allocator) {
 }
 
 Evaluable *p_Evaluable_0(void *argv[], const Allocator *allocator) {
-  Identifier *lhs = (Identifier *) ((Terminal *) argv[0])->value;
+  Identifier *lhs = (Identifier *) argv[0];
   // todo: verify identifier in global identifier table.
-  void *rhs = ((Terminal *) argv[2])->value;
+  void *rhs = argv[2];
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_MEM_KEY;
   evaluable->lhs = lhs;
@@ -75,9 +76,9 @@ Evaluable *p_Evaluable_0(void *argv[], const Allocator *allocator) {
 }
 
 Evaluable *p_Evaluable_1(void *argv[], const Allocator *allocator) {
-  Identifier *lhs = (Identifier *) ((Terminal *) argv[0])->value;
+  Identifier *lhs = (Identifier *) argv[0];
   // todo: verify identifier in global identifier table.
-  BitField *rhs = (BitField *) ((Terminal *) argv[1])->value;
+  BitField *rhs = (BitField *) argv[1];
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_BIT_FIELD;
   evaluable->lhs = lhs;
@@ -86,7 +87,7 @@ Evaluable *p_Evaluable_1(void *argv[], const Allocator *allocator) {
 }
 
 Evaluable *p_Evaluable_2(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) ((Terminal *) argv[0])->value;
+  Identifier *identifier = (Identifier *) argv[0];
   // todo: verify identifier in global identifier table.
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_IDENTIFIER;
@@ -96,7 +97,7 @@ Evaluable *p_Evaluable_2(void *argv[], const Allocator *allocator) {
 }
 
 Evaluable *p_Evaluable_3(void *argv[], const Allocator *allocator) {
-  uint64_t number = (uint64_t) ((Terminal *) argv[0])->value;
+  uint64_t number = (uint64_t) argv[0];
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_NUMBER;
   evaluable->lhs = (void *) number;
@@ -105,10 +106,10 @@ Evaluable *p_Evaluable_3(void *argv[], const Allocator *allocator) {
 }
 
 Immediate *p_Immediate_0(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) ((Terminal *) argv[1])->value;
+  Identifier *identifier = (Identifier *) argv[1];
   // todo: verify identifier not in global identifier table.
-  uint32_t width = (uint32_t) (uint64_t) ((Terminal *) argv[2])->value;
-  uint32_t type = (uint64_t) ((Terminal *) argv[3])->type;
+  uint32_t width = (uint32_t) (uint64_t) argv[2];
+  uint32_t type = (uint64_t) argv[3];
   Immediate *immediate = allocator->calloc(1, sizeof(Immediate));
   immediate->type = type;
   immediate->width = width;
@@ -118,7 +119,7 @@ Immediate *p_Immediate_0(void *argv[], const Allocator *allocator) {
 
 InstrForm *p_InstrForm_0(void *argv[], const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
-  uint32_t width = (uint32_t) (uint64_t) ((Terminal *) argv[2])->value;
+  uint32_t width = (uint32_t) (uint64_t) argv[2];
   InstrParts *parts = (InstrParts *) argv[4];
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
@@ -130,8 +131,8 @@ InstrForm *p_InstrForm_0(void *argv[], const Allocator *allocator) {
 
 InstrForm *p_InstrForm_1(void *argv[], const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
-  uint32_t width = (uint32_t) (uint64_t) ((Terminal *) argv[2])->value;
-  uint32_t tick = (uint32_t) (uint64_t) ((Terminal *) argv[3])->value;
+  uint32_t width = (uint32_t) (uint64_t) argv[2];
+  uint32_t tick = (uint32_t) (uint64_t) argv[3];
   InstrParts *parts = (InstrParts *) argv[5];
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
@@ -158,8 +159,8 @@ InstrForms *p_InstrForms_1(void *argv[], const Allocator *allocator) {
 }
 
 InstrPart *p_InstrPart_0(void *argv[], const Allocator *allocator) {
-  enum PART_KEY key = (uint32_t) (uint64_t) ((Terminal *) argv[0])->value;
-  uint32_t width = (uint32_t) (uint64_t) ((Terminal *) argv[2])->value;
+  enum PART_KEY key = (uint32_t) (uint64_t) argv[0];
+  uint32_t width = (uint32_t) (uint64_t) argv[2];
   Layout *layout = (Layout *) argv[4];
   InstrPart *part = allocator->calloc(1, sizeof(InstrPart));
   part->type = key;
@@ -185,7 +186,7 @@ InstrParts *p_InstrParts_1(void *argv[], const Allocator *allocator) {
 }
 
 Instruction *p_Instruction_0(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) ((Terminal *) argv[1])->value;
+  Identifier *identifier = (Identifier *) argv[1];
   InstrForms *forms = (InstrForms *) argv[3];
   Instruction *instr = allocator->calloc(1, sizeof(Instruction));
   instr->name = identifier;
@@ -210,7 +211,7 @@ Layout *p_Layout_1(void *argv[], const Allocator *allocator) {
 }
 
 Machine *p_Machine_0(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) ((Terminal *) argv[1])->value;
+  Identifier *identifier = (Identifier *) argv[1];
   // todo: verify identifier not in global identifier table.
   Entries *entries = argv[3];
   Machine *machine = allocator->calloc(1, sizeof(Machine));
@@ -224,7 +225,7 @@ Machine *p___EXTEND_RULE__(void *argv[], const Allocator *) {
 }
 
 MappingItem *p_MappingItem_0(void *argv[], const Allocator *allocator) {
-  BitField *bit_field = (BitField *) ((Terminal *) argv[0])->value;
+  BitField *bit_field = (BitField *) argv[0];
   Evaluable *evaluable = (Evaluable *) argv[2];
   MappingItem *item = allocator->calloc(1, sizeof(MappingItem));
   item->field = bit_field;
@@ -249,9 +250,9 @@ MappingItems *p_MappingItems_1(void *argv[], const Allocator *allocator) {
 }
 
 MemItem *p_MemItem_0(void *argv[], const Allocator *allocator) {
-  enum MEM_KEY key = (uint32_t) (uint64_t) ((Terminal *) argv[0])->value;
+  enum MEM_KEY key = (uint32_t) (uint64_t) argv[0];
   if (key != MEM_BASE && key != MEM_OFFSET) { return nullptr; }
-  BitField *bit_field = (BitField *) ((Terminal *) argv[2])->value;
+  BitField *bit_field = (BitField *) argv[2];
   MemItem *item = allocator->calloc(1, sizeof(MemItem));
   item->type = key;
   item->field = bit_field;
@@ -259,9 +260,9 @@ MemItem *p_MemItem_0(void *argv[], const Allocator *allocator) {
 }
 
 Memory *p_Memory_0(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) ((Terminal *) argv[1])->value;
+  Identifier *identifier = (Identifier *) argv[1];
   // todo: verify identifier not in global identifier table.
-  uint32_t width = (uint32_t) (uint64_t) ((Terminal *) argv[2])->value;
+  uint32_t width = (uint32_t) (uint64_t) argv[2];
   MemItem *item1 = (MemItem *) argv[4];
   MemItem *item2 = (MemItem *) argv[5];
   if (item1->type == item2->type) { return nullptr; }
@@ -288,7 +289,7 @@ Pattern *p_Pattern_0(void *argv[], const Allocator *allocator) {
 
 PatternArgs *p_PatternArgs_0(void *argv[], const Allocator *allocator) {
   PatternArgs *args = (PatternArgs *) argv[0];
-  Identifier *identifier = (Identifier *) ((Terminal *) argv[2])->value;
+  Identifier *identifier = (Identifier *) argv[2];
   // todo: verify identifier in global identifier table.
   Array_append(args, identifier, 1);
   allocator->free(identifier);
@@ -296,7 +297,7 @@ PatternArgs *p_PatternArgs_0(void *argv[], const Allocator *allocator) {
 }
 
 PatternArgs *p_PatternArgs_1(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) ((Terminal *) argv[0])->value;
+  Identifier *identifier = (Identifier *) argv[0];
   // todo: verify identifier in global identifier table.
   PatternArgs *args = Array_new(sizeof(Identifier), allocator);
   Array_append(args, identifier, 1);
@@ -305,10 +306,10 @@ PatternArgs *p_PatternArgs_1(void *argv[], const Allocator *allocator) {
 }
 
 Register *p_Register_0(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) ((Terminal *) argv[0])->value;
+  Identifier *identifier = (Identifier *) argv[0];
   // todo: verify identifier not in global identifier table.
-  BitField *bit_field = (BitField *) ((Terminal *) argv[2])->value;
-  uint64_t number = (uint64_t) ((Terminal *) argv[4])->value;
+  BitField *bit_field = (BitField *) argv[2];
+  uint64_t number = (uint64_t) argv[4];
   Register *reg = allocator->calloc(1, sizeof(Register));
   reg->name = identifier;
   reg->field = bit_field;
@@ -317,9 +318,9 @@ Register *p_Register_0(void *argv[], const Allocator *allocator) {
 }
 
 RegisterGroup *p_RegisterGroup_0(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) ((Terminal *) argv[1])->value;
+  Identifier *identifier = (Identifier *) argv[1];
   // todo: verify identifier not in global identifier table.
-  uint32_t width = (uint32_t) (uint64_t) ((Terminal *) argv[2])->value;
+  uint32_t width = (uint32_t) (uint64_t) argv[2];
   Registers *registers = (Registers *) argv[4];
   RegisterGroup *group = allocator->calloc(1, sizeof(RegisterGroup));
   group->name = identifier;
@@ -345,7 +346,7 @@ Registers *p_Registers_1(void *argv[], const Allocator *allocator) {
 }
 
 Set *p_Set_0(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) ((Terminal *) argv[0])->value;
+  Identifier *identifier = (Identifier *) argv[0];
   // todo: verify identifier not in global identifier table.
   SetItems *items = (SetItems *) argv[1];
   Set *set = allocator->calloc(1, sizeof(Set));
@@ -356,7 +357,7 @@ Set *p_Set_0(void *argv[], const Allocator *allocator) {
 
 SetItems *p_SetItems_0(void *argv[], const Allocator *allocator) {
   SetItems *items = (SetItems *) argv[0];
-  Identifier *identifier = (Identifier *) ((Terminal *) argv[2])->value;
+  Identifier *identifier = (Identifier *) argv[2];
   // todo: verify identifier in global identifier table.
   Array_append(items, identifier, 1);
   allocator->free(identifier);
@@ -364,7 +365,7 @@ SetItems *p_SetItems_0(void *argv[], const Allocator *allocator) {
 }
 
 SetItems *p_SetItems_1(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) ((Terminal *) argv[0])->value;
+  Identifier *identifier = (Identifier *) argv[0];
   // todo: verify identifier in global identifier table.
   SetItems *items = Array_new(sizeof(Identifier), allocator);
   Array_append(items, identifier, 1);
@@ -374,44 +375,103 @@ SetItems *p_SetItems_1(void *argv[], const Allocator *allocator) {
 
 #include "stack.h"
 
+void releaseToken(void *token, uint32_t type, const Allocator *allocator);
+
 Machine *failed_to_get_next_state(
-    Stack *state_stack, Stack *token_stack, void *result, uint32_t result_type,
-    const Allocator *allocator
+    Stack *state_stack, Stack *token_stack, void *result, uint32_t type, const Allocator *allocator
 );
 
 Machine *failed_to_produce(
-    Stack *state_stack, Stack *token_stack, uint64_t *argv, uint32_t argc,
+    Stack *state_stack, Stack *token_stack, void *produceArgs[], int32_t *states, uint32_t argc,
     const Allocator *allocator
 );
 
-Machine *failed_to_get_action(Stack *state_stack, Stack *token_stack, const Allocator *allocator);
+Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocator *allocator);
 
 Machine *failed_to_get_next_state(
-    Stack *state_stack, Stack *token_stack, void *result, uint32_t result_type,
-    const Allocator *allocator
+    Stack *state_stack, Stack *token_stack, void *result, uint32_t type, const Allocator *allocator
 ) {
   int32_t state = 0;
   Stack_top(state_stack, (&state), sizeof(int32_t));
-  switch (result_type) {
-    // TODO: release memory allocated.
-  }
+  releaseToken(result, type, allocator);
   allocator->free(result);
-  return failed_to_get_action(state_stack, token_stack, allocator);
+  return clean_parse_stack(state_stack, token_stack, allocator);
 }
 
 Machine *failed_to_produce(
-    Stack *state_stack, Stack *token_stack, uint64_t *argv [[maybe_unused]],
-    uint32_t argc [[maybe_unused]], const Allocator *allocator
+    Stack *state_stack, Stack *token_stack, void *produceArgs[], int32_t *states, uint32_t argc,
+    const Allocator *allocator
 ) {
-  // TODO：release memory allocated.
-  return failed_to_get_action(state_stack, token_stack, allocator);
+  for (uint32_t i = 0; i < argc; i++) {
+    uint32_t type = stateCurrentTokenType(states[i]);
+    releaseToken(produceArgs[i], type, allocator);
+  }
+  return clean_parse_stack(state_stack, token_stack, allocator);
 }
 
-Machine *failed_to_get_action(Stack *state_stack, Stack *token_stack, const Allocator *allocator) {
+Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocator *allocator) {
   // TODO：release memory allocated.
+  void *token = nullptr;
+  int32_t state = -1;
+  while (!Stack_empty(token_stack)) {
+    Stack_pop(token_stack, &token, sizeof(void *));
+    Stack_pop(state_stack, &state, sizeof(int32_t));
+    uint32_t type = stateCurrentTokenType(state);
+    releaseToken(token, type, allocator);
+  }
   Stack_clear(token_stack);
   Stack_clear(state_stack);
   allocator->free(token_stack);
   allocator->free(state_stack);
   return nullptr;
+}
+
+#define releaseArrayCase(array, ele)                \
+  case enum_##array: {                              \
+    Array_reset(token, (fn_free_t *) release##ele); \
+    Array_destroy(token);                           \
+    break;                                          \
+  }
+#define releaseTokenCase(t, r)    \
+  case enum_##t: {                \
+    release##r(token, allocator); \
+    break;                        \
+  }
+
+void releaseToken(void *token, uint32_t type, const Allocator *allocator) {
+  switch (type) {
+    releaseArrayCase(Entries, Entry)
+    releaseArrayCase(InstrForms, InstrForm)
+    releaseArrayCase(InstrParts, InstrPart)
+    releaseArrayCase(MappingItems, MappingItem)
+    releaseArrayCase(PatternArgs, Identifier)
+    releaseArrayCase(Registers, Register)
+    releaseArrayCase(SetItems, SetItem)
+    releaseTokenCase(Entry, Entry)
+
+    releaseTokenCase(Evaluable, Evaluable)
+    releaseTokenCase(Immediate, Immediate)
+    releaseTokenCase(InstrForm, InstrForm)
+    releaseTokenCase(InstrPart, InstrPart)
+    releaseTokenCase(Instruction, Instruction)
+    releaseTokenCase(Layout, Layout)
+    releaseTokenCase(Machine, Machine)
+    releaseTokenCase(MappingItem, MappingItem)
+    releaseTokenCase(MemItem, MemItem)
+    releaseTokenCase(Memory, Memory)
+    releaseTokenCase(Pattern, Pattern)
+    releaseTokenCase(Register, Register)
+    releaseTokenCase(RegisterGroup, RegisterGroup)
+    releaseTokenCase(Set, Set)
+    case enum_IDENTIFIER: {
+      releaseIdentifier(token, allocator);
+      allocator->free(token);
+      break;
+    }
+    case enum_BIT_FIELD: {
+      releaseBitField(token, allocator);
+      allocator->free(token);
+      break;
+    }
+  }
 }

@@ -32,6 +32,7 @@ uint32_t try_keyword_memory(const char_t *input, Terminal *result, const Allocat
 uint32_t try_keyword_register(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_set(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_unsigned(const char_t *input, Terminal *result, const Allocator *allocator);
+uint32_t try_keyword_signed(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t single_tokenize(const char_t *input, Terminal *result, const Allocator *allocator);
 
 inline uint32_t strcmp_o(const char_t * const str1, const char_t * const str2) {
@@ -174,6 +175,19 @@ inline uint32_t t_IDENTIFIER(
     return lenof(#_kw);                                                                      \
     __failed_kw_##_kw : return t_IDENTIFIER(input - 2, result, allocator);                   \
   }
+#define fn_try_keyword_val(_kw, _type, val)                                                  \
+  inline uint32_t try_keyword_##_kw(                                                         \
+      const char_t * const input, Terminal * const result, const Allocator * const allocator \
+  ) {                                                                                        \
+    const char_t pattern[] = string_t(#_kw);                                                 \
+    for (uint32_t i = 2; i < sizeof(pattern) - 1; i++) {                                     \
+      if (input[i - 2] != pattern[i]) { goto __failed_kw_##_kw; }                            \
+    }                                                                                        \
+    result->type = enum_##_type;                                                             \
+    result->value = (void *) val;                                                            \
+    return lenof(#_kw);                                                                      \
+    __failed_kw_##_kw : return t_IDENTIFIER(input - 2, result, allocator);                   \
+  }
 
 fn_try_keyword(immediate, IMMEDIATE)
 fn_try_keyword(instruction, INSTRUCTION)
@@ -181,8 +195,7 @@ fn_try_keyword(machine, MACHINE)
 fn_try_keyword(memory, MEMORY)
 fn_try_keyword(set, SET)
 fn_try_keyword(register, REGISTER)
-fn_try_keyword(unsigned, TYPE)
-
+fn_try_keyword_val(unsigned, TYPE, IT_UNSIGNED) fn_try_keyword_val(signed, TYPE, IT_SIGNED)
 #define fn_fall_through()                                                \
   do {                                                                   \
     uint32_t length = t_IDENTIFIER(input - 1, result, allocator);        \
@@ -197,9 +210,9 @@ fn_try_keyword(unsigned, TYPE)
     return length;                                                       \
   } while (0)
 
-uint32_t tokenize_letter_i(
-    const char_t * const input, Terminal * const result, const Allocator * const allocator
-) {
+    uint32_t tokenize_letter_i(
+        const char_t * const input, Terminal * const result, const Allocator * const allocator
+    ) {
   switch (*input) {
     case 'm': {
       return try_keyword_immediate(input + 1, result, allocator);
@@ -231,6 +244,9 @@ uint32_t tokenize_letter_s(
   switch (*input) {
     case 'e': {
       return try_keyword_set(input + 1, result, allocator);
+    }
+    case 'i': {
+      return try_keyword_signed(input + 1, result, allocator);
     }
     default: fn_fall_through();
   }

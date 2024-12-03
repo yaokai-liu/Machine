@@ -33,17 +33,23 @@ int main() {
       printf("failed to close file.\n");
       return -2;
   }
+//  const char_t * str = string_t("machine x64 {");
   const Terminal *terminals = tokenize(testString, &cost, &n_tokens, &STDAllocator);
   if (!n_tokens) {
       printf("failed to lex at <%d>.\n", cost);
+      STDAllocator.free((void *) terminals);
       return -3;
   }
 //  for (uint32_t i = 0; i < n_tokens; i++) {
 //      printf("(type: %s, value: %p)\n", get_name(terminals[i].type), terminals[i].value);
 //  }
-  const Machine * machine = parse(terminals, &STDAllocator);
+  const Machine * machine = parse(terminals, &cost, &STDAllocator);
   if (!machine) {
       printf("failed to parse.\n");
+      for (uint32_t i = cost; i < n_tokens; i++) {
+        releaseToken(terminals[i].value, terminals[i].type, &STDAllocator);
+      }
+      STDAllocator.free((void *) terminals);
       return -4;
   }
   char_t string[512] = {};

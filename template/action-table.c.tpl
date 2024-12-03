@@ -8,6 +8,7 @@
 #include "action-table.h"
 #include "reduce.gen.h"
 #include "tokens.gen.h"
+#include "target.h"
 
 struct state {
   const uint16_t ndx_base;
@@ -23,11 +24,13 @@ struct unit {
 const struct grammar_action ACTIONS[];
 const uint16_t JUMPS[];
 const struct unit UNITS[];
+const struct state STATES[];
+const uint32_t CURRENT_TOKENS[];
 
 const struct unit *getUnit(const state *state, uint32_t look);
 
 enum __STATE_ENUM__ {
-    ${state_enum}
+  ${state_enum}
 };
 
 const struct grammar_action ACTIONS[] = {
@@ -46,6 +49,9 @@ const struct state STATES[] = {
   ${states}
 };
 
+const uint32_t CURRENT_TOKENS[] = {
+  ${currents}
+};
 
 inline const struct unit *getUnit(const state *state, uint32_t look) {
     const struct unit *unit, *base = &UNITS[state->token_base];
@@ -79,4 +85,8 @@ inline int32_t jump(uint32_t index, uint32_t current) {
     const struct unit *unit = getUnit(state, current);
     if (!unit) { return -1; }
     return JUMPS[state->goto_base + unit->offset];
+}
+
+inline uint32_t stateCurrentTokenType(int32_t state) {
+  return CURRENT_TOKENS[state];
 }

@@ -28,4 +28,6 @@ const struct grammar_action *getAction(uint32_t index, uint32_t ahead);
 
 int32_t jump(uint32_t index, uint32_t current);
 
+uint32_t stateCurrentTokenType(int32_t state);
+
 #endif  // MACHINE_ACTION_TABLE_H

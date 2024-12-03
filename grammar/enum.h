@@ -26,4 +26,9 @@ enum WIDTH_TYPE {
   WIDTH_BYTE
 };
 
+enum IMMEDIATE_TYPE {
+  IT_UNSIGNED,
+  IT_SIGNED,
+};
+
 #endif  // MACHINE_ENUM_H

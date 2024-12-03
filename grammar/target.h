@@ -34,7 +34,7 @@ typedef struct Immediate {
   uint32_t type;
   Identifier *name;
 } Immediate;
-typedef Array PatternArgs;  // Array<IDENTIFIER>
+typedef Array PatternArgs;  // Array<Identifier>
 typedef struct Pattern {
   PatternArgs *args;
 } Pattern;
@@ -106,6 +106,8 @@ typedef struct Set {
 typedef void *fn_product(void *argv[], const Allocator *allocator);
 
 extern fn_product * const PRODUCTS[];
+
+void releaseToken(void *token, uint32_t type, const Allocator *allocator);
 
 void releaseEntry(Entry *entry, const Allocator *allocator);
 void releaseMachine(Machine *machine, const Allocator *allocator);

@@ -73,6 +73,8 @@ SpacesInLineCommentPrefix:
 StatementMacros:
   - fn_try_keyword
   - add_test_for
+  - releaseArrayCase
+  - releaseTokenCase
 TabWidth: 2
 UseCRLF: false
 UseTab: Never

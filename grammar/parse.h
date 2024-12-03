@@ -12,6 +12,6 @@
 
 #include "target.h"
 
-Machine *parse(const Terminal *tokens, const Allocator *allocator);
+Machine *parse(const Terminal *tokens, uint32_t *cost, const Allocator *allocator);
 
 #endif  // MACHINE_PARSE_H
