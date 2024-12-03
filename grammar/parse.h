@@ -14,4 +14,4 @@
 
 Machine *parse(const Terminal *tokens, const Allocator *allocator);
 
-#endif //MACHINE_PARSE_H
+#endif  // MACHINE_PARSE_H

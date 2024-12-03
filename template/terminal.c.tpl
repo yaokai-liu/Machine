@@ -1,5 +1,5 @@
 /**
- * Project Name: regex
+ * Project Name: machine
  * Module Name: template
  * Filename: terminals.gen.c
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.

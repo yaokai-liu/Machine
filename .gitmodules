@@ -2,3 +2,6 @@
 	path = liu-machine
 	url = git@gitlab.com:yaokai-liu/xnf.git
 	branch = liu-machine
+[submodule "contana"]
+	path = contana
+	url = git@gitlab.com:yaokai-liu/contana.git

@@ -20,6 +20,7 @@
 #define MAX_CHAR 1024
 
 
+
 int main() {
   char_t testString[MAX_CHAR] = {};
   uint32_t cost = 0;
@@ -37,9 +38,9 @@ int main() {
       printf("failed to lex at <%d>.\n", cost);
       return -3;
   }
-  for (uint32_t i = 0; i < n_tokens; i++) {
-      printf("%s :: %p\n", get_name(terminals[i].type), terminals[i].value);
-  }
+//  for (uint32_t i = 0; i < n_tokens; i++) {
+//      printf("(type: %s, value: %p)\n", get_name(terminals[i].type), terminals[i].value);
+//  }
   const Machine * machine = parse(terminals, &STDAllocator);
   if (!machine) {
       printf("failed to parse.\n");
@@ -48,6 +49,9 @@ int main() {
   char_t string[512] = {};
   memcpy(string, machine->name->ptr, machine->name->len);
   string[machine->name->len] = '\0';
-  printf("machine %s", string);
+  printf("machine %s\n", string);
+  releaseMachine((Machine *) machine, &STDAllocator);
+  STDAllocator.free((void *) machine);
+  STDAllocator.free((void *) terminals);
   return 0;
 }

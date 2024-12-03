@@ -1,5 +1,5 @@
 /**
- * Project Name: regex
+ * Project Name: machine
  * Module Name: grammar
  * Filename: char_t.h
  * Creator: Yaokai Liu
@@ -7,8 +7,8 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef REGEX_CHAR_T_H
-#define REGEX_CHAR_T_H
+#ifndef LIU_CHAR_T_H
+#define LIU_CHAR_T_H
 
 // Promise sizeof(char_t) < sizeof(uint64_t).
 typedef char char_t;
@@ -16,4 +16,4 @@ typedef char char_t;
 #define char_t(_chr)   _chr
 #define string_t(_str) _str
 
-#endif  // REGEX_CHAR_T_H
+#endif  // LIU_CHAR_T_H

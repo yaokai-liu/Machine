@@ -1,12 +1,12 @@
 /**
- * Project Name: regex
+ * Project Name: machine
  * Module Name: template
  * Filename: reduces.gen.h
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef REGEX_REDUCES_H
-#define REGEX_REDUCES_H
+#ifndef MACHINE_REDUCES_H
+#define MACHINE_REDUCES_H
 
 #include "target.h"
 
@@ -16,4 +16,4 @@ enum __PRODUCT_RULE_ENUM__ {
 
 ${reduces}
 
-#endif  // REGEX_REDUCES_H
+#endif  // MACHINE_REDUCES_H

@@ -11,10 +11,11 @@
 #include "enum.h"
 #include "terminal.h"
 #include "tokens.gen.h"
+#include <stdio.h>
 
 #define lenof(str_literal) ((sizeof str_literal) - 1)
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#define min(a, b) ((a) < (b) ? (a) : (b))
+#define max(a, b)          ((a) > (b) ? (a) : (b))
+#define min(a, b)          ((a) < (b) ? (a) : (b))
 
 uint32_t strcmp_o(const char_t *str1, const char_t *str2);
 uint32_t stridx_o(const char_t chr, const char_t *str);
@@ -46,7 +47,8 @@ inline uint32_t stridx_o(const char_t chr, const char_t * const str) {
 }
 
 inline uint32_t t_NUMBER_adic16(
-  const char_t * const input, Terminal * const result, const Allocator * const allocator [[maybe_unused]]
+    const char_t * const input, Terminal * const result,
+    const Allocator * const allocator [[maybe_unused]]
 ) {
   const char_t *pText = input;
   uint64_t value = 0LL;
@@ -54,13 +56,11 @@ inline uint32_t t_NUMBER_adic16(
     if ('0' <= *pText && *pText <= '9') {
       value = (value << 4) + (*pText++ - '0');
     } else if ('a' <= *pText && *pText <= 'f') {
-      value = (value << 4) + (*pText++ - 'a' + 0xa); // NOLINT(*-magic-numbers)
+      value = (value << 4) + (*pText++ - 'a' + 0xa);  // NOLINT(*-magic-numbers)
     } else if ('A' <= *pText && *pText <= 'F') {
-      value = (value << 4) + (*pText++ - 'A' + 0xA); // NOLINT(*-magic-numbers)
-    } else
-    if(('g' <= *pText && *pText <= 'z')
-    || ('G' <= *pText && *pText <= 'Z')
-    || ('_' == *pText)) {
+      value = (value << 4) + (*pText++ - 'A' + 0xA);  // NOLINT(*-magic-numbers)
+    } else if (('g' <= *pText && *pText <= 'z') || ('G' <= *pText && *pText <= 'Z')
+               || ('_' == *pText)) {
       return 0;
     } else {
       break;
@@ -72,7 +72,8 @@ inline uint32_t t_NUMBER_adic16(
 }
 
 inline uint32_t t_NUMBER_adic10(
-  const char_t * const input, Terminal * const result, const Allocator * const allocator [[maybe_unused]]
+    const char_t * const input, Terminal * const result,
+    const Allocator * const allocator [[maybe_unused]]
 ) {
   const char_t *pText = input;
   uint64_t value = 0;
@@ -81,9 +82,7 @@ inline uint32_t t_NUMBER_adic10(
       value = (value * 10) + (*pText++ - '0');  // NOLINT(*-magic-numbers)
       continue;
     }
-    if(('a' <= *pText && *pText <= 'z')
-    || ('A' <= *pText && *pText <= 'Z')
-    || ('_' == *pText)) {
+    if (('a' <= *pText && *pText <= 'z') || ('A' <= *pText && *pText <= 'Z') || ('_' == *pText)) {
       return 0;
     }
     break;
@@ -93,8 +92,10 @@ inline uint32_t t_NUMBER_adic10(
   return pText - input;
 }
 
-inline uint32_t
-  t_NUMBER_adic8(const char_t * const input, Terminal * const result, const Allocator * const allocator [[maybe_unused]]) {
+inline uint32_t t_NUMBER_adic8(
+    const char_t * const input, Terminal * const result,
+    const Allocator * const allocator [[maybe_unused]]
+) {
   const char_t *pText = input;
   uint64_t value = 0;
   while (true) {
@@ -102,11 +103,8 @@ inline uint32_t
       value = (value << 3) + (*pText++ - '0');
       continue;
     }
-    if(('8' == *pText)
-    || ('9' == *pText)
-    || ('a' <= *pText && *pText <= 'z')
-    || ('A' <= *pText && *pText <= 'Z')
-    || ('_' == *pText)) {
+    if (('8' == *pText) || ('9' == *pText) || ('a' <= *pText && *pText <= 'z')
+        || ('A' <= *pText && *pText <= 'Z') || ('_' == *pText)) {
       return 0;
     }
     break;
@@ -116,8 +114,10 @@ inline uint32_t
   return pText - input;
 }
 
-inline uint32_t
-  t_NUMBER_adic2(const char_t * const input, Terminal * const result, const Allocator * const allocator [[maybe_unused]]) {
+inline uint32_t t_NUMBER_adic2(
+    const char_t * const input, Terminal * const result,
+    const Allocator * const allocator [[maybe_unused]]
+) {
   const char_t *pText = input;
   uint64_t value = 0;
   while (true) {
@@ -125,11 +125,8 @@ inline uint32_t
       value = (value << 1) + (*pText++ - '0');
       continue;
     }
-    if(('2' <= *pText && *pText <= '9')
-    || ('a' <= *pText && *pText <= 'z')
-    || ('A' <= *pText && *pText <= 'Z')
-    || ('_' == *pText)
-    ) {
+    if (('2' <= *pText && *pText <= '9') || ('a' <= *pText && *pText <= 'z')
+        || ('A' <= *pText && *pText <= 'Z') || ('_' == *pText)) {
       return 0;
     }
     break;
@@ -139,24 +136,24 @@ inline uint32_t
   return pText - input;
 }
 
-inline uint32_t t_IDENTIFIER(const char_t * const input, Terminal * const result, const Allocator * const allocator) {
+inline uint32_t t_IDENTIFIER(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
   const char_t *pText = input;
-  if(('a' <= *pText && *pText <= 'z')
-  || ('A' <= *pText && *pText <= 'Z')) {
+  if (('a' <= *pText && *pText <= 'z') || ('A' <= *pText && *pText <= 'Z')) {
     pText++;
   } else {
     return 0;
   }
   while (true) {
-    if(('a' <= *pText && *pText <= 'z')
-    || ('A' <= *pText && *pText <= 'Z')
-    || ('0' <= *pText && *pText <= '9')) {
+    if (('a' <= *pText && *pText <= 'z') || ('A' <= *pText && *pText <= 'Z')
+        || ('0' <= *pText && *pText <= '9')) {
       pText++;
     } else {
       break;
     }
   }
-  String *identifier = allocator->calloc(1, sizeof(String));
+  Identifier *identifier = allocator->calloc(1, sizeof(Identifier));
   identifier->ptr = input;
   identifier->len = pText - input;
   result->type = enum_IDENTIFIER;
@@ -164,20 +161,18 @@ inline uint32_t t_IDENTIFIER(const char_t * const input, Terminal * const result
   return identifier->len;
 }
 
-#define fn_try_keyword(_kw, _type)                                                                              \
-  inline uint32_t                                                                                               \
-    try_keyword_##_kw(const char_t * const input, Terminal * const result, const Allocator * const allocator) { \
-    const char_t pattern[] = string_t(#_kw);                                                                    \
-    for (uint32_t i = 2; i < sizeof(pattern) - 1; i++) {                                                        \
-      if (input[i - 2] != pattern[i]) {                                                                         \
-      goto __failed_kw_##_kw;                                                                                                          \
-      }                                                                                                         \
-    }                                                                                                           \
-    result->type = enum_##_type;                                                                                \
-    result->value = nullptr;                                                                                    \
-    return lenof(#_kw);                                                                                         \
-  __failed_kw_##_kw:                                                                                            \
-    return t_IDENTIFIER(input - 2, result, allocator);                                                          \
+#define fn_try_keyword(_kw, _type)                                                           \
+  inline uint32_t try_keyword_##_kw(                                                         \
+      const char_t * const input, Terminal * const result, const Allocator * const allocator \
+  ) {                                                                                        \
+    const char_t pattern[] = string_t(#_kw);                                                 \
+    for (uint32_t i = 2; i < sizeof(pattern) - 1; i++) {                                     \
+      if (input[i - 2] != pattern[i]) { goto __failed_kw_##_kw; }                            \
+    }                                                                                        \
+    result->type = enum_##_type;                                                             \
+    result->value = nullptr;                                                                 \
+    return lenof(#_kw);                                                                      \
+    __failed_kw_##_kw : return t_IDENTIFIER(input - 2, result, allocator);                   \
   }
 
 fn_try_keyword(immediate, IMMEDIATE)
@@ -188,21 +183,23 @@ fn_try_keyword(set, SET)
 fn_try_keyword(register, REGISTER)
 fn_try_keyword(unsigned, TYPE)
 
-#define fn_fall_through()                                         \
-  do {                                                            \
-    uint32_t length = t_IDENTIFIER(input - 1, result, allocator); \
-    if (length == 0) {                                            \
-      String *identifier = allocator->calloc(1, sizeof(String));  \
-      identifier->ptr = input - 1;                                \
-      identifier->len = 1;                                        \
-      result->type = enum_IDENTIFIER;                             \
-      result->value = identifier;                                 \
-      return 1;                                                   \
-    }                                                             \
-    return length;                                                \
+#define fn_fall_through()                                                \
+  do {                                                                   \
+    uint32_t length = t_IDENTIFIER(input - 1, result, allocator);        \
+    if (length == 0) {                                                   \
+      Identifier *identifier = allocator->calloc(1, sizeof(Identifier)); \
+      identifier->ptr = input - 1;                                       \
+      identifier->len = 1;                                               \
+      result->type = enum_IDENTIFIER;                                    \
+      result->value = identifier;                                        \
+      return 1;                                                          \
+    }                                                                    \
+    return length;                                                       \
   } while (0)
 
-uint32_t tokenize_letter_i(const char_t * const input, Terminal * const result, const Allocator * const allocator) {
+uint32_t tokenize_letter_i(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
   switch (*input) {
     case 'm': {
       return try_keyword_immediate(input + 1, result, allocator);
@@ -214,7 +211,9 @@ uint32_t tokenize_letter_i(const char_t * const input, Terminal * const result, 
   }
 }
 
-uint32_t tokenize_letter_m(const char_t * const input, Terminal * const result, const Allocator * const allocator) {
+uint32_t tokenize_letter_m(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
   switch (*input) {
     case 'a': {
       return try_keyword_machine(input + 1, result, allocator);
@@ -226,7 +225,9 @@ uint32_t tokenize_letter_m(const char_t * const input, Terminal * const result, 
   }
 }
 
-uint32_t tokenize_letter_s(const char_t * const input, Terminal * const result, const Allocator * const allocator) {
+uint32_t tokenize_letter_s(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
   switch (*input) {
     case 'e': {
       return try_keyword_set(input + 1, result, allocator);
@@ -235,7 +236,9 @@ uint32_t tokenize_letter_s(const char_t * const input, Terminal * const result, 
   }
 }
 
-uint32_t tokenize_letter_r(const char_t * const input, Terminal * const result, const Allocator * const allocator) {
+uint32_t tokenize_letter_r(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
   switch (*input) {
     case 'e': {
       return try_keyword_register(input + 1, result, allocator);
@@ -244,7 +247,9 @@ uint32_t tokenize_letter_r(const char_t * const input, Terminal * const result, 
   }
 }
 
-uint32_t tokenize_letter_u(const char_t * const input, Terminal * const result, const Allocator * const allocator) {
+uint32_t tokenize_letter_u(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
   switch (*input) {
     case 'n': {
       return try_keyword_unsigned(input + 1, result, allocator);
@@ -253,20 +258,21 @@ uint32_t tokenize_letter_u(const char_t * const input, Terminal * const result, 
   }
 }
 
-uint32_t
-  tokenize_startswith_number(const char_t * const input, Terminal * const result, const Allocator * const allocator) {
+uint32_t tokenize_startswith_number(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
   uint32_t length = t_NUMBER_adic10(input, result, allocator);
   uint32_t value = (uint32_t) (uint64_t) result->value;
   const char_t *pText = input + length;
   if (strcmp_o(pText, "]") == lenof("]")) {
-      result->type = enum_WIDTH;
-      result->value = (void *) (uint64_t) value;
-      return (pText + lenof("]") - input);
+    result->type = enum_WIDTH;
+    result->value = (void *) (uint64_t) value;
+    return (pText + lenof("]") - input);
   }
   if (*pText != '-') { return 0; }
   pText++;
   length = t_NUMBER_adic10(pText, result, allocator);
-  if (length > 0) { // parse bit field
+  if (length > 0) {  // parse bit field
     if (pText[length] != ']') { return 0; }
     BitField *bitField = allocator->calloc(1, sizeof(BitField));
     bitField->lower = (uint32_t) (uint64_t) result->value;
@@ -276,7 +282,7 @@ uint32_t
     result->value = bitField;
     return (pText + length - input + 1);
   }
-  //parse width
+  // parse width
   if (strcmp_o(pText, "byte]") == lenof("byte]")) {
     result->type = enum_WIDTH;
     result->value = (void *) (uint64_t) (value << 3);
@@ -290,8 +296,9 @@ uint32_t
   return 0;
 }
 
-uint32_t
-  tokenize_symbol_LPAREN(const char_t * const input, Terminal * const result, const Allocator * const allocator) {
+uint32_t tokenize_symbol_LPAREN(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
   uint32_t length = t_NUMBER_adic10(input, result, allocator);
   if (length == 0) { return 0; }
   const char_t *pText = input + length;
@@ -300,23 +307,26 @@ uint32_t
   return (pText + lenof("-tick)") - input + 1);
 }
 
-uint32_t
-  tokenize_symbol_LSQUARE(const char_t * const input, Terminal * const result, const Allocator * const allocator) {
+uint32_t tokenize_symbol_LSQUARE(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
   if ('0' <= input[0] && input[0] <= '9') {
     uint32_t length = tokenize_startswith_number(input, result, allocator);
     if (length > 0) { return length + 1; }
   }
   if (strcmp_o(input, "...]") == lenof("...]")) {
-      result->type = enum_BIT_FIELD;
-      result->value = nullptr;
-      return lenof("...]") + 1;
+    result->type = enum_BIT_FIELD;
+    result->value = nullptr;
+    return lenof("...]") + 1;
   }
   result->type = enum_LEFT_SQUARE_BRACKET;
   result->value = nullptr;
   return 1;
 }
 
-uint32_t tokenize_number(const char_t * const input, Terminal * const result, const Allocator * const allocator) {
+uint32_t tokenize_number(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
   uint32_t length = 0;
   if ('0' == *input) {
     switch (input[1]) {
@@ -343,11 +353,12 @@ uint32_t tokenize_number(const char_t * const input, Terminal * const result, co
 }
 
 const uint32_t TERMINAL_TYPE_LITERALS[] = {
-  enum_LEFT_BRACKET, enum_RIGHT_BRACKET,        enum_COLON, enum_SEMICOLON,
-  enum_EQUAL,        enum_RIGHT_SQUARE_BRACKET, enum_COMMA, enum_DOT,
+    enum_LEFT_BRACKET, enum_RIGHT_BRACKET,        enum_COLON, enum_SEMICOLON,
+    enum_EQUAL,        enum_RIGHT_SQUARE_BRACKET, enum_COMMA, enum_DOT,
 };
-inline uint32_t
-  single_tokenize(const char_t * const input, Terminal * const result, const Allocator * const allocator) {
+inline uint32_t single_tokenize(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
   switch (*input) {
     case 'i': {
       return tokenize_letter_i(input + 1, result, allocator);
@@ -418,7 +429,8 @@ uint32_t pass_space(const char_t * const input) {
 }
 
 const Terminal *tokenize(
-  const char_t * const input, uint32_t *cost, uint32_t *n_tokens, const Allocator * const allocator
+    const char_t * const input, uint32_t *cost, uint32_t *n_tokens,
+    const Allocator * const allocator
 ) {  // NOLINT(*-easily-swappable-parameters)
   const char_t *pText = input;
   Array *terminals = Array_new(sizeof(Terminal), allocator);
@@ -444,5 +456,5 @@ const Terminal *tokenize(
 }
 
 inline const char_t *get_name(uint16_t type) {
-  return REGEX_TOKEN_NAMES[type];
+  return MACHINE_TOKEN_NAMES[type];
 }
