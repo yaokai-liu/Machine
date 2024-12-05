@@ -22,11 +22,15 @@ GContext *GContext_new(const Allocator *allocator);
 
 void GContext_addOpcode(GContext *context, Identifier *ident, Instruction *instr);
 
-void GContext_addPattern(GContext *context, Identifier *ident, Entry *entry);
-
 void *GContext_findOpcode(GContext *context, Identifier *ident);
 
-void *GContext_findPattern(GContext *context, Identifier *ident);
+void GContext_addRefer(GContext *context, Identifier *ident, Entry *entry);
+
+void *GContext_findRefer(GContext *context, Identifier *ident);
+
+void GContext_addPattern(GContext *context, Pattern *pattern);
+
+bool GContext_testPattern(GContext *context, PatternArgs *patternArgs);
 
 void GContext_destroy(GContext *context, const Allocator *allocator);
 

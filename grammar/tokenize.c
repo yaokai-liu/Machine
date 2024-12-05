@@ -11,14 +11,11 @@
 #include "enum.h"
 #include "terminal.h"
 #include "tokens.gen.h"
-#include <stdio.h>
+#include "string_t.h"
 
 #define lenof(str_literal) ((sizeof str_literal) - 1)
 #define max(a, b)          ((a) > (b) ? (a) : (b))
 #define min(a, b)          ((a) < (b) ? (a) : (b))
-
-uint32_t strcmp_o(const char_t *str1, const char_t *str2);
-uint32_t stridx_o(const char_t chr, const char_t *str);
 
 uint32_t t_IDENTIFIER(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t t_NUMBER_adic16(const char_t *input, Terminal *result, const Allocator *allocator);
@@ -35,17 +32,8 @@ uint32_t try_keyword_unsigned(const char_t *input, Terminal *result, const Alloc
 uint32_t try_keyword_signed(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t single_tokenize(const char_t *input, Terminal *result, const Allocator *allocator);
 
-inline uint32_t strcmp_o(const char_t * const str1, const char_t * const str2) {
-  int len = 0;
-  while (str1[len] && str1[len] == str2[len]) { len++; }
-  return len;
-}
+uint32_t pass_space(const char_t *const input);
 
-inline uint32_t stridx_o(const char_t chr, const char_t * const str) {
-  int len = 0;
-  while (chr != str[len] && str[len]) { len++; }
-  return len;
-}
 
 inline uint32_t t_NUMBER_adic16(
     const char_t * const input, Terminal * const result,
@@ -285,14 +273,16 @@ uint32_t tokenize_startswith_number(
   uint32_t length = t_NUMBER_adic10(input, result, allocator);
   uint32_t value = (uint32_t) (uint64_t) result->value;
   const char_t *pText = input + length;
+  pText += pass_space(pText);
   if (strcmp_o(pText, "]") == lenof("]")) {
     result->type = enum_WIDTH;
     result->value = (void *) (uint64_t) value;
     return (pText + lenof("]") - input);
-  }
-  if (*pText != '-') { return 0; }
-  pText++;
+  } else if (*pText++ != '-') { return 0; }
+
+  pText += pass_space(pText);
   length = t_NUMBER_adic10(pText, result, allocator);
+  pText += pass_space(pText);
   if (length > 0) {  // parse bit field
     if (pText[length] != ']') { return 0; }
     BitField *bitField = allocator->calloc(1, sizeof(BitField));
@@ -304,15 +294,17 @@ uint32_t tokenize_startswith_number(
     return (pText + length - input + 1);
   }
   // parse width
-  if (strcmp_o(pText, "byte]") == lenof("byte]")) {
+  if (strcmp_o(pText, "byte") == lenof("byte")) {
     result->type = enum_WIDTH;
     result->value = (void *) (uint64_t) (value << 3);
-    return (pText + lenof("byte]") - input);
+    pText += lenof("byte") + pass_space(pText);
+    return *pText++ == ']' ? (pText - input) : 0;
   }
-  if (strcmp_o(pText, "bit]") == lenof("bit]")) {
+  if (strcmp_o(pText, "bit") == lenof("bit")) {
     result->type = enum_WIDTH;
     result->value = (void *) (uint64_t) value;
-    return (pText + lenof("bit]") - input);
+      pText += lenof("bit") + pass_space(pText);
+      return *pText++ == ']' ? (pText - input) : 0;
   }
   return 0;
 }
@@ -320,25 +312,31 @@ uint32_t tokenize_startswith_number(
 uint32_t tokenize_symbol_LPAREN(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
-  uint32_t length = t_NUMBER_adic10(input, result, allocator);
+  const char_t *pText = input;
+  uint32_t length = t_NUMBER_adic10(pText, result, allocator);
   if (length == 0) { return 0; }
-  const char_t *pText = input + length;
-  if (strcmp_o(pText, "-tick)") != lenof("-tick)")) { return 0; }
+  pText += length + pass_space(pText);
+  if (*pText++ != '-') { return 0; }
+  if (strcmp_o(pText, "tick") != lenof("tick")) { return 0; }
   result->type = enum_TIME_TICK;
-  return (pText + lenof("-tick)") - input + 1);
+  pText += lenof("tick") + pass_space(pText);
+  return *pText++ == ')' ? (pText - input + 1) : 0;
 }
 
 uint32_t tokenize_symbol_LSQUARE(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
-  if ('0' <= input[0] && input[0] <= '9') {
-    uint32_t length = tokenize_startswith_number(input, result, allocator);
+  const char_t * pText = input;
+  pText += pass_space(pText);
+  if ('0' <= pText[0] && pText[0] <= '9') {
+    uint32_t length = tokenize_startswith_number(pText, result, allocator);
     if (length > 0) { return length + 1; }
   }
-  if (strcmp_o(input, "...]") == lenof("...]")) {
+  if (strcmp_o(pText, "...") == lenof("...")) {
     result->type = enum_BIT_FIELD;
     result->value = nullptr;
-    return lenof("...]") + 1;
+    pText += lenof("...") + pass_space(pText);
+    return *pText++ == ']' ? pText - input + 1 : 0;
   }
   result->type = enum_LEFT_SQUARE_BRACKET;
   result->value = nullptr;

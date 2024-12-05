@@ -18,7 +18,8 @@ typedef struct GContext {
   const Allocator *allocator;
   Entries *entries;
   Namespace *inmOpcode;
-  Namespace *inmPattern;
+  Namespace *inmRefer;
+  Array *patterns;
 } GContext;
 
 Namespace *Namespace_new(const Allocator *allocator);
@@ -35,39 +36,57 @@ inline GContext *GContext_new(const Allocator *allocator) {
   context->allocator = allocator;
   context->entries = Array_new(sizeof(Entry), allocator);
   context->inmOpcode = Namespace_new(allocator);
-  context->inmPattern = Namespace_new(allocator);
+  context->inmRefer = Namespace_new(allocator);
   return context;
 }
 
 inline void GContext_addOpcode(GContext *context, Identifier *ident, Instruction *instr) {
   Trie_set(context->inmOpcode->trie, ident->ptr, instr);
 }
-
-inline void GContext_addPattern(GContext *context, Identifier *ident, Entry *entry) {
-  Array_append(context->entries, entry, 1);
-  void *e = (void *) (uint64_t) Array_length(context->entries);
-  Trie_set(context->inmPattern->trie, ident->ptr, e);
-}
-
 inline void *GContext_findOpcode(GContext *context, Identifier *ident) {
   return Trie_get(context->inmOpcode->trie, ident->ptr);
 }
 
-inline void *GContext_findPattern(GContext *context, Identifier *ident) {
-  uint32_t ndx = (uint64_t) Trie_get(context->inmPattern->trie, ident->ptr);
+inline void GContext_addRefer(GContext *context, Identifier *ident, Entry *entry) {
+  Array_append(context->entries, entry, 1);
+  void *e = (void *) (uint64_t) Array_length(context->entries);
+  Trie_set(context->inmRefer->trie, ident->ptr, e);
+}
+
+inline void *GContext_findRefer(GContext *context, Identifier *ident) {
+  uint32_t ndx = (uint64_t) Trie_get(context->inmRefer->trie, ident->ptr);
   if (!ndx) { return nullptr; }
   return Array_get(context->entries, ndx - 1);
+}
+
+inline void GContext_addPattern(GContext *context, Pattern *pattern) {
+  if (!context->patterns) {
+    context->patterns = Array_new(sizeof(Pattern *), context->allocator);
+  }
+  Array_append(context->patterns, &pattern, 1);
+}
+
+bool GContext_testPattern(GContext *context, PatternArgs *patternArgs) {
+  if (!context->patterns) { return false; }
+  const uint32_t length = Array_length(context->patterns);
+  const Pattern * const * const patterns = Array_get(context->patterns, 0);
+  for (uint32_t i = 0; i < length; i ++) {
+    const Pattern * const temp = patterns[i];
+    if (PatternArgs_cmp(temp->args, patternArgs)) { return true; }
+  }
+  return false;
 }
 
 inline void Namespace_destroy(Namespace *ns) {
   Trie_destroy(ns->trie);
 }
 
-inline void GContext_destroy(GContext *context, const Allocator * allocator) {
+inline void GContext_destroy(GContext *context, const Allocator *allocator) {
   Namespace_destroy(context->inmOpcode);
-  Namespace_destroy(context->inmPattern);
+  Namespace_destroy(context->inmRefer);
   releasePrimeArray(context->entries);
   context->allocator->free(context->inmOpcode);
-  context->allocator->free(context->inmPattern);
+  context->allocator->free(context->inmRefer);
+  if (context->patterns) { releasePrimeArray(context->patterns); }
   allocator->free(context);
 }

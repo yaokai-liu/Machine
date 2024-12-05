@@ -145,4 +145,7 @@ void releaseRegisterGroup(RegisterGroup *rg, const Allocator *allocator);
 void releaseSetItem(SetItem *item, const Allocator *allocator);
 void releaseSet(Set *set, const Allocator *allocator);
 
+bool Identifier_cmp(const Identifier *ident1, const Identifier *ident2);
+bool PatternArgs_cmp(PatternArgs *args1, PatternArgs *args2);
+
 #endif  // MACHINE_TARGET_H
