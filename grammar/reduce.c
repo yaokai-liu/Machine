@@ -9,11 +9,30 @@
 
 #include "action-table.h"
 #include "enum.h"
+#include "parse.h"
 #include "target.h"
 #include "terminal.h"
 #include "tokens.gen.h"
 
-Entries *p_Entries_0(void *argv[], const Allocator *allocator) {
+#define gAssertDefined(ident)                            \
+  do {                                                   \
+    Entry *entry = GContext_findPattern(context, ident); \
+    if (!entry) { return nullptr; }                      \
+  } while (false)
+
+#define gAssertNonDefined(ident)                         \
+  do {                                                   \
+    Entry *entry = GContext_findPattern(context, ident); \
+    if (entry) { return nullptr; }                       \
+  } while (false)
+
+#define gAddDefinition(type, target)             \
+  do {                                           \
+    Entry entry = {enum_##type, target};         \
+    GContext_addPattern(context, ident, &entry); \
+  } while (false)
+
+Entries *p_Entries_0(void *argv[], GContext *, const Allocator *allocator) {
   Entries *entries = (Entries *) argv[0];
   Entry *entry = (Entry *) argv[1];
   Array_append(entries, entry, 1);
@@ -21,7 +40,7 @@ Entries *p_Entries_0(void *argv[], const Allocator *allocator) {
   return entries;
 }
 
-Entries *p_Entries_1(void *argv[], const Allocator *allocator) {
+Entries *p_Entries_1(void *argv[], GContext *, const Allocator *allocator) {
   Entry *entry = (Entry *) argv[0];
   Entries *entries = Array_new(sizeof(Entry), allocator);
   Array_append(entries, entry, 1);
@@ -29,44 +48,46 @@ Entries *p_Entries_1(void *argv[], const Allocator *allocator) {
   return entries;
 }
 
-Entry *p_Entry_0(void *argv[], const Allocator *allocator) {
+Entry *p_Entry_0(void *argv[], GContext *, const Allocator *allocator) {
   Entry *entry = allocator->calloc(1, sizeof(Entry));
   entry->type = enum_RegisterGroup;
   entry->target = (RegisterGroup *) argv[0];
   return entry;
 }
 
-Entry *p_Entry_1(void *argv[], const Allocator *allocator) {
+Entry *p_Entry_1(void *argv[], GContext *, const Allocator *allocator) {
   Entry *entry = allocator->calloc(1, sizeof(Entry));
   entry->type = enum_Instruction;
   entry->target = (Instruction *) argv[0];
   return entry;
 }
 
-Entry *p_Entry_2(void *argv[], const Allocator *allocator) {
+Entry *p_Entry_2(void *argv[], GContext *, const Allocator *allocator) {
   Entry *entry = allocator->calloc(1, sizeof(Entry));
   entry->type = enum_Memory;
   entry->target = (Memory *) argv[0];
   return entry;
 }
 
-Entry *p_Entry_3(void *argv[], const Allocator *allocator) {
+Entry *p_Entry_3(void *argv[], GContext *, const Allocator *allocator) {
   Entry *entry = allocator->calloc(1, sizeof(Entry));
   entry->type = enum_Immediate;
   entry->target = (Immediate *) argv[0];
   return entry;
 }
 
-Entry *p_Entry_4(void *argv[], const Allocator *allocator) {
+Entry *p_Entry_4(void *argv[], GContext *, const Allocator *allocator) {
   Entry *entry = allocator->calloc(1, sizeof(Entry));
   entry->type = enum_Set;
   entry->target = (Set *) argv[0];
   return entry;
 }
 
-Evaluable *p_Evaluable_0(void *argv[], const Allocator *allocator) {
+Evaluable *p_Evaluable_0(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *lhs = (Identifier *) argv[0];
-  // todo: verify identifier in global identifier table.
+
+  gAssertDefined(lhs);
+
   void *rhs = argv[2];
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_MEM_KEY;
@@ -75,9 +96,11 @@ Evaluable *p_Evaluable_0(void *argv[], const Allocator *allocator) {
   return evaluable;
 }
 
-Evaluable *p_Evaluable_1(void *argv[], const Allocator *allocator) {
+Evaluable *p_Evaluable_1(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *lhs = (Identifier *) argv[0];
-  // todo: verify identifier in global identifier table.
+
+  gAssertDefined(lhs);
+
   BitField *rhs = (BitField *) argv[1];
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_BIT_FIELD;
@@ -86,17 +109,19 @@ Evaluable *p_Evaluable_1(void *argv[], const Allocator *allocator) {
   return evaluable;
 }
 
-Evaluable *p_Evaluable_2(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) argv[0];
-  // todo: verify identifier in global identifier table.
+Evaluable *p_Evaluable_2(void *argv[], GContext *context, const Allocator *allocator) {
+  Identifier *ident = (Identifier *) argv[0];
+
+  gAssertDefined(ident);
+
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_IDENTIFIER;
-  evaluable->lhs = identifier;
+  evaluable->lhs = ident;
   evaluable->rhs = nullptr;
   return evaluable;
 }
 
-Evaluable *p_Evaluable_3(void *argv[], const Allocator *allocator) {
+Evaluable *p_Evaluable_3(void *argv[], GContext *, const Allocator *allocator) {
   uint64_t number = (uint64_t) argv[0];
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_NUMBER;
@@ -105,19 +130,24 @@ Evaluable *p_Evaluable_3(void *argv[], const Allocator *allocator) {
   return evaluable;
 }
 
-Immediate *p_Immediate_0(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) argv[1];
-  // todo: verify identifier not in global identifier table.
+Immediate *p_Immediate_0(void *argv[], GContext *context, const Allocator *allocator) {
+  Identifier *ident = (Identifier *) argv[1];
+
+  gAssertNonDefined(ident);
+
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   uint32_t type = (uint64_t) argv[3];
-  Immediate *immediate = allocator->calloc(1, sizeof(Immediate));
-  immediate->type = type;
-  immediate->width = width;
-  immediate->name = identifier;
-  return immediate;
+  Immediate *imm = allocator->calloc(1, sizeof(Immediate));
+  imm->type = type;
+  imm->width = width;
+  imm->name = ident;
+
+  gAddDefinition(Immediate, imm);
+
+  return imm;
 }
 
-InstrForm *p_InstrForm_0(void *argv[], const Allocator *allocator) {
+InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   InstrParts *parts = (InstrParts *) argv[4];
@@ -129,7 +159,7 @@ InstrForm *p_InstrForm_0(void *argv[], const Allocator *allocator) {
   return form;
 }
 
-InstrForm *p_InstrForm_1(void *argv[], const Allocator *allocator) {
+InstrForm *p_InstrForm_1(void *argv[], GContext *, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   uint32_t tick = (uint32_t) (uint64_t) argv[3];
@@ -142,7 +172,7 @@ InstrForm *p_InstrForm_1(void *argv[], const Allocator *allocator) {
   return form;
 }
 
-InstrForms *p_InstrForms_0(void *argv[], const Allocator *allocator) {
+InstrForms *p_InstrForms_0(void *argv[], GContext *, const Allocator *allocator) {
   InstrForms *forms = (InstrForms *) argv[0];
   InstrForm *form = (InstrForm *) argv[1];
   Array_append(forms, form, 1);
@@ -150,7 +180,7 @@ InstrForms *p_InstrForms_0(void *argv[], const Allocator *allocator) {
   return forms;
 }
 
-InstrForms *p_InstrForms_1(void *argv[], const Allocator *allocator) {
+InstrForms *p_InstrForms_1(void *argv[], GContext *, const Allocator *allocator) {
   InstrForm *form = (InstrForm *) argv[0];
   InstrForms *forms = Array_new(sizeof(InstrForm), allocator);
   Array_append(forms, form, 1);
@@ -158,7 +188,7 @@ InstrForms *p_InstrForms_1(void *argv[], const Allocator *allocator) {
   return forms;
 }
 
-InstrPart *p_InstrPart_0(void *argv[], const Allocator *allocator) {
+InstrPart *p_InstrPart_0(void *argv[], GContext *, const Allocator *allocator) {
   enum PART_KEY key = (uint32_t) (uint64_t) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   Layout *layout = (Layout *) argv[4];
@@ -169,7 +199,7 @@ InstrPart *p_InstrPart_0(void *argv[], const Allocator *allocator) {
   return part;
 }
 
-InstrParts *p_InstrParts_0(void *argv[], const Allocator *allocator) {
+InstrParts *p_InstrParts_0(void *argv[], GContext *, const Allocator *allocator) {
   InstrParts *parts = (InstrParts *) argv[0];
   InstrPart *part = (InstrPart *) argv[1];
   Array_append(parts, part, 1);
@@ -177,7 +207,7 @@ InstrParts *p_InstrParts_0(void *argv[], const Allocator *allocator) {
   return parts;
 }
 
-InstrParts *p_InstrParts_1(void *argv[], const Allocator *allocator) {
+InstrParts *p_InstrParts_1(void *argv[], GContext *, const Allocator *allocator) {
   InstrPart *part = (InstrPart *) argv[0];
   InstrParts *parts = Array_new(sizeof(InstrPart), allocator);
   Array_append(parts, part, 1);
@@ -185,7 +215,7 @@ InstrParts *p_InstrParts_1(void *argv[], const Allocator *allocator) {
   return parts;
 }
 
-Instruction *p_Instruction_0(void *argv[], const Allocator *allocator) {
+Instruction *p_Instruction_0(void *argv[], GContext *, const Allocator *allocator) {
   Identifier *identifier = (Identifier *) argv[1];
   InstrForms *forms = (InstrForms *) argv[3];
   Instruction *instr = allocator->calloc(1, sizeof(Instruction));
@@ -194,7 +224,7 @@ Instruction *p_Instruction_0(void *argv[], const Allocator *allocator) {
   return instr;
 }
 
-Layout *p_Layout_0(void *argv[], const Allocator *allocator) {
+Layout *p_Layout_0(void *argv[], GContext *, const Allocator *allocator) {
   Evaluable *evaluable = (Evaluable *) argv[0];
   Layout *layout = allocator->calloc(1, sizeof(Layout));
   layout->type = enum_Evaluable;
@@ -202,7 +232,7 @@ Layout *p_Layout_0(void *argv[], const Allocator *allocator) {
   return layout;
 }
 
-Layout *p_Layout_1(void *argv[], const Allocator *allocator) {
+Layout *p_Layout_1(void *argv[], GContext *, const Allocator *allocator) {
   MappingItems *items = (MappingItems *) argv[1];
   Layout *layout = allocator->calloc(1, sizeof(Layout));
   layout->type = enum_MappingItems;
@@ -210,7 +240,7 @@ Layout *p_Layout_1(void *argv[], const Allocator *allocator) {
   return layout;
 }
 
-Machine *p_Machine_0(void *argv[], const Allocator *allocator) {
+Machine *p_Machine_0(void *argv[], GContext *, const Allocator *allocator) {
   Identifier *identifier = (Identifier *) argv[1];
   // todo: verify identifier not in global identifier table.
   Entries *entries = argv[3];
@@ -224,7 +254,7 @@ Machine *p___EXTEND_RULE__(void *argv[], const Allocator *) {
   return (Machine *) argv[0];
 }
 
-MappingItem *p_MappingItem_0(void *argv[], const Allocator *allocator) {
+MappingItem *p_MappingItem_0(void *argv[], GContext *, const Allocator *allocator) {
   BitField *bit_field = (BitField *) argv[0];
   Evaluable *evaluable = (Evaluable *) argv[2];
   MappingItem *item = allocator->calloc(1, sizeof(MappingItem));
@@ -233,7 +263,7 @@ MappingItem *p_MappingItem_0(void *argv[], const Allocator *allocator) {
   return item;
 }
 
-MappingItems *p_MappingItems_0(void *argv[], const Allocator *allocator) {
+MappingItems *p_MappingItems_0(void *argv[], GContext *, const Allocator *allocator) {
   MappingItems *items = (MappingItems *) argv[0];
   MappingItem *item = (MappingItem *) argv[2];
   Array_append(items, item, 1);
@@ -241,7 +271,7 @@ MappingItems *p_MappingItems_0(void *argv[], const Allocator *allocator) {
   return items;
 }
 
-MappingItems *p_MappingItems_1(void *argv[], const Allocator *allocator) {
+MappingItems *p_MappingItems_1(void *argv[], GContext *, const Allocator *allocator) {
   MappingItem *item = (MappingItem *) argv[0];
   MappingItems *items = Array_new(sizeof(MappingItem), allocator);
   Array_append(items, item, 1);
@@ -249,7 +279,7 @@ MappingItems *p_MappingItems_1(void *argv[], const Allocator *allocator) {
   return items;
 }
 
-MemItem *p_MemItem_0(void *argv[], const Allocator *allocator) {
+MemItem *p_MemItem_0(void *argv[], GContext *, const Allocator *allocator) {
   enum MEM_KEY key = (uint32_t) (uint64_t) argv[0];
   if (key != MEM_BASE && key != MEM_OFFSET) { return nullptr; }
   BitField *bit_field = (BitField *) argv[2];
@@ -259,15 +289,17 @@ MemItem *p_MemItem_0(void *argv[], const Allocator *allocator) {
   return item;
 }
 
-Memory *p_Memory_0(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) argv[1];
-  // todo: verify identifier not in global identifier table.
+Memory *p_Memory_0(void *argv[], GContext *context, const Allocator *allocator) {
+  Identifier *ident = (Identifier *) argv[1];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   MemItem *item1 = (MemItem *) argv[4];
   MemItem *item2 = (MemItem *) argv[5];
+
+  gAssertNonDefined(ident);
+
   if (item1->type == item2->type) { return nullptr; }
   Memory *memory = allocator->calloc(1, sizeof(Memory));
-  memory->name = identifier;
+  memory->name = ident;
   memory->width = width;
   if (item1->type == MEM_BASE) {
     memory->base = item1->field;
@@ -278,58 +310,77 @@ Memory *p_Memory_0(void *argv[], const Allocator *allocator) {
   }
   allocator->free(item1);
   allocator->free(item2);
+
+  gAddDefinition(Memory, memory);
+
   return memory;
 }
 
-Pattern *p_Pattern_0(void *argv[], const Allocator *allocator) {
+Pattern *p_Pattern_0(void *argv[], GContext *, const Allocator *allocator) {
   Pattern *pattern = allocator->calloc(1, sizeof(Pattern));
   pattern->args = (PatternArgs *) argv[1];
   return pattern;
 }
 
-PatternArgs *p_PatternArgs_0(void *argv[], const Allocator *allocator) {
+PatternArgs *p_PatternArgs_0(void *argv[], GContext *context, const Allocator *allocator) {
   PatternArgs *args = (PatternArgs *) argv[0];
-  Identifier *identifier = (Identifier *) argv[2];
-  // todo: verify identifier in global identifier table.
-  Array_append(args, identifier, 1);
-  allocator->free(identifier);
+  Identifier *ident = (Identifier *) argv[2];
+
+  const Entry *entry = GContext_findPattern(context, ident);
+  if (!entry) { return nullptr; }
+
+  Array_append(args, ident, 1);
+  allocator->free(ident);
   return args;
 }
 
-PatternArgs *p_PatternArgs_1(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) argv[0];
-  // todo: verify identifier in global identifier table.
+PatternArgs *p_PatternArgs_1(void *argv[], GContext *context, const Allocator *allocator) {
+  Identifier *ident = (Identifier *) argv[0];
+
+  gAssertDefined(ident);
+
   PatternArgs *args = Array_new(sizeof(Identifier), allocator);
-  Array_append(args, identifier, 1);
-  allocator->free(identifier);
+  Array_append(args, ident, 1);
+  allocator->free(ident);
+
   return args;
 }
 
-Register *p_Register_0(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) argv[0];
-  // todo: verify identifier not in global identifier table.
-  BitField *bit_field = (BitField *) argv[2];
-  uint64_t number = (uint64_t) argv[4];
+Register *p_Register_0(void *argv[], GContext *context, const Allocator *allocator) {
+  Identifier *ident = (Identifier *) argv[0];
+  BitField *field = (BitField *) argv[2];
+  uint64_t code = (uint64_t) argv[4];
+
+  gAssertNonDefined(ident);
+
   Register *reg = allocator->calloc(1, sizeof(Register));
-  reg->name = identifier;
-  reg->field = bit_field;
-  reg->code = number;
+  reg->name = ident;
+  reg->field = field;
+  reg->code = code;
+
+  gAddDefinition(Register, reg);
+
   return reg;
 }
 
-RegisterGroup *p_RegisterGroup_0(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) argv[1];
-  // todo: verify identifier not in global identifier table.
+RegisterGroup *p_RegisterGroup_0(void *argv[], GContext *context, const Allocator *allocator) {
+  Identifier *ident = (Identifier *) argv[1];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   Registers *registers = (Registers *) argv[4];
+
+  gAssertNonDefined(ident);
+
   RegisterGroup *group = allocator->calloc(1, sizeof(RegisterGroup));
-  group->name = identifier;
+  group->name = ident;
   group->width = width;
   group->registers = registers;
+
+  gAddDefinition(RegisterGroup, group);
+
   return group;
 }
 
-Registers *p_Registers_0(void *argv[], const Allocator *allocator) {
+Registers *p_Registers_0(void *argv[], GContext *, const Allocator *allocator) {
   Registers *regs = (Registers *) argv[0];
   Register *reg = (Register *) argv[1];
   Array_append(regs, reg, 1);
@@ -337,7 +388,7 @@ Registers *p_Registers_0(void *argv[], const Allocator *allocator) {
   return regs;
 }
 
-Registers *p_Registers_1(void *argv[], const Allocator *allocator) {
+Registers *p_Registers_1(void *argv[], GContext *, const Allocator *allocator) {
   Register *reg = (Register *) argv[0];
   Registers *regs = Array_new(sizeof(Register), allocator);
   Array_append(regs, reg, 1);
@@ -345,31 +396,42 @@ Registers *p_Registers_1(void *argv[], const Allocator *allocator) {
   return regs;
 }
 
-Set *p_Set_0(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) argv[0];
-  // todo: verify identifier not in global identifier table.
+Set *p_Set_0(void *argv[], GContext *context, const Allocator *allocator) {
+  Identifier *ident = (Identifier *) argv[0];
   SetItems *items = (SetItems *) argv[1];
+
+  gAssertNonDefined(ident);
+
   Set *set = allocator->calloc(1, sizeof(Set));
-  set->name = identifier;
+  set->name = ident;
   set->items = items;
+
+  gAddDefinition(Set, set);
+
   return set;
 }
 
-SetItems *p_SetItems_0(void *argv[], const Allocator *allocator) {
+SetItems *p_SetItems_0(void *argv[], GContext *context, const Allocator *) {
   SetItems *items = (SetItems *) argv[0];
-  Identifier *identifier = (Identifier *) argv[2];
-  // todo: verify identifier in global identifier table.
-  Array_append(items, identifier, 1);
-  allocator->free(identifier);
+  Identifier *ident = (Identifier *) argv[2];
+
+  gAssertDefined(ident);
+
+  SetItem item = {ident};
+  Array_append(items, &item, 1);
+
   return items;
 }
 
-SetItems *p_SetItems_1(void *argv[], const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) argv[0];
-  // todo: verify identifier in global identifier table.
-  SetItems *items = Array_new(sizeof(Identifier), allocator);
-  Array_append(items, identifier, 1);
-  allocator->free(identifier);
+SetItems *p_SetItems_1(void *argv[], GContext *context, const Allocator *allocator) {
+  Identifier *ident = (Identifier *) argv[0];
+
+  gAssertDefined(ident);
+
+  SetItem item = {ident};
+  SetItems *items = Array_new(sizeof(SetItem), allocator);
+  Array_append(items, &item, 1);
+
   return items;
 }
 
@@ -378,39 +440,38 @@ SetItems *p_SetItems_1(void *argv[], const Allocator *allocator) {
 void releaseToken(void *token, uint32_t type, const Allocator *allocator);
 
 Machine *failed_to_get_next_state(
-    Stack *state_stack, Stack *token_stack, void *result, uint32_t type, const Allocator *allocator
+    Stack *state_stack, Stack *token_stack, void *token, uint32_t type, const Allocator *allocator
 );
 
 Machine *failed_to_produce(
-    Stack *state_stack, Stack *token_stack, void *produceArgs[], int32_t *states, uint32_t argc,
+    Stack *state_stack, Stack *token_stack, void *args[], int32_t *states, uint32_t argc,
     const Allocator *allocator
 );
 
 Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocator *allocator);
 
 Machine *failed_to_get_next_state(
-    Stack *state_stack, Stack *token_stack, void *result, uint32_t type, const Allocator *allocator
+    Stack *state_stack, Stack *token_stack, void *token, uint32_t type, const Allocator *allocator
 ) {
   int32_t state = 0;
   Stack_top(state_stack, (&state), sizeof(int32_t));
-  releaseToken(result, type, allocator);
-  allocator->free(result);
+  releaseToken(token, type, allocator);
+  allocator->free(token);
   return clean_parse_stack(state_stack, token_stack, allocator);
 }
 
 Machine *failed_to_produce(
-    Stack *state_stack, Stack *token_stack, void *produceArgs[], int32_t *states, uint32_t argc,
+    Stack *state_stack, Stack *token_stack, void *args[], int32_t *states, uint32_t argc,
     const Allocator *allocator
 ) {
   for (uint32_t i = 0; i < argc; i++) {
     uint32_t type = stateCurrentTokenType(states[i]);
-    releaseToken(produceArgs[i], type, allocator);
+    releaseToken(args[i], type, allocator);
   }
   return clean_parse_stack(state_stack, token_stack, allocator);
 }
 
 Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocator *allocator) {
-  // TODO：release memory allocated.
   void *token = nullptr;
   int32_t state = -1;
   while (!Stack_empty(token_stack)) {
@@ -426,11 +487,11 @@ Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocat
   return nullptr;
 }
 
-#define releaseArrayCase(array, ele)                \
-  case enum_##array: {                              \
-    Array_reset(token, (fn_free_t *) release##ele); \
-    Array_destroy(token);                           \
-    break;                                          \
+#define releaseArrayCase(array, ele)                 \
+  case enum_##array: {                               \
+    Array_reset(token, (destruct_t *) release##ele); \
+    Array_destroy(token);                            \
+    break;                                           \
   }
 #define releaseTokenCase(t, r)    \
   case enum_##t: {                \
@@ -447,8 +508,8 @@ void releaseToken(void *token, uint32_t type, const Allocator *allocator) {
     releaseArrayCase(PatternArgs, Identifier)
     releaseArrayCase(Registers, Register)
     releaseArrayCase(SetItems, SetItem)
-    releaseTokenCase(Entry, Entry)
 
+    releaseTokenCase(Entry, Entry)
     releaseTokenCase(Evaluable, Evaluable)
     releaseTokenCase(Immediate, Immediate)
     releaseTokenCase(InstrForm, InstrForm)

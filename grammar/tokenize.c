@@ -154,12 +154,14 @@ inline uint32_t t_IDENTIFIER(
       break;
     }
   }
-  Identifier *identifier = allocator->calloc(1, sizeof(Identifier));
-  identifier->ptr = input;
-  identifier->len = pText - input;
+  Identifier *ident = allocator->calloc(1, sizeof(Identifier));
+  ident->len = pText - input;
+  ident->ptr = allocator->calloc(ident->len + 1, sizeof(char_t));
+  allocator->memcpy(ident->ptr, input, ident->len);
+  ident->ptr[ident->len] = '\0';
   result->type = enum_IDENTIFIER;
-  result->value = identifier;
-  return identifier->len;
+  result->value = ident;
+  return ident->len;
 }
 
 #define fn_try_keyword(_kw, _type)                                                           \
@@ -195,24 +197,27 @@ fn_try_keyword(machine, MACHINE)
 fn_try_keyword(memory, MEMORY)
 fn_try_keyword(set, SET)
 fn_try_keyword(register, REGISTER)
-fn_try_keyword_val(unsigned, TYPE, IT_UNSIGNED) fn_try_keyword_val(signed, TYPE, IT_SIGNED)
-#define fn_fall_through()                                                \
-  do {                                                                   \
-    uint32_t length = t_IDENTIFIER(input - 1, result, allocator);        \
-    if (length == 0) {                                                   \
-      Identifier *identifier = allocator->calloc(1, sizeof(Identifier)); \
-      identifier->ptr = input - 1;                                       \
-      identifier->len = 1;                                               \
-      result->type = enum_IDENTIFIER;                                    \
-      result->value = identifier;                                        \
-      return 1;                                                          \
-    }                                                                    \
-    return length;                                                       \
+fn_try_keyword_val(unsigned, TYPE, IT_UNSIGNED)
+fn_try_keyword_val(signed, TYPE, IT_SIGNED)
+#define fn_fall_through()                                           \
+  do {                                                              \
+    uint32_t length = t_IDENTIFIER(input - 1, result, allocator);   \
+    if (length == 0) {                                              \
+      Identifier *ident = allocator->calloc(1, sizeof(Identifier)); \
+      ident->len = 1;                                               \
+      ident->ptr = allocator->calloc(2, sizeof(char_t));            \
+      allocator->memcpy(ident->ptr, input, 1);                      \
+      ident->ptr[1] = '\0';                                         \
+      result->type = enum_IDENTIFIER;                               \
+      result->value = ident;                                        \
+      return 1;                                                     \
+    }                                                               \
+    return length;                                                  \
   } while (0)
 
-    uint32_t tokenize_letter_i(
-        const char_t * const input, Terminal * const result, const Allocator * const allocator
-    ) {
+uint32_t tokenize_letter_i(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
   switch (*input) {
     case 'm': {
       return try_keyword_immediate(input + 1, result, allocator);

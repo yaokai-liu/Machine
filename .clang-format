@@ -72,6 +72,7 @@ SpacesInLineCommentPrefix:
   Minimum: 1
 StatementMacros:
   - fn_try_keyword
+  - fn_try_keyword_val
   - add_test_for
   - releaseArrayCase
   - releaseTokenCase

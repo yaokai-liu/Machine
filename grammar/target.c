@@ -8,34 +8,37 @@
  **/
 
 #include "target.h"
+#include "context.h"
 #include "tokens.gen.h"
 #include <stdio.h>
 
-void releaseIdentifier(Identifier *, const Allocator *) {}
+void releaseIdentifier(Identifier *ident, const Allocator *allocator) {
+  allocator->free(ident->ptr);
+}
 
 void releaseBitField(BitField *, const Allocator *) {}
 
 void releaseEntry(Entry *entry, const Allocator *allocator) {
-  fn_free_t *fn_release = nullptr;
+  destruct_t *fn_release = nullptr;
   switch (entry->type) {
     case enum_RegisterGroup: {
-      fn_release = (fn_free_t *) releaseRegisterGroup;
+      fn_release = (destruct_t *) releaseRegisterGroup;
       break;
     }
     case enum_Instruction: {
-      fn_release = (fn_free_t *) releaseInstruction;
+      fn_release = (destruct_t *) releaseInstruction;
       break;
     }
     case enum_Memory: {
-      fn_release = (fn_free_t *) releaseMemory;
+      fn_release = (destruct_t *) releaseMemory;
       break;
     }
     case enum_Immediate: {
-      fn_release = (fn_free_t *) releaseImmediate;
+      fn_release = (destruct_t *) releaseImmediate;
       break;
     }
     case enum_Set: {
-      fn_release = (fn_free_t *) releaseSet;
+      fn_release = (destruct_t *) releaseSet;
       break;
     }
   }
@@ -46,8 +49,9 @@ void releaseEntry(Entry *entry, const Allocator *allocator) {
 void releaseMachine(Machine *machine, const Allocator *allocator) {
   releaseIdentifier(machine->name, allocator);
   allocator->free(machine->name);
-  Array_reset(machine->entries, (fn_free_t *) releaseEntry);
+  Array_reset(machine->entries, (destruct_t *) releaseEntry);
   Array_destroy(machine->entries);
+  GContext_destroy(machine->context, allocator);
   // TODO: release other arrays.
 }
 
@@ -57,7 +61,7 @@ void releaseImmediate(Immediate *immediate, const Allocator *allocator) {
 }
 
 void releasePattern(Pattern *pattern, const Allocator *) {
-  Array_reset(pattern->args, (fn_free_t *) releaseIdentifier);
+  Array_reset(pattern->args, (destruct_t *) releaseIdentifier);
   Array_destroy(pattern->args);
 }
 
@@ -87,7 +91,7 @@ void releaseLayout(Layout *layout, const Allocator *allocator) {
       return;
     }
     case enum_MappingItems: {
-      Array_reset(layout->target, (fn_free_t *) releaseMappingItem);
+      Array_reset(layout->target, (destruct_t *) releaseMappingItem);
       Array_destroy(layout->target);
     }
   }
@@ -101,14 +105,14 @@ void releaseInstrPart(InstrPart *part, const Allocator *allocator) {
 void releaseInstrForm(InstrForm *form, const Allocator *allocator) {
   releasePattern(form->pattern, allocator);
   allocator->free(form->pattern);
-  Array_reset(form->parts, (fn_free_t *) releaseInstrPart);
+  Array_reset(form->parts, (destruct_t *) releaseInstrPart);
   Array_destroy(form->parts);
 }
 
 void releaseInstruction(Instruction *instr, const Allocator *allocator) {
   releaseIdentifier(instr->name, allocator);
   allocator->free(instr->name);
-  Array_reset(instr->forms, (fn_free_t *) releaseInstrForm);
+  Array_reset(instr->forms, (destruct_t *) releaseInstrForm);
   Array_destroy(instr->forms);
 }
 
@@ -136,7 +140,7 @@ void releaseRegister(Register *reg, const Allocator *allocator) {
 void releaseRegisterGroup(RegisterGroup *rg, const Allocator *allocator) {
   releaseIdentifier(rg->name, allocator);
   allocator->free(rg->name);
-  Array_reset(rg->registers, (fn_free_t *) releaseRegister);
+  Array_reset(rg->registers, (destruct_t *) releaseRegister);
   Array_destroy(rg->registers);
 }
 
@@ -148,6 +152,6 @@ void releaseSetItem(SetItem *item, const Allocator *allocator) {
 void releaseSet(Set *set, const Allocator *allocator) {
   releaseIdentifier(set->name, allocator);
   allocator->free(set->name);
-  Array_reset(set->items, (fn_free_t *) releaseSetItem);
+  Array_reset(set->items, (destruct_t *) releaseSetItem);
   Array_destroy(set->items);
 }

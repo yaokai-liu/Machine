@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.28)
 project(machine C)
 
 set(CMAKE_C_STANDARD 23)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 
 add_compile_options("-O3" "-Os")
 add_compile_options("-funsigned-char")

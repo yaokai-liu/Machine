@@ -5,7 +5,7 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "target.h"
+#include "parse.h"
 #include "reduce.gen.h"
 
 fn_product * const PRODUCTS[] = {

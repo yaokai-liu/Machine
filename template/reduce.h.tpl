@@ -8,6 +8,7 @@
 #ifndef MACHINE_REDUCES_H
 #define MACHINE_REDUCES_H
 
+#include "parse.h"
 #include "target.h"
 
 enum __PRODUCT_RULE_ENUM__ {

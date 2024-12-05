@@ -15,13 +15,15 @@
 
 typedef struct Entry {
   uint32_t type;
-  uint32_t id;
   void *target;
 } Entry;
+
 typedef Array Entries;  // Array<Entry>
+
 typedef struct Machine {
   Identifier *name;
   Entries *entries;
+  void *context;
   //  Array /*<uint32_t>*/ *regList;
   //  Array /*<uint32_t>*/ *opcodeList;
   //  Array /*<uint32_t>*/ *memModelList;
@@ -29,83 +31,100 @@ typedef struct Machine {
   //  Array /*<Identifier>*/ *opcodeNameList;
   //  Array /*<Identifier>*/ *memModelNameList;
 } Machine;
+
 typedef struct Immediate {
   uint32_t width;
   uint32_t type;
   Identifier *name;
 } Immediate;
+
 typedef Array PatternArgs;  // Array<Identifier>
+
 typedef struct Pattern {
   PatternArgs *args;
 } Pattern;
+
 typedef struct Evaluable {
   uint32_t type;
   void *lhs;
   void *rhs;
 } Evaluable;
+
 typedef struct MappingItem {
   BitField *field;
   Evaluable *evaluable;
 } MappingItem;
+
 typedef Array MappingItems;  // Array<MappingItem>
+
 typedef struct Layout {
   uint32_t type;
   void *target;
 } Layout;
+
 typedef struct InstrPart {
   uint32_t type;
   uint32_t width;
   Layout *layout;
 } InstrPart;
+
 typedef Array InstrParts;  // Array<InstrPart>
+
 typedef struct InstrForm {
   uint32_t width;
   uint32_t tick;
   Pattern *pattern;
   InstrParts *parts;
 } InstrForm;
+
 typedef Array InstrForms;  // Array<InstrForm>
+
 typedef struct Instruction {
   Identifier *name;
   InstrForms *forms;
 } Instruction;
+
 typedef struct MemItem {
   uint32_t type;
   BitField *field;
 } MemItem;
+
 typedef struct Memory {
   Identifier *name;
   uint32_t width;
   BitField *base;
   BitField *offset;
 } Memory;
+
 typedef struct RegisterGroup RegisterGroup;
+
 typedef struct Register {
   Identifier *name;
   BitField *field;
   uint64_t code;
   RegisterGroup *group;
 } Register;
+
 typedef Array Registers;  // Array<Registers>
+
 typedef struct RegisterGroup {
   Identifier *name;
   uint32_t width;
   Registers *registers;
 } RegisterGroup;
+
 typedef Array SetItems;  // Array<SetItem>
+
 typedef struct SetItem {
   Identifier *name;
-  void *Entry;
 } SetItem;
+
 typedef struct Set {
   Identifier *name;
   SetItems *items;
 } Set;
+
 #include "allocator.h"
-
-typedef void *fn_product(void *argv[], const Allocator *allocator);
-
-extern fn_product * const PRODUCTS[];
 
 void releaseToken(void *token, uint32_t type, const Allocator *allocator);
 

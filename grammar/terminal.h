@@ -23,7 +23,7 @@ const Terminal *
     tokenize(const char_t *input, uint32_t *cost, uint32_t *n_tokens, const Allocator *allocator);
 
 typedef struct Identifier {
-  const char_t *ptr;
+  char_t *ptr;
   uint32_t len;
 } Identifier;
 

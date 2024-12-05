@@ -7,3 +7,6 @@ json
 *.gen.h
 *.gen.c
 *.json
+output
+build
+build-*

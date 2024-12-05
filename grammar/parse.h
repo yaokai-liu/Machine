@@ -10,7 +10,12 @@
 #ifndef MACHINE_PARSE_H
 #define MACHINE_PARSE_H
 
+#include "context.h"
 #include "target.h"
+
+typedef void *fn_product(void *argv[], GContext *context, const Allocator *allocator);
+
+extern fn_product * const PRODUCTS[];
 
 Machine *parse(const Terminal *tokens, uint32_t *cost, const Allocator *allocator);
 
