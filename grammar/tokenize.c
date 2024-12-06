@@ -274,10 +274,10 @@ uint32_t tokenize_startswith_number(
   uint32_t value = (uint32_t) (uint64_t) result->value;
   const char_t *pText = input + length;
   pText += pass_space(pText);
-  if (strcmp_o(pText, "]") == lenof("]")) {
+  if (*pText == ']') {
     result->type = enum_WIDTH;
     result->value = (void *) (uint64_t) value;
-    return (pText + lenof("]") - input);
+    return (pText + 1 - input);
   } else if (*pText++ != '-') { return 0; }
 
   pText += pass_space(pText);

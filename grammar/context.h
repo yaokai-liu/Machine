@@ -34,4 +34,9 @@ bool GContext_testPattern(GContext *context, PatternArgs *patternArgs);
 
 void GContext_destroy(GContext *context, const Allocator *allocator);
 
+typedef void fn_ctx_act(GContext * context, void *token);
+
+fn_ctx_act *get_after_stack_actions(uint32_t state);
+fn_ctx_act *get_after_reduce_actions(uint32_t state);
+
 #endif  // MACHINE_CONTEXT_H

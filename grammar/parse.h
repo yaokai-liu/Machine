@@ -13,9 +13,9 @@
 #include "context.h"
 #include "target.h"
 
-typedef void *fn_produce(void *argv[], GContext *context, const Allocator *allocator);
+typedef void *fn_reduce(void *argv[], GContext *context, const Allocator *allocator);
 
-extern fn_produce * const PRODUCTS[];
+extern fn_reduce * const PRODUCTS[];
 
 Machine *parse(const Terminal *tokens, uint32_t *cost, const Allocator *allocator);
 

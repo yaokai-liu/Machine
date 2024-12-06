@@ -131,7 +131,7 @@ def gen_reduces():
                      if r != '__EXTEND_RULE__'
                      else f"{GRAMMAR_TARGET} * p_{r}" + args
                      for r in rule_names)
-    assign_reduces = sorted([f"[{r}] = (fn_produce *) p_{r}" for r in rule_names])
+    assign_reduces = sorted([f"[{r}] = (fn_reduce *) p_{r}" for r in rule_names])
     template = Tp(get_temp_from("reduce.h.tpl"))
     content = template.substitute(
         enum_reduces=',\n  '.join(enum_reduces),

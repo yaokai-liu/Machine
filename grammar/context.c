@@ -8,6 +8,7 @@
  **/
 
 #include "context.h"
+#include "stack.h"
 #include "trie.h"
 
 typedef struct Namespace {
@@ -20,6 +21,7 @@ typedef struct GContext {
   Namespace *inmOpcode;
   Namespace *inmRefer;
   Array *patterns;
+  Stack * width_stack;
 } GContext;
 
 Namespace *Namespace_new(const Allocator *allocator);
@@ -37,6 +39,7 @@ inline GContext *GContext_new(const Allocator *allocator) {
   context->entries = Array_new(sizeof(Entry), allocator);
   context->inmOpcode = Namespace_new(allocator);
   context->inmRefer = Namespace_new(allocator);
+  context->width_stack = Stack_new(allocator);
   return context;
 }
 
@@ -87,6 +90,20 @@ inline void GContext_destroy(GContext *context, const Allocator *allocator) {
   releasePrimeArray(context->entries);
   context->allocator->free(context->inmOpcode);
   context->allocator->free(context->inmRefer);
+  Stack_clear(context->width_stack);
+  context->allocator->free(context->width_stack);
   if (context->patterns) { releasePrimeArray(context->patterns); }
   allocator->free(context);
+}
+
+void push_context_width(GContext *context, void *token) {
+  uint64_t *pWidth = token;
+  Stack_push(context->width_stack, pWidth, sizeof(uint64_t));
+}
+
+fn_ctx_act *get_after_stack_actions(uint32_t) {
+    return nullptr;
+}
+fn_ctx_act *get_after_reduce_actions(uint32_t) {
+  return nullptr;
 }
