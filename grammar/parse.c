@@ -48,13 +48,14 @@ Machine *parse(const Terminal *tokens, uint32_t *cost, const Allocator *allocato
       state = act->offset;
       Stack_push(token_stack, &(tp->value), sizeof(void *));
       Stack_push(state_stack, &state, sizeof(int32_t));
+      // TODO: context action after stack
       tp++;
     } else if (act->action == reduce) {
       Stack_pop(token_stack, produceArgs, act->count * sizeof(void *));
       Stack_pop(state_stack, tempStateArea, act->count * sizeof(int32_t));
       Stack_top(state_stack, (int32_t *) &state, sizeof(int32_t));
-      fn_product *func = PRODUCTS[act->offset];
-      result = func(produceArgs, context, allocator);
+      fn_produce *produce = PRODUCTS[act->offset];
+      result = produce(produceArgs, context, allocator);
       if (!result) {
         *cost = (uint32_t) (uint64_t) (tp - tokens);
         GContext_destroy(context, allocator);
@@ -62,6 +63,7 @@ Machine *parse(const Terminal *tokens, uint32_t *cost, const Allocator *allocato
             state_stack, token_stack, produceArgs, tempStateArea, act->count, allocator
         );
       }
+      // TODO: context action after reduce
       state = jump(state, act->type);
       if (state < 0) {
         *cost = (uint32_t) (uint64_t) (tp - tokens);

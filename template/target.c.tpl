@@ -8,6 +8,6 @@
 #include "parse.h"
 #include "reduce.gen.h"
 
-fn_product * const PRODUCTS[] = {
+fn_produce * const PRODUCTS[] = {
   ${assign_reduces}
 };
