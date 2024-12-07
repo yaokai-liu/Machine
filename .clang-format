@@ -74,6 +74,7 @@ StatementMacros:
   - fn_try_keyword
   - fn_try_keyword_val
   - add_test_for
+  - add_test_for_type
   - releaseArrayCase
   - releaseTokenCase
 TabWidth: 2

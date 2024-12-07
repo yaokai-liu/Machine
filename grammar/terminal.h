@@ -14,13 +14,13 @@
 #include "char_t.h"
 #include <stdint.h>
 
-typedef struct {
-  uint16_t type;
+typedef struct Terminal {
+  uint32_t type;
+  uint32_t length;
+  uint32_t lineno;
+  uint32_t column;
   void *value;
 } Terminal;
-
-const Terminal *
-    tokenize(const char_t *input, uint32_t *cost, uint32_t *n_tokens, const Allocator *allocator);
 
 typedef struct Identifier {
   char_t *ptr;

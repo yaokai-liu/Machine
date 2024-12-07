@@ -32,7 +32,12 @@ uint32_t try_keyword_unsigned(const char_t *input, Terminal *result, const Alloc
 uint32_t try_keyword_signed(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t single_tokenize(const char_t *input, Terminal *result, const Allocator *allocator);
 
-uint32_t pass_space(const char_t * const input);
+uint32_t pass_whitespace(const char * const input);
+uint32_t pass_space(const char * const input, uint32_t * const lineno, uint32_t * const column);
+
+#define startswithDigital(pText) ('0' <= (pText)[0] && (pText)[0] <= '9')
+#define startswithLetter(pText) \
+  (('a' <= (pText)[0] && (pText)[0] <= 'z') || ('A' <= (pText)[0] && (pText)[0] <= 'Z'))
 
 inline uint32_t t_NUMBER_adic16(
     const char_t * const input, Terminal * const result,
@@ -49,6 +54,7 @@ inline uint32_t t_NUMBER_adic16(
       value = (value << 4) + (*pText++ - 'A' + 0xA);  // NOLINT(*-magic-numbers)
     } else if (('g' <= *pText && *pText <= 'z') || ('G' <= *pText && *pText <= 'Z')
                || ('_' == *pText)) {
+      result->length = pText - input;
       return 0;
     } else {
       break;
@@ -56,7 +62,8 @@ inline uint32_t t_NUMBER_adic16(
   }
   result->type = enum_NUMBER;
   result->value = (void *) value;
-  return pText - input;
+  result->length = pText - input;
+  return result->length;
 }
 
 inline uint32_t t_NUMBER_adic10(
@@ -66,18 +73,20 @@ inline uint32_t t_NUMBER_adic10(
   const char_t *pText = input;
   uint64_t value = 0;
   while (true) {
-    if ('0' <= *pText && *pText <= '9') {
+    if (startswithDigital(pText)) {
       value = (value * 10) + (*pText++ - '0');  // NOLINT(*-magic-numbers)
       continue;
     }
-    if (('a' <= *pText && *pText <= 'z') || ('A' <= *pText && *pText <= 'Z') || ('_' == *pText)) {
+    if (startswithLetter(pText)) {
+      result->length = pText - input;
       return 0;
     }
     break;
   }
   result->type = enum_NUMBER;
   result->value = (void *) value;
-  return pText - input;
+  result->length = pText - input;
+  return result->length;
 }
 
 inline uint32_t t_NUMBER_adic8(
@@ -91,15 +100,16 @@ inline uint32_t t_NUMBER_adic8(
       value = (value << 3) + (*pText++ - '0');
       continue;
     }
-    if (('8' == *pText) || ('9' == *pText) || ('a' <= *pText && *pText <= 'z')
-        || ('A' <= *pText && *pText <= 'Z') || ('_' == *pText)) {
+    if (('8' == *pText) || ('9' == *pText) || startswithLetter(pText)) {
+      result->length = pText - input;
       return 0;
     }
     break;
   }
   result->type = enum_NUMBER;
   result->value = (void *) value;
-  return pText - input;
+  result->length = pText - input;
+  return result->length;
 }
 
 inline uint32_t t_NUMBER_adic2(
@@ -113,15 +123,16 @@ inline uint32_t t_NUMBER_adic2(
       value = (value << 1) + (*pText++ - '0');
       continue;
     }
-    if (('2' <= *pText && *pText <= '9') || ('a' <= *pText && *pText <= 'z')
-        || ('A' <= *pText && *pText <= 'Z') || ('_' == *pText)) {
+    if (('2' <= *pText && *pText <= '9') || startswithLetter(pText)) {
+      result->length = pText - input;
       return 0;
     }
     break;
   }
   result->type = enum_NUMBER;
   result->value = (void *) value;
-  return pText - input;
+  result->length = pText - input;
+  return result->length;
 }
 
 inline uint32_t t_IDENTIFIER(
@@ -131,11 +142,11 @@ inline uint32_t t_IDENTIFIER(
   if (('a' <= *pText && *pText <= 'z') || ('A' <= *pText && *pText <= 'Z')) {
     pText++;
   } else {
+    result->length = pText - input;
     return 0;
   }
   while (true) {
-    if (('a' <= *pText && *pText <= 'z') || ('A' <= *pText && *pText <= 'Z')
-        || ('0' <= *pText && *pText <= '9')) {
+    if (startswithLetter(pText) || startswithDigital(pText)) {
       pText++;
     } else {
       break;
@@ -148,7 +159,8 @@ inline uint32_t t_IDENTIFIER(
   ident->ptr[ident->len] = '\0';
   result->type = enum_IDENTIFIER;
   result->value = ident;
-  return ident->len;
+  result->length = pText - input;
+  return result->length;
 }
 
 #define fn_try_keyword(_kw, _type)                                                           \
@@ -161,6 +173,7 @@ inline uint32_t t_IDENTIFIER(
     }                                                                                        \
     result->type = enum_##_type;                                                             \
     result->value = nullptr;                                                                 \
+    result->length = lenof(#_kw);                                                            \
     return lenof(#_kw);                                                                      \
     __failed_kw_##_kw : return t_IDENTIFIER(input - 2, result, allocator);                   \
   }
@@ -174,6 +187,7 @@ inline uint32_t t_IDENTIFIER(
     }                                                                                        \
     result->type = enum_##_type;                                                             \
     result->value = (void *) val;                                                            \
+    result->length = lenof(#_kw);                                                            \
     return lenof(#_kw);                                                                      \
     __failed_kw_##_kw : return t_IDENTIFIER(input - 2, result, allocator);                   \
   }
@@ -197,6 +211,7 @@ fn_try_keyword_val(signed, TYPE, IT_SIGNED)
       ident->ptr[1] = '\0';                                         \
       result->type = enum_IDENTIFIER;                               \
       result->value = ident;                                        \
+      result->length = 1;                                           \
       return 1;                                                     \
     }                                                               \
     return length;                                                  \
@@ -266,48 +281,53 @@ uint32_t tokenize_letter_u(
   }
 }
 
-uint32_t tokenize_startswith_number(
+uint32_t tokenize_startswith_digital(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
   uint32_t length = t_NUMBER_adic10(input, result, allocator);
+  if (length == 0) { return 0; }
   uint32_t value = (uint32_t) (uint64_t) result->value;
   const char_t *pText = input + length;
-  pText += pass_space(pText);
+  pText += pass_whitespace(pText);
   if (*pText == ']') {
     result->type = enum_WIDTH;
     result->value = (void *) (uint64_t) value;
-    return (pText + 1 - input);
+    result->length = (pText + 1 - input);
+    return result->length;
   } else if (*pText++ != '-') {
+    result->length = (pText + 1 - input);
     return 0;
   }
+  pText += pass_whitespace(pText);
 
-  pText += pass_space(pText);
-  length = t_NUMBER_adic10(pText, result, allocator);
-  pText += pass_space(pText);
-  if (length > 0) {  // parse bit field
-    if (pText[length] != ']') { return 0; }
+  // parse width or bit field
+  if (strcmp_o(pText, "byte") == lenof("byte")) {
+    result->type = enum_WIDTH;
+    result->value = (void *) (uint64_t) (value << 3);
+    pText += lenof("byte") + pass_whitespace(pText);
+  } else if (strcmp_o(pText, "bit") == lenof("bit")) {
+    result->type = enum_WIDTH;
+    result->value = (void *) (uint64_t) value;
+    pText += lenof("bit") + pass_whitespace(pText);
+  } else if ((length = t_NUMBER_adic10(pText, result, allocator)) > 0) {
+    pText += length;
     BitField *bitField = allocator->calloc(1, sizeof(BitField));
     bitField->lower = (uint32_t) (uint64_t) result->value;
     bitField->upper = max(value, bitField->lower);
     bitField->lower = min(value, bitField->lower);
     result->type = enum_BIT_FIELD;
     result->value = bitField;
-    return (pText + length - input + 1);
   }
-  // parse width
-  if (strcmp_o(pText, "byte") == lenof("byte")) {
-    result->type = enum_WIDTH;
-    result->value = (void *) (uint64_t) (value << 3);
-    pText += lenof("byte") + pass_space(pText);
-    return *pText++ == ']' ? (pText - input) : 0;
+  pText += pass_whitespace(pText);
+
+  if (*pText != ']') {
+    if (result->type == enum_BIT_FIELD) { allocator->free(result->value); }
+    result->length = pText - input;
+    return 0;
+  } else {
+    result->length = pText - input + 1;
+    return result->length;
   }
-  if (strcmp_o(pText, "bit") == lenof("bit")) {
-    result->type = enum_WIDTH;
-    result->value = (void *) (uint64_t) value;
-    pText += lenof("bit") + pass_space(pText);
-    return *pText++ == ']' ? (pText - input) : 0;
-  }
-  return 0;
 }
 
 uint32_t tokenize_symbol_LPAREN(
@@ -316,31 +336,57 @@ uint32_t tokenize_symbol_LPAREN(
   const char_t *pText = input;
   uint32_t length = t_NUMBER_adic10(pText, result, allocator);
   if (length == 0) { return 0; }
-  pText += length + pass_space(pText);
-  if (*pText++ != '-') { return 0; }
-  if (strcmp_o(pText, "tick") != lenof("tick")) { return 0; }
+  pText += length;
+  pText += pass_whitespace(pText);
+  if (*pText++ != '-') {
+    result->length = pText - input;
+    return 0;
+  }
+  pText += pass_whitespace(pText);
+  if (strcmp_o(pText, "tick") != lenof("tick")) {
+    result->length = pText - input + 1;
+    return 0;
+  }
+  pText += lenof("tick");
+  pText += pass_whitespace(pText);
+  if (*pText++ != ')') {
+    result->length = pText - input + 1;
+    return 0;
+  }
   result->type = enum_TIME_TICK;
-  pText += lenof("tick") + pass_space(pText);
-  return *pText++ == ')' ? (pText - input + 1) : 0;
+  result->length = pText - input + 1;
+  return result->length;
 }
 
 uint32_t tokenize_symbol_LSQUARE(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
   const char_t *pText = input;
-  pText += pass_space(pText);
-  if ('0' <= pText[0] && pText[0] <= '9') {
-    uint32_t length = tokenize_startswith_number(pText, result, allocator);
-    if (length > 0) { return length + 1; }
+  pText += pass_whitespace(pText);
+  if (startswithDigital(pText)) {
+    uint32_t length = tokenize_startswith_digital(pText, result, allocator);
+    if (length > 0) {
+      result->length += pText - input + 1;
+      return result->length;
+    }
   }
   if (strcmp_o(pText, "...") == lenof("...")) {
     result->type = enum_BIT_FIELD;
     result->value = nullptr;
-    pText += lenof("...") + pass_space(pText);
-    return *pText++ == ']' ? pText - input + 1 : 0;
+    pText += lenof("...");
+    pText += pass_whitespace(pText);
+    if (*pText == ']') {
+      pText++;
+      result->length = pText - input + 1;
+      return result->length;
+    } else {
+      result->length = pText - input + 1;
+      return 0;
+    }
   }
   result->type = enum_LEFT_SQUARE_BRACKET;
   result->value = nullptr;
+  result->length = 1;
   return 1;
 }
 
@@ -353,17 +399,20 @@ uint32_t tokenize_number(
       case 'x':
       case 'X': {
         length = t_NUMBER_adic16(input + 2, result, allocator);
-        return length == 0 ? 0 : length + 2;
+        result->length += 2;
+        return length > 0 ? result->length : 0;
       }
       case 'o':
       case 'O': {
         length = t_NUMBER_adic8(input + 2, result, allocator);
-        return length == 0 ? 0 : length + 2;
+        result->length += 2;
+        return length > 0 ? result->length : 0;
       }
       case 'b':
       case 'B': {
         length = t_NUMBER_adic2(input + 2, result, allocator);
-        return length == 0 ? 0 : length + 2;
+        result->length += 2;
+        return length > 0 ? result->length : 0;
       }
       default: {
       }
@@ -379,6 +428,15 @@ const uint32_t TERMINAL_TYPE_LITERALS[] = {
 inline uint32_t single_tokenize(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
+  // single literal
+  uint32_t length = stridx_o(*input, "{}:;=],.");
+  if (length < lenof("{}:;=],.")) {
+    result->type = TERMINAL_TYPE_LITERALS[length];
+    result->value = nullptr;
+    result->length = 1;
+    return 1;
+  }
+
   switch (*input) {
     case 'i': {
       return tokenize_letter_i(input + 1, result, allocator);
@@ -404,74 +462,125 @@ inline uint32_t single_tokenize(
     case '$': {
       result->type = enum_MEM_KEY;
       result->value = (void *) (uint64_t) MEM_BASE;
+      result->length = 1;
       return 1;
     }
     case '>': {
       result->type = enum_MEM_KEY;
       result->value = (void *) (uint64_t) MEM_OFFSET;
+      result->length = 1;
       return 1;
     }
     case '^': {
       result->type = enum_PART_KEY;
       result->value = (void *) (uint64_t) PART_PREFIX;
+      result->length = 1;
       return 1;
     }
     case '&': {
       result->type = enum_PART_KEY;
       result->value = (void *) (uint64_t) PART_SUFFIX;
+      result->length = 1;
       return 1;
     }
     case '~': {
       result->type = enum_PART_KEY;
       result->value = (void *) (uint64_t) PART_PRINCIPAL;
+      result->length = 1;
       return 1;
     }
     default: {
     }
   }
-  uint32_t length = tokenize_number(input, result, allocator);
-  if (length > 0) { return length; }
-  length = t_IDENTIFIER(input, result, allocator);
-  if (length > 0) { return length; }
-  length = stridx_o(*input, "{}:;=],.");
-  if (length < lenof("{}:;=],.")) {
-    result->type = TERMINAL_TYPE_LITERALS[length];
-    result->value = nullptr;
-    return 1;
+  if (startswithDigital(input)) {
+    length = tokenize_number(input, result, allocator);
+    if (length > 0) {
+      return length;
+    } else {
+      return 0;
+    }
+  }
+  if (startswithLetter(input)) {
+    length = t_IDENTIFIER(input, result, allocator);
+    if (length > 0) {
+      return length;
+    } else {
+      return 0;
+    }
   }
   return 0;
 }
 
-uint32_t pass_space(const char_t * const input) {
+uint32_t pass_whitespace(const char_t * const input) {
   const char_t *pText = input;
   while (*pText && stridx_o(*pText, " \t\n\f\v\r") < lenof(" \t\n\f\v\r")) { pText++; }
   return pText - input;
 }
 
+uint32_t pass_space(const char * const input, uint32_t * const lineno, uint32_t * const column) {
+  uint32_t l = lineno ? *lineno : 0;
+  uint32_t c = column ? *column : 0;
+  const char *pText = input;
+  while (*pText) {
+    switch (*pText) {
+      case '\n': {
+        l++;
+        c = 0;
+        break;
+      }
+      case '\f':
+      case '\r':
+      case ' ':
+      case '\t': {
+        c++;
+        break;
+      }
+      default: {
+        goto __return;
+      }
+    }
+    pText++;
+  }
+__return:
+  lineno ? *lineno = l : 0;
+  column ? *column = c : 0;
+  return pText - input;
+}
+
 const Terminal *tokenize(
-    const char_t * const input, uint32_t *cost, uint32_t *n_tokens,
-    const Allocator * const allocator
+    const char_t * const input, uint32_t *cost, uint32_t *n_tokens, uint32_t * const lineno,
+    uint32_t * const column, const Allocator * const allocator
 ) {  // NOLINT(*-easily-swappable-parameters)
   const char_t *pText = input;
+  uint32_t l = lineno ? *lineno : 0;
+  uint32_t c = column ? *column : 0;
   Array *terminals = Array_new(sizeof(Terminal), allocator);
   Terminal terminal = {};
-  pText += pass_space(pText);
+  pText += pass_space(pText, &l, &c);
   while (*pText) {
+    terminal.lineno = l;
+    terminal.column = c;
     *cost = single_tokenize(pText, &terminal, allocator);
+    c += terminal.length;
     if (0 == *cost) { break; }
     pText += *cost;
-    pText += pass_space(pText);
+    pText += pass_space(pText, &l, &c);
     Array_append(terminals, &terminal, 1);
   }
-  if (0 == *pText) {
+  if ('\0' == *pText) {
     terminal.type = enum_TERMINATOR;
     terminal.value = nullptr;
+    terminal.lineno = l;
+    terminal.column = c;
+    terminal.length = 0;
     Array_append(terminals, &terminal, 1);
   }
   *cost = (uint32_t) (pText - input);
   *n_tokens = Array_length(terminals);
   const Terminal *pTerminals = (*n_tokens == 0) ? nullptr : Array_get(terminals, 0);
   Array_destroy(terminals);
+  lineno ? *lineno = l : 0;
+  column ? *column = c : 0;
   return pTerminals;
 }
 
