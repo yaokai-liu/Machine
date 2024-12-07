@@ -11,6 +11,7 @@
 #define MACHINE_STRING_T_H
 
 #include "char_t.h"
+#include <stdint.h>
 
 uint32_t strcmp_o(const char_t *str1, const char_t *str2);
 

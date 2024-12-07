@@ -28,15 +28,17 @@ void GContext_addRefer(GContext *context, Identifier *ident, Entry *entry);
 
 void *GContext_findRefer(GContext *context, Identifier *ident);
 
+void *GContext_findIdentInStack(GContext *context, Identifier *ident);
+
 void GContext_addPattern(GContext *context, Pattern *pattern);
 
 bool GContext_testPattern(GContext *context, PatternArgs *patternArgs);
 
 void GContext_destroy(GContext *context, const Allocator *allocator);
 
-typedef void fn_ctx_act(GContext * context, void *token);
+typedef void fn_ctx_act(GContext *context, void *token);
 
-fn_ctx_act *get_after_stack_actions(uint32_t state);
-fn_ctx_act *get_after_reduce_actions(uint32_t state);
+fn_ctx_act *get_after_stack_actions(int32_t state);
+fn_ctx_act *get_after_reduce_actions(int32_t state);
 
 #endif  // MACHINE_CONTEXT_H

@@ -64,8 +64,6 @@ Machine *parse(const Terminal *tokens, uint32_t *cost, const Allocator *allocato
             state_stack, token_stack, produceArgs, tempStateArea, act->count, allocator
         );
       }
-      fn_ctx_act *ctx_act = get_after_reduce_actions(state);
-      if (ctx_act) { ctx_act(context, tp->value); }
       state = jump(state, act->type);
       if (state < 0) {
         *cost = (uint32_t) (uint64_t) (tp - tokens);
@@ -74,6 +72,8 @@ Machine *parse(const Terminal *tokens, uint32_t *cost, const Allocator *allocato
       }
       Stack_push(token_stack, &result, sizeof(void *));
       Stack_push(state_stack, &state, sizeof(int32_t));
+      fn_ctx_act *ctx_act = get_after_reduce_actions(state);
+      if (ctx_act) { ctx_act(context, tp->value); }
       if (act->offset == __EXTEND_RULE__) { break; }
     } else {
       // never be touched

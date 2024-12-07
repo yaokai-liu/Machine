@@ -6,9 +6,9 @@
  **/
 
 #include "action-table.h"
+#include "action-table.gen.h"
 #include "reduce.gen.h"
 #include "tokens.gen.h"
-#include "target.h"
 
 struct state {
   const uint16_t ndx_base;
@@ -28,10 +28,6 @@ const struct state STATES[];
 const uint32_t CURRENT_TOKENS[];
 
 const struct unit *getUnit(const state *state, uint32_t look);
-
-enum __STATE_ENUM__ {
-  ${state_enum}
-};
 
 const struct grammar_action ACTIONS[] = {
   ${actions}

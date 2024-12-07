@@ -125,7 +125,7 @@ class Action:
 def gen_reduces():
     global rules
     rule_names = rules.keys()
-    args = "(void * argv[], const Allocator * allocator);"
+    args = "(void * argv[], GContext *, const Allocator * allocator);"
     enum_reduces = sorted(f"{r} = {i}" for i, r in enumerate(rule_names))
     reduces = sorted(f"{r.split('_')[0]} * p_{r}" + args
                      if r != '__EXTEND_RULE__'
@@ -180,7 +180,6 @@ def gen_action_table():
 
     template = Tp(get_temp_from("action-table.c.tpl"))
     content = template.substitute(
-        state_enum=',\n  '.join(state_enum),
         actions=",\n  ".join(actions),
         jumps=", ".join(jumps),
         units=", \n  ".join(units),
@@ -189,6 +188,11 @@ def gen_action_table():
     )
     with open(OUT_DIR / "action-table.gen.c", 'w') as fp:
         fp.write(content)
+    content_h = Tp(get_temp_from("action-table.h.tpl")).substitute(
+        state_enum=',\n  '.join(state_enum)
+    )
+    with open(OUT_DIR / "action-table.gen.h", 'w') as fp:
+        fp.write(content_h)
 
 
 if __name__ == '__main__':

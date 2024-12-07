@@ -9,9 +9,9 @@
 #include "tokenize.h"
 #include "array.h"
 #include "enum.h"
+#include "string_t.h"
 #include "terminal.h"
 #include "tokens.gen.h"
-#include "string_t.h"
 
 #define lenof(str_literal) ((sizeof str_literal) - 1)
 #define max(a, b)          ((a) > (b) ? (a) : (b))
@@ -32,8 +32,7 @@ uint32_t try_keyword_unsigned(const char_t *input, Terminal *result, const Alloc
 uint32_t try_keyword_signed(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t single_tokenize(const char_t *input, Terminal *result, const Allocator *allocator);
 
-uint32_t pass_space(const char_t *const input);
-
+uint32_t pass_space(const char_t * const input);
 
 inline uint32_t t_NUMBER_adic16(
     const char_t * const input, Terminal * const result,
@@ -278,7 +277,9 @@ uint32_t tokenize_startswith_number(
     result->type = enum_WIDTH;
     result->value = (void *) (uint64_t) value;
     return (pText + 1 - input);
-  } else if (*pText++ != '-') { return 0; }
+  } else if (*pText++ != '-') {
+    return 0;
+  }
 
   pText += pass_space(pText);
   length = t_NUMBER_adic10(pText, result, allocator);
@@ -303,8 +304,8 @@ uint32_t tokenize_startswith_number(
   if (strcmp_o(pText, "bit") == lenof("bit")) {
     result->type = enum_WIDTH;
     result->value = (void *) (uint64_t) value;
-      pText += lenof("bit") + pass_space(pText);
-      return *pText++ == ']' ? (pText - input) : 0;
+    pText += lenof("bit") + pass_space(pText);
+    return *pText++ == ']' ? (pText - input) : 0;
   }
   return 0;
 }
@@ -326,7 +327,7 @@ uint32_t tokenize_symbol_LPAREN(
 uint32_t tokenize_symbol_LSQUARE(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
-  const char_t * pText = input;
+  const char_t *pText = input;
   pText += pass_space(pText);
   if ('0' <= pText[0] && pText[0] <= '9') {
     uint32_t length = tokenize_startswith_number(pText, result, allocator);

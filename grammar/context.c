@@ -21,7 +21,8 @@ typedef struct GContext {
   Namespace *inmOpcode;
   Namespace *inmRefer;
   Array *patterns;
-  Stack * width_stack;
+  Stack *width_stack;
+  Stack *ident_stack;
 } GContext;
 
 Namespace *Namespace_new(const Allocator *allocator);
@@ -40,6 +41,7 @@ inline GContext *GContext_new(const Allocator *allocator) {
   context->inmOpcode = Namespace_new(allocator);
   context->inmRefer = Namespace_new(allocator);
   context->width_stack = Stack_new(allocator);
+  context->ident_stack = Stack_new(allocator);
   return context;
 }
 
@@ -62,10 +64,18 @@ inline void *GContext_findRefer(GContext *context, Identifier *ident) {
   return Array_get(context->entries, ndx - 1);
 }
 
-inline void GContext_addPattern(GContext *context, Pattern *pattern) {
-  if (!context->patterns) {
-    context->patterns = Array_new(sizeof(Pattern *), context->allocator);
+inline void *GContext_findIdentInStack(GContext *context, Identifier *ident) {
+  const uint32_t length = Stack_size(context->ident_stack) / sizeof(Identifier *);
+  const Identifier *idents = Stack_get(context->ident_stack, 0);
+  for (uint32_t i = 0; i < length; i++) {
+    const Identifier *id = &idents[i];
+    if (Identifier_cmp(ident, id)) { return (void *) id; }
   }
+  return nullptr;
+}
+
+inline void GContext_addPattern(GContext *context, Pattern *pattern) {
+  if (!context->patterns) { context->patterns = Array_new(sizeof(Pattern *), context->allocator); }
   Array_append(context->patterns, &pattern, 1);
 }
 
@@ -73,7 +83,7 @@ bool GContext_testPattern(GContext *context, PatternArgs *patternArgs) {
   if (!context->patterns) { return false; }
   const uint32_t length = Array_length(context->patterns);
   const Pattern * const * const patterns = Array_get(context->patterns, 0);
-  for (uint32_t i = 0; i < length; i ++) {
+  for (uint32_t i = 0; i < length; i++) {
     const Pattern * const temp = patterns[i];
     if (PatternArgs_cmp(temp->args, patternArgs)) { return true; }
   }
@@ -84,26 +94,76 @@ inline void Namespace_destroy(Namespace *ns) {
   Trie_destroy(ns->trie);
 }
 
+#define contextReleaseStack(stack)            \
+  do {                                        \
+    Stack_clear(context->stack);              \
+    context->allocator->free(context->stack); \
+  } while (false)
+
 inline void GContext_destroy(GContext *context, const Allocator *allocator) {
   Namespace_destroy(context->inmOpcode);
   Namespace_destroy(context->inmRefer);
   releasePrimeArray(context->entries);
   context->allocator->free(context->inmOpcode);
   context->allocator->free(context->inmRefer);
-  Stack_clear(context->width_stack);
-  context->allocator->free(context->width_stack);
+  contextReleaseStack(width_stack);
+  contextReleaseStack(ident_stack);
   if (context->patterns) { releasePrimeArray(context->patterns); }
   allocator->free(context);
 }
 
-void push_context_width(GContext *context, void *token) {
-  uint64_t *pWidth = token;
-  Stack_push(context->width_stack, pWidth, sizeof(uint64_t));
+void push_context_ident(GContext *context, void *token) {
+  Stack_push(context->width_stack, &token, sizeof(uint64_t));
+}
+void pop_context_ident(GContext *context, void *) {
+  Stack_pop(context->width_stack, nullptr, sizeof(void *));
 }
 
-fn_ctx_act *get_after_stack_actions(uint32_t) {
-    return nullptr;
+void push_context_width(GContext *context, void *token) {
+  uint64_t width = (uint64_t) token;
+  Stack_push(context->width_stack, &width, sizeof(uint64_t));
 }
-fn_ctx_act *get_after_reduce_actions(uint32_t) {
+void pop_context_width(GContext *context, void *) {
+  Stack_pop(context->width_stack, nullptr, sizeof(uint64_t));
+}
+
+void pop_context_width_and_ident(GContext *context, void *token) {
+  pop_context_width(context, token);
+  pop_context_ident(context, token);
+}
+
+#include "action-table.gen.h"
+#define IN_MACHINE(s)     __MACHINE_IDENTIFIER_LEFT_BRACKET_##s
+#define IN_INSTRUCTION(s) __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_##s
+
+fn_ctx_act *AFTER_STACK_ACTIONS[] = {
+    push_context_ident,
+};
+
+fn_ctx_act *get_after_stack_actions(int32_t state) {
+  switch (state) {
+    case __MACHINE_IDENTIFIER:
+    case IN_MACHINE(REGISTER_IDENTIFIER): {
+      return push_context_ident;
+    }
+    case IN_MACHINE(REGISTER_IDENTIFIER_WIDTH):
+    case IN_MACHINE(MEMORY_IDENTIFIER_WIDTH):
+    case IN_INSTRUCTION(Pattern_EQUAL_WIDTH): {
+      return push_context_width;
+    }
+  }
+  return nullptr;
+}
+fn_ctx_act *get_after_reduce_actions(int32_t state) {
+  switch (state) {
+    case IN_MACHINE(RegisterGroup): {
+      return pop_context_width_and_ident;
+    }
+    case IN_MACHINE(Memory):
+    case IN_INSTRUCTION(InstrForm):
+    case IN_INSTRUCTION(InstrForms_InstrForm): {
+      return pop_context_width;
+    }
+  }
   return nullptr;
 }

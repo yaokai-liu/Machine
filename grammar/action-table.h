@@ -21,7 +21,7 @@ struct grammar_action {
   } action      : 4;
   uint8_t count : 4;
   uint8_t type;
-  const uint16_t offset;
+  const int16_t offset;
 };
 
 const struct grammar_action *getAction(uint32_t index, uint32_t ahead);
