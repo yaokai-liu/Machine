@@ -136,10 +136,6 @@ void pop_context_width_and_ident(GContext *context, void *token) {
 #define IN_MACHINE(s)     __MACHINE_IDENTIFIER_LEFT_BRACKET_##s
 #define IN_INSTRUCTION(s) __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_##s
 
-fn_ctx_act *AFTER_STACK_ACTIONS[] = {
-    push_context_ident,
-};
-
 fn_ctx_act *get_after_stack_actions(int32_t state) {
   switch (state) {
     case __MACHINE_IDENTIFIER:
