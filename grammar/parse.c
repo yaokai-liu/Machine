@@ -30,8 +30,8 @@ Machine *parse(const Terminal *tokens, uint32_t *cost, const Allocator *allocato
   void *result;
   int32_t state = 0;
   const Terminal *tp = tokens;
-  void *produceArgs[MAX_ARGC] = {};
-  int32_t tempStateArea[MAX_ARGC] = {};
+  void *args[MAX_ARGC] = {};
+  int32_t states[MAX_ARGC] = {};
   Stack *state_stack = Stack_new(allocator);
   Stack *token_stack = Stack_new(allocator);
   Stack_push(state_stack, &state, sizeof(int32_t));
@@ -52,17 +52,15 @@ Machine *parse(const Terminal *tokens, uint32_t *cost, const Allocator *allocato
       if (ctx_act) { ctx_act(context, tp->value); }
       tp++;
     } else if (act->action == reduce) {
-      Stack_pop(token_stack, produceArgs, act->count * sizeof(void *));
-      Stack_pop(state_stack, tempStateArea, act->count * sizeof(int32_t));
+      Stack_pop(token_stack, args, act->count * sizeof(void *));
+      Stack_pop(state_stack, states, act->count * sizeof(int32_t));
       Stack_top(state_stack, (int32_t *) &state, sizeof(int32_t));
       fn_reduce *reduce = PRODUCTS[act->offset];
-      result = reduce(produceArgs, context, allocator);
+      result = reduce(args, context, allocator);
       if (!result) {
         *cost = (uint32_t) (uint64_t) (tp - tokens);
         GContext_destroy(context, allocator);
-        return failed_to_produce(
-            state_stack, token_stack, produceArgs, tempStateArea, act->count, allocator
-        );
+        return failed_to_produce(state_stack, token_stack, args, states, act->count, allocator);
       }
       state = jump(state, act->type);
       if (state < 0) {

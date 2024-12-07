@@ -66,9 +66,9 @@ inline void *GContext_findRefer(GContext *context, Identifier *ident) {
 
 inline void *GContext_findIdentInStack(GContext *context, Identifier *ident) {
   const uint32_t length = Stack_size(context->ident_stack) / sizeof(Identifier *);
-  const Identifier *idents = Stack_get(context->ident_stack, 0);
+  const Identifier * const * const idents = Stack_get(context->ident_stack, 0);
   for (uint32_t i = 0; i < length; i++) {
-    const Identifier *id = &idents[i];
+    const Identifier *id = idents[i];
     if (Identifier_cmp(ident, id)) { return (void *) id; }
   }
   return nullptr;
@@ -134,6 +134,7 @@ void pop_context_width_and_ident(GContext *context, void *token) {
 
 #include "action-table.gen.h"
 #define IN_MACHINE(s)     __MACHINE_IDENTIFIER_LEFT_BRACKET_##s
+#define IN_REGISTER(s)    __MACHINE_IDENTIFIER_LEFT_BRACKET_REGISTER_IDENTIFIER_WIDTH_LEFT_BRACKET_##s
 #define IN_INSTRUCTION(s) __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_##s
 
 fn_ctx_act *get_after_stack_actions(int32_t state) {
@@ -147,6 +148,9 @@ fn_ctx_act *get_after_stack_actions(int32_t state) {
     case IN_INSTRUCTION(Pattern_EQUAL_WIDTH): {
       return push_context_width;
     }
+    case IN_REGISTER(Registers_RIGHT_BRACKET): {
+      return pop_context_width_and_ident;
+    }
   }
   return nullptr;
 }
@@ -154,9 +158,6 @@ fn_ctx_act *get_after_reduce_actions(int32_t state) {
   switch (state) {
     case __Machine: {
       return pop_context_ident;
-    }
-    case IN_MACHINE(RegisterGroup): {
-      return pop_context_width_and_ident;
     }
     case IN_MACHINE(Memory):
     case IN_INSTRUCTION(InstrForm):
