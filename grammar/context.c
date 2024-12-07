@@ -113,10 +113,10 @@ inline void GContext_destroy(GContext *context, const Allocator *allocator) {
 }
 
 void push_context_ident(GContext *context, void *token) {
-  Stack_push(context->width_stack, &token, sizeof(uint64_t));
+  Stack_push(context->ident_stack, &token, sizeof(uint64_t));
 }
 void pop_context_ident(GContext *context, void *) {
-  Stack_pop(context->width_stack, nullptr, sizeof(void *));
+  Stack_pop(context->ident_stack, nullptr, sizeof(void *));
 }
 
 void push_context_width(GContext *context, void *token) {
@@ -152,6 +152,9 @@ fn_ctx_act *get_after_stack_actions(int32_t state) {
 }
 fn_ctx_act *get_after_reduce_actions(int32_t state) {
   switch (state) {
+    case __Machine: {
+      return pop_context_ident;
+    }
     case IN_MACHINE(RegisterGroup): {
       return pop_context_width_and_ident;
     }
