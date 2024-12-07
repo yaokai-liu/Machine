@@ -7,7 +7,7 @@ from DATA import *
 PROJECT_ROOT = Path(os.path.dirname(__file__)).parent
 JSON_DIR = PROJECT_ROOT / "json"
 TEMPLATE_DIR = PROJECT_ROOT / "template"
-OUT_DIR = PROJECT_ROOT / "grammar"
+OUT_DIR = PROJECT_ROOT / "grammar/generated"
 GRAMMAR_TARGET = "Machine"
 
 

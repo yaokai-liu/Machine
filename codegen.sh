@@ -6,9 +6,9 @@ else
   mkdir json
 fi
 python liu-machine/generate.py json
-if [ -d "grammar" ]; then
+if [ -d "grammar/generated" ]; then
   echo ''
 else
-  mkdir grammar
+  mkdir -p grammar/generated
 fi
 python script/codegen.py

@@ -13,14 +13,15 @@ if (ENABLE_TEST_COV)
     add_compile_options("-fprofile-arcs" "-ftest-coverage")
 endif ()
 
-include_directories(contana grammar)
+include_directories(contana grammar grammar/generated)
 
 aux_source_directory(contana CTR_SRC)
 add_library(contana SHARED ${CTR_SRC})
 link_libraries(contana)
 
 aux_source_directory(grammar GRAMMAR_SRC)
-add_library(grammar ${GRAMMAR_SRC})
+aux_source_directory(grammar/generated GRAMMAR_GENERATED_SRC)
+add_library(grammar ${GRAMMAR_SRC} ${GRAMMAR_GENERATED_SRC})
 
 include_directories(grammar contana)
 
