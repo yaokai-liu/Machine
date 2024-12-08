@@ -1,6 +1,7 @@
 .idea
 .vscode
 .vs
+.cache
 __pycache__
 cmake-*
 json

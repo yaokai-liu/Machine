@@ -34,6 +34,12 @@ void GContext_addPattern(GContext *context, Pattern *pattern);
 
 bool GContext_testPattern(GContext *context, PatternArgs *patternArgs);
 
+void GContext_addMapItem(GContext *context, MappingItem * item);
+
+MappingItem * GContext_getMapItem(GContext *context, BitField * bf);
+
+uint64_t GContext_getLastWidth(GContext *context);
+
 void GContext_destroy(GContext *context, const Allocator *allocator);
 
 typedef void fn_ctx_act(GContext *context, void *token);

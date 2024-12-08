@@ -40,9 +40,12 @@ int main() {
     return -3;
   }
   for (uint32_t i = 0; i < n_tokens; i++) {
+    uint32_t t_line = terminals[i].lineno;
+    uint32_t t_start  = terminals[i].column;
+    uint32_t t_end = (terminals[i].length > 0) ? terminals[i].column + terminals[i].length - 1 : 0;
     printf(
-        "(line: %u, col: %u-%u, type: %s, value: %p)\n", terminals[i].lineno, terminals[i].column,
-        terminals[i].column + terminals[i].length - 1, get_name(terminals[i].type),
+        "(line: %u, col: %u-%u, type: %s, value: %p)\n", t_line, t_start, t_end,
+        get_name(terminals[i].type),
         terminals[i].value
     );
   }

@@ -8,8 +8,8 @@
  **/
 
 #include "action-table.h"
+#include "context.h"
 #include "enum.h"
-#include "parse.h"
 #include "target.h"
 #include "terminal.h"
 #include "tokens.gen.h"
@@ -244,7 +244,6 @@ Layout *p_Layout_1(void *argv[], GContext *, const Allocator *allocator) {
 
 Machine *p_Machine_0(void *argv[], GContext *, const Allocator *allocator) {
   Identifier *identifier = (Identifier *) argv[1];
-  // todo: verify identifier not in global identifier table.
   Entries *entries = argv[3];
   Machine *machine = allocator->calloc(1, sizeof(Machine));
   machine->name = identifier;
@@ -256,12 +255,22 @@ Machine *p___EXTEND_RULE__(void *argv[], const Allocator *) {
   return (Machine *) argv[0];
 }
 
-MappingItem *p_MappingItem_0(void *argv[], GContext *, const Allocator *allocator) {
+MappingItem *p_MappingItem_0(void *argv[], GContext * context, const Allocator *allocator) {
   BitField *bit_field = (BitField *) argv[0];
   Evaluable *evaluable = (Evaluable *) argv[2];
+
+  if (bit_field) {
+    uint64_t width = GContext_getLastWidth(context);
+    if (bit_field->upper > width) { return nullptr; }
+  }
+  if (GContext_getMapItem(context, bit_field)) { return nullptr; }
+
   MappingItem *item = allocator->calloc(1, sizeof(MappingItem));
   item->field = bit_field;
   item->evaluable = evaluable;
+
+  GContext_addMapItem(context, item);
+
   return item;
 }
 

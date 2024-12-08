@@ -10,7 +10,6 @@
 #include "target.h"
 #include "context.h"
 #include "tokens.gen.h"
-#include <stdio.h>
 
 void releaseIdentifier(Identifier *ident, const Allocator *allocator) {
   allocator->free(ident->ptr);
@@ -158,24 +157,38 @@ void releaseSet(Set *set, const Allocator *allocator) {
 
 #include "string_t.h"
 
-inline bool Identifier_cmp(const Identifier *ident1, const Identifier *ident2) {
-  if (ident1->len != ident2->len) { return false; }
-  return (ident1->len == strcmp_o(ident1->ptr, ident2->ptr));
+inline int32_t Identifier_cmp(const Identifier *ident1, const Identifier *ident2) {
+  if (!ident1) { return 1; }
+  if (!ident2) { return -1; }
+  if (ident1->len < ident2->len) { return -1; }
+  if (ident1->len > ident2->len) { return 1; }
+  uint32_t cmp_len = strcmp_o(ident1->ptr, ident2->ptr);
+  return (int32_t) (ident1->len < cmp_len) ? -1 : (ident1->len > cmp_len) ? 1 : 0;
 }
 
-inline bool PatternArgs_cmp(PatternArgs *args1, PatternArgs *args2) {
+inline int32_t PatternArgs_cmp(PatternArgs *args1, PatternArgs *args2) {
+  if (!args1) { return 1; }
+  if (!args2) { return -1; }
   const uint32_t len1 = Array_length(args1);
   const uint32_t len2 = Array_length(args2);
-  if (len1 != len2) { return false; }
+  if (len1 < len2) { return -1; }
+  if (len1 > len2) { return 1; }
 
   const Identifier * const idents1 = Array_get(args1, 0);
   const Identifier * const idents2 = Array_get(args2, 0);
   for (uint32_t i = 0; i < len1; i++) {
     const Identifier * const ident1 = &idents1[i];
     const Identifier * const ident2 = &idents2[i];
-    bool b = Identifier_cmp(ident1, ident2);
-    if (!b) { return false; }
+    int32_t b = Identifier_cmp(ident1, ident2);
+    if (b != 0) { return b; }
   }
-  return true;
+  return 0;
 }
 
+inline int32_t BitField_cmp(BitField *bf1, BitField *bf2) {
+  if (!bf1) { return -1; }
+  if (!bf2) { return 1; }
+  if (bf1->upper < bf2->lower) { return -1; }
+  if (bf1->lower > bf2->upper) { return 1; }
+  return 0;
+}
