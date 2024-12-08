@@ -10,9 +10,11 @@
 #include "action-table.h"
 #include "context.h"
 #include "enum.h"
+#include "semantic.h"
 #include "target.h"
 #include "terminal.h"
 #include "tokens.gen.h"
+#include <stdint.h>
 
 #define grammarAssertDefinedRefer(ident)               \
   do {                                                 \
@@ -87,10 +89,10 @@ Entry *p_Entry_4(void *argv[], GContext *, const Allocator *allocator) {
 
 Evaluable *p_Evaluable_0(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *lhs = (Identifier *) argv[0];
+  void *rhs = argv[2];
 
   grammarAssertDefinedRefer(lhs);
 
-  void *rhs = argv[2];
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_MEM_KEY;
   evaluable->lhs = lhs;
@@ -100,10 +102,10 @@ Evaluable *p_Evaluable_0(void *argv[], GContext *context, const Allocator *alloc
 
 Evaluable *p_Evaluable_1(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *lhs = (Identifier *) argv[0];
+  BitField *rhs = (BitField *) argv[1];
 
   grammarAssertDefinedRefer(lhs);
 
-  BitField *rhs = (BitField *) argv[1];
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_BIT_FIELD;
   evaluable->lhs = lhs;
@@ -255,7 +257,7 @@ Machine *p___EXTEND_RULE__(void *argv[], const Allocator *) {
   return (Machine *) argv[0];
 }
 
-MappingItem *p_MappingItem_0(void *argv[], GContext * context, const Allocator *allocator) {
+MappingItem *p_MappingItem_0(void *argv[], GContext *context, const Allocator *allocator) {
   BitField *bit_field = (BitField *) argv[0];
   Evaluable *evaluable = (Evaluable *) argv[2];
 
@@ -264,6 +266,7 @@ MappingItem *p_MappingItem_0(void *argv[], GContext * context, const Allocator *
     if (bit_field->upper > width) { return nullptr; }
   }
   if (GContext_getMapItem(context, bit_field)) { return nullptr; }
+  if (0 != check_mapping_item(context, bit_field, evaluable)) { return nullptr; }
 
   MappingItem *item = allocator->calloc(1, sizeof(MappingItem));
   item->field = bit_field;

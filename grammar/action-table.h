@@ -1,6 +1,6 @@
 /**
  * Project Name: machine
- * Module Name:
+ * Module Name: grammar
  * Filename: action-table.h
  * Creator: Yaokai Liu
  * Create Date: 2024-08-26

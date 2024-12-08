@@ -96,7 +96,7 @@ bool GContext_testPattern(GContext *context, PatternArgs *patternArgs) {
   return false;
 }
 
-uint64_t GContext_getLastWidth(GContext * context) {
+uint64_t GContext_getLastWidth(GContext *context) {
   uint64_t width = 0;
   Stack_top(context->widthStack, &width, sizeof(uint64_t));
   return width;
@@ -121,15 +121,15 @@ inline void GContext_destroy(GContext *context, const Allocator *allocator) {
   contextReleaseStack(widthStack);
   contextReleaseStack(identStack);
   if (context->patterns) { releasePrimeArray(context->patterns); }
-  if (context->mapTree) {AVLTree_destroy(context->mapTree, nullptr); }
+  if (context->mapTree) { AVLTree_destroy(context->mapTree, nullptr); }
   allocator->free(context);
 }
 
-inline void GContext_addMapItem(GContext *context, MappingItem * item) {
+inline void GContext_addMapItem(GContext *context, MappingItem *item) {
   AVLTree_set(context->mapTree, (uint64_t) item->field, item);
 }
 
-inline MappingItem * GContext_getMapItem(GContext *context, BitField * bf) {
+inline MappingItem *GContext_getMapItem(GContext *context, BitField *bf) {
   return AVLTree_get(context->mapTree, (uint64_t) bf);
 }
 
@@ -195,7 +195,7 @@ fn_ctx_act *get_after_stack_actions(int32_t state) {
     case IN_REGISTER(Registers_RIGHT_BRACKET): {
       return pop_context_width_and_ident;
     }
-    case IN_INSTR_PART(MappingItems_RIGHT_BRACKET):  {
+    case IN_INSTR_PART(MappingItems_RIGHT_BRACKET): {
       return destroy_context_map_item_tree;
     }
   }
