@@ -22,6 +22,7 @@ typedef struct Namespace {
 typedef struct GContext {
   const Allocator *allocator;
   Entries *entries;
+  codegen_t * (*getCodegen)(uint32_t token_type);
   Namespace *inmOpcode;
   Namespace *inmRefer;
   Array *patterns;
@@ -49,6 +50,10 @@ inline GContext *GContext_new(const Allocator *allocator) {
   context->identStack = Stack_new(allocator);
   context->mapTree = nullptr;
   return context;
+}
+
+inline void GContext_setCodegen(GContext * context, codegen_t * (*getCodegenFn)(uint32_t token_type)) {
+  context->getCodegen = getCodegenFn;
 }
 
 inline void GContext_addOpcode(GContext *context, Identifier *ident, Instruction *instr) {
