@@ -107,6 +107,7 @@ void releaseInstrForm(InstrForm *form, const Allocator *allocator) {
   for (int i = 0; i < 3; i ++) {
     Layout * layout = form->parts[i].layout;
     if (layout) releaseLayout(layout, allocator);
+    allocator->free(layout);
   }
 }
 

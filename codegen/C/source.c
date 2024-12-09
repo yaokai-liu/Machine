@@ -120,7 +120,10 @@ int32_t codegen_instr_form(GContext * context, InstrForm * form, Array* buffer) 
           break;
         }
         case enum_MEM_KEY: {
-          
+          Memory * mem = ((Entry * ) GContext_findRefer(context, evalable->lhs))->target;
+          BitField * bf = (((uint64_t) evalable->rhs) == MEM_BASE) ? mem->base : mem->offset;
+          const char_t * name = ((Identifier *)evalable->lhs)->ptr;
+          bitFieldToInstrBytes(name, bf, width);
         }
       }
       break;
