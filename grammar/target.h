@@ -11,6 +11,7 @@
 #define MACHINE_TARGET_H
 
 #include "array.h"
+#include "avl-tree.h"
 #include "terminal.h"
 
 typedef struct Entry {
@@ -55,7 +56,10 @@ typedef struct MappingItem {
   Evaluable *evaluable;
 } MappingItem;
 
-typedef Array MappingItems;  // Array<MappingItem>
+typedef struct MappingItems {
+  AVLTree * itemTree;
+  Array * items;
+} MappingItems;
 
 typedef struct Layout {
   uint32_t type;
@@ -137,6 +141,7 @@ void releaseImmediate(Immediate *immediate, const Allocator *allocator);
 void releasePattern(Pattern *pattern, const Allocator *allocator);
 void releaseEvaluable(Evaluable *evaluable, const Allocator *allocator);
 void releaseMappingItem(MappingItem *item, const Allocator *allocator);
+void releaseMappingItems(MappingItems *items, const Allocator *allocator);
 void releaseLayout(Layout *layout, const Allocator *allocator);
 void releaseInstrPart(InstrPart *part, const Allocator *allocator);
 void releaseInstrForm(InstrForm *form, const Allocator *allocator);

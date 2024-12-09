@@ -8,6 +8,7 @@
  **/
 
 #include "target.h"
+#include "avl-tree.h"
 #include "context.h"
 #include "tokens.gen.h"
 
@@ -82,6 +83,14 @@ void releaseMappingItem(MappingItem *item, const Allocator *allocator) {
   allocator->free(item->evaluable);
 }
 
+void releaseMappingItems(MappingItems *items, const Allocator *) {
+  if (items->itemTree) {
+    AVLTree_destroy(items->itemTree, nullptr);
+  }
+  Array_reset(items->items, (destruct_t *) releaseMappingItem);
+  Array_destroy(items->items);
+}
+
 void releaseLayout(Layout *layout, const Allocator *allocator) {
   switch (layout->type) {
     case enum_Evaluable: {
@@ -90,8 +99,8 @@ void releaseLayout(Layout *layout, const Allocator *allocator) {
       return;
     }
     case enum_MappingItems: {
-      Array_reset(layout->target, (destruct_t *) releaseMappingItem);
-      Array_destroy(layout->target);
+      releaseMappingItems(layout->target, allocator);
+      allocator->free(layout->target);
     }
   }
 }

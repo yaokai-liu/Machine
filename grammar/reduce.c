@@ -327,15 +327,16 @@ MappingItem *p_MappingItem_0(void *argv[], GContext *context, const Allocator *a
 MappingItems *p_MappingItems_0(void *argv[], GContext *, const Allocator *allocator) {
   MappingItems *items = (MappingItems *) argv[0];
   MappingItem *item = (MappingItem *) argv[2];
-  Array_append(items, item, 1);
+  Array_append(items->items, item, 1);
   allocator->free(item);
   return items;
 }
 
 MappingItems *p_MappingItems_1(void *argv[], GContext *, const Allocator *allocator) {
   MappingItem *item = (MappingItem *) argv[0];
-  MappingItems *items = Array_new(sizeof(MappingItem), allocator);
-  Array_append(items, item, 1);
+  MappingItems *items = allocator->calloc(1, sizeof(MappingItems));
+  items->items = Array_new(sizeof(MappingItem), allocator);
+  Array_append(items->items, item, 1);
   allocator->free(item);
   return items;
 }
@@ -571,7 +572,6 @@ void releaseToken(void *token, uint32_t type, const Allocator *allocator) {
     releaseArrayCase(Entries, Entry)
     releaseArrayCase(InstrForms, InstrForm)
     releaseArrayCase(InstrParts, InstrPart)
-    releaseArrayCase(MappingItems, MappingItem)
     releaseArrayCase(PatternArgs, Identifier)
     releaseArrayCase(Registers, Register)
     releaseArrayCase(SetItems, SetItem)
@@ -585,6 +585,7 @@ void releaseToken(void *token, uint32_t type, const Allocator *allocator) {
     releaseTokenCase(Layout, Layout)
     releaseTokenCase(Machine, Machine)
     releaseTokenCase(MappingItem, MappingItem)
+    releaseTokenCase(MappingItems, MappingItems)
     releaseTokenCase(MemItem, MemItem)
     releaseTokenCase(Memory, Memory)
     releaseTokenCase(Pattern, Pattern)

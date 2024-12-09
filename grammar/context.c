@@ -154,7 +154,9 @@ void realloc_context_map_item_tree(GContext *context, void *) {
 }
 
 void destroy_context_map_item_tree(GContext *context, void *) {
-  AVLTree_destroy(context->mapTree, nullptr);
+  if (context->mapTree) {
+    AVLTree_destroy(context->mapTree, nullptr);
+  }
   context->mapTree = nullptr;
 }
 
