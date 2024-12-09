@@ -21,7 +21,7 @@ int32_t check_mapping_item(GContext *context, BitField *bit_field, Evaluable *ev
       Entry *entry = GContext_findRefer(context, evaluable->lhs);
       if (entry->type == enum_Memory) {
         width = ((Memory *) entry->target)->width;
-      } else if (entry->type == enum_Memory) {
+      } else if (entry->type == enum_Immediate) {
         width = ((Immediate *) entry->target)->width;
       } else {
         // means it's a register

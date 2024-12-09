@@ -17,4 +17,6 @@ uint32_t strcmp_o(const char_t *str1, const char_t *str2);
 
 uint32_t stridx_o(const char_t chr, const char_t *str);
 
+uint32_t strlen_o(const char_t * const str);
+
 #endif  // MACHINE_STRING_T_H

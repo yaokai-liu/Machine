@@ -8,6 +8,8 @@
  **/
 
 #include "action-table.h"
+#include "array.h"
+#include "codegen.h"
 #include "context.h"
 #include "enum.h"
 #include "semantic.h"
@@ -151,28 +153,70 @@ Immediate *p_Immediate_0(void *argv[], GContext *context, const Allocator *alloc
   return imm;
 }
 
-InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
+InstrForm *p_InstrForm_0(void *argv[], GContext *context, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
-  InstrParts *parts = (InstrParts *) argv[4];
+  InstrParts *part_array = (InstrParts *) argv[4];
+
+  uint32_t n_parts = Array_length(part_array);
+  if (Array_length(part_array) > 3) { return nullptr; }
+
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
   form->tick = 1;
   form->pattern = pattern;
-  form->parts = parts;
+
+  const InstrPart * const parts = Array_get(part_array, 0);
+  for (uint32_t i = 0; i < n_parts; i++) {
+    const InstrPart * part = &parts[i];
+    if (form->parts[part->type].layout) { 
+      allocator->free(form);
+      return nullptr;
+    }
+    form->parts[part->type].width = part->width;
+    form->parts[part->type].layout = part->layout;
+  }
+  releasePrimeArray(part_array);
+
+  codegen_t *fn_codegen = GContext_getCodegen(context, enum_InstrForm);
+  if (fn_codegen) {
+    Array * buffer = Array_new(sizeof(char_t), allocator);
+    fn_codegen(context, form, buffer);
+  }
   return form;
 }
 
-InstrForm *p_InstrForm_1(void *argv[], GContext *, const Allocator *allocator) {
+InstrForm *p_InstrForm_1(void *argv[], GContext * context, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   uint32_t tick = (uint32_t) (uint64_t) argv[3];
-  InstrParts *parts = (InstrParts *) argv[5];
+  InstrParts *part_array = (InstrParts *) argv[5];
+
+  uint32_t n_parts = Array_length(part_array);
+  if (Array_length(part_array) > 3) { return nullptr; }
+
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
   form->tick = tick;
   form->pattern = pattern;
-  form->parts = parts;
+
+  const InstrPart * const parts = Array_get(part_array, 0);
+  for (uint32_t i = 0; i < n_parts; i++) {
+    const InstrPart * part = &parts[i];
+    if (form->parts[part->type - 1].layout) { 
+      allocator->free(form);
+      return nullptr;
+    }
+    form->parts[part->type - 1].width = part->width;
+    form->parts[part->type - 1].layout = part->layout;
+  }
+  releasePrimeArray(part_array);
+
+  codegen_t *fn_codegen = GContext_getCodegen(context, enum_InstrForm);
+  if (fn_codegen) {
+    Array * buffer = Array_new(sizeof(char_t), allocator);
+    fn_codegen(context, form, buffer);
+  }
   return form;
 }
 
@@ -196,6 +240,9 @@ InstrPart *p_InstrPart_0(void *argv[], GContext *, const Allocator *allocator) {
   enum PART_KEY key = (uint32_t) (uint64_t) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   Layout *layout = (Layout *) argv[4];
+
+  if (0 == width) { return nullptr; }
+
   InstrPart *part = allocator->calloc(1, sizeof(InstrPart));
   part->type = key;
   part->width = width;

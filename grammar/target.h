@@ -74,7 +74,10 @@ typedef struct InstrForm {
   uint32_t width;
   uint32_t tick;
   Pattern *pattern;
-  InstrParts *parts;
+  struct {
+    uint32_t width;
+    Layout *layout;
+  } parts[3];
 } InstrForm;
 
 typedef Array InstrForms;  // Array<InstrForm>

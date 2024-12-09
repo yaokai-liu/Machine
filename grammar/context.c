@@ -52,8 +52,15 @@ inline GContext *GContext_new(const Allocator *allocator) {
   return context;
 }
 
-inline void GContext_setCodegen(GContext * context, codegen_t * (*getCodegenFn)(uint32_t token_type)) {
-  context->getCodegen = getCodegenFn;
+inline void GContext_setCodegen(GContext * context, codegen_t * (*getCodegen)(uint32_t token_type)) {
+  context->getCodegen = getCodegen;
+}
+
+inline codegen_t *GContext_getCodegen(GContext * context, uint32_t token_type) {
+  if (context->getCodegen) {
+    return context->getCodegen(token_type);
+  }
+  return nullptr;
 }
 
 inline void GContext_addOpcode(GContext *context, Identifier *ident, Instruction *instr) {

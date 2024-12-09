@@ -23,7 +23,9 @@ aux_source_directory(grammar GRAMMAR_SRC)
 aux_source_directory(grammar/generated GRAMMAR_GENERATED_SRC)
 add_library(grammar ${GRAMMAR_SRC} ${GRAMMAR_GENERATED_SRC})
 
-include_directories(grammar contana)
+aux_source_directory(codegen/C CODEGEN_C_SRC)
+add_library(codegen_C ${CODEGEN_C_SRC})
+target_include_directories(codegen_C PRIVATE codegen codegen/C)
 
 add_executable(debug test/debug.c)
 target_link_libraries(debug PRIVATE grammar)

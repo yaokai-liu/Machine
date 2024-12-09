@@ -1,7 +1,7 @@
 /**
  * Project Name: machine
  * Module Name: grammar
- * Filename: generator.h
+ * Filename: codegen.h
  * Creator: Yaokai Liu
  * Create Date: 2024-10-20
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
@@ -14,6 +14,8 @@
 #include "array.h"
 #include <stdint.h>
 
-typedef int32_t codegen_t(Array * buffer, void * object);
+typedef struct GContext GContext;
+
+typedef int32_t codegen_t(GContext * context, void * object, Array *buffer);
 
 #endif //MACHINE_CODEGEN_H

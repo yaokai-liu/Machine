@@ -104,8 +104,10 @@ void releaseInstrPart(InstrPart *part, const Allocator *allocator) {
 void releaseInstrForm(InstrForm *form, const Allocator *allocator) {
   releasePattern(form->pattern, allocator);
   allocator->free(form->pattern);
-  Array_reset(form->parts, (destruct_t *) releaseInstrPart);
-  Array_destroy(form->parts);
+  for (int i = 0; i < 3; i ++) {
+    Layout * layout = form->parts[i].layout;
+    if (layout) releaseLayout(layout, allocator);
+  }
 }
 
 void releaseInstruction(Instruction *instr, const Allocator *allocator) {

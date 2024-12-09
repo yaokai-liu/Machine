@@ -23,6 +23,8 @@ GContext *GContext_new(const Allocator *allocator);
 
 void GContext_setCodegen(GContext * context, codegen_t * (*getCodegen)(uint32_t token_type));
 
+codegen_t *GContext_getCodegen(GContext * context, uint32_t token_type);
+
 void GContext_addOpcode(GContext *context, Identifier *ident, Instruction *instr);
 
 void *GContext_findOpcode(GContext *context, Identifier *ident);

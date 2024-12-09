@@ -21,3 +21,9 @@ inline uint32_t stridx_o(const char_t chr, const char_t * const str) {
   while (chr != str[len] && str[len]) { len++; }
   return len;
 }
+
+inline uint32_t strlen_o(const char_t * const str) {
+  int len = 0;
+  while (str[len]) { len++; }
+  return len;
+}
