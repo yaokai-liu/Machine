@@ -57,8 +57,9 @@ typedef struct MappingItem {
 } MappingItem;
 
 typedef struct MappingItems {
-  AVLTree * itemTree;
-  Array * items;
+  AVLTree *itemTree;
+  Array *itemArray;
+  uint32_t lowest;
 } MappingItems;
 
 typedef struct Layout {

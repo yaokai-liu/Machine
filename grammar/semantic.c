@@ -12,7 +12,7 @@
 #include "tokens.gen.h"
 
 int32_t check_mapping_item(GContext *context, BitField *bit_field, Evaluable *evaluable) {
-  if (!bit_field) { return 0; }
+  if (!bit_field) { return (evaluable->type == enum_NUMBER) ? 0 : -1; }
   const uint32_t l_width = (bit_field->upper - bit_field->lower + 1);
 
   uint32_t width = 0;
@@ -43,6 +43,6 @@ int32_t check_mapping_item(GContext *context, BitField *bit_field, Evaluable *ev
     }
   }
 
-  if (l_width != width) { return -1; }
+  if (l_width != width) { return -2; }
   return 0;
 }

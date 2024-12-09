@@ -22,7 +22,7 @@ typedef struct Namespace {
 typedef struct GContext {
   const Allocator *allocator;
   Entries *entries;
-  codegen_t * (*getCodegen)(uint32_t token_type);
+  codegen_t *(*getCodegen)(uint32_t token_type);
   Namespace *inmOpcode;
   Namespace *inmRefer;
   Array *patterns;
@@ -52,14 +52,12 @@ inline GContext *GContext_new(const Allocator *allocator) {
   return context;
 }
 
-inline void GContext_setCodegen(GContext * context, codegen_t * (*getCodegen)(uint32_t token_type)) {
+inline void GContext_setCodegen(GContext *context, codegen_t *(*getCodegen)(uint32_t token_type)) {
   context->getCodegen = getCodegen;
 }
 
-inline codegen_t *GContext_getCodegen(GContext * context, uint32_t token_type) {
-  if (context->getCodegen) {
-    return context->getCodegen(token_type);
-  }
+inline codegen_t *GContext_getCodegen(GContext *context, uint32_t token_type) {
+  if (context->getCodegen) { return context->getCodegen(token_type); }
   return nullptr;
 }
 
@@ -138,7 +136,7 @@ inline void GContext_destroy(GContext *context, const Allocator *allocator) {
 }
 
 inline void GContext_addMapItem(GContext *context, MappingItem *item) {
-  AVLTree_set(context->mapTree, (uint64_t) item->field, item);
+  AVLTree_set(context->mapTree, (uint64_t) item->field, item->evaluable);
 }
 
 inline MappingItem *GContext_getMapItem(GContext *context, BitField *bf) {
@@ -154,9 +152,7 @@ void realloc_context_map_item_tree(GContext *context, void *) {
 }
 
 void destroy_context_map_item_tree(GContext *context, void *) {
-  if (context->mapTree) {
-    AVLTree_destroy(context->mapTree, nullptr);
-  }
+  if (context->mapTree) { AVLTree_destroy(context->mapTree, nullptr); }
   context->mapTree = nullptr;
 }
 

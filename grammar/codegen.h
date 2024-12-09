@@ -7,7 +7,6 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-
 #ifndef MACHINE_CODEGEN_H
 #define MACHINE_CODEGEN_H
 
@@ -16,6 +15,6 @@
 
 typedef struct GContext GContext;
 
-typedef int32_t codegen_t(GContext * context, void * object, Array *buffer);
+typedef int32_t codegen_t(GContext *context, void *object, Array *buffer);
 
-#endif //MACHINE_CODEGEN_H
+#endif  // MACHINE_CODEGEN_H

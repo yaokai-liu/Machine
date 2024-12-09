@@ -9,6 +9,7 @@
 
 #include "action-table.h"
 #include "array.h"
+#include "avl-tree.h"
 #include "codegen.h"
 #include "context.h"
 #include "enum.h"
@@ -17,6 +18,8 @@
 #include "terminal.h"
 #include "tokens.gen.h"
 #include <stdint.h>
+
+#define min(a, b) ((a) < (b)) ? (a) : (b)
 
 #define grammarAssertDefinedRefer(ident)               \
   do {                                                 \
@@ -168,8 +171,8 @@ InstrForm *p_InstrForm_0(void *argv[], GContext *context, const Allocator *alloc
 
   const InstrPart * const parts = Array_get(part_array, 0);
   for (uint32_t i = 0; i < n_parts; i++) {
-    const InstrPart * part = &parts[i];
-    if (form->parts[part->type].layout) { 
+    const InstrPart *part = &parts[i];
+    if (form->parts[part->type].layout) {
       allocator->free(form);
       return nullptr;
     }
@@ -180,13 +183,13 @@ InstrForm *p_InstrForm_0(void *argv[], GContext *context, const Allocator *alloc
 
   codegen_t *fn_codegen = GContext_getCodegen(context, enum_InstrForm);
   if (fn_codegen) {
-    Array * buffer = Array_new(sizeof(char_t), allocator);
+    Array *buffer = Array_new(sizeof(char_t), allocator);
     fn_codegen(context, form, buffer);
   }
   return form;
 }
 
-InstrForm *p_InstrForm_1(void *argv[], GContext * context, const Allocator *allocator) {
+InstrForm *p_InstrForm_1(void *argv[], GContext *context, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   uint32_t tick = (uint32_t) (uint64_t) argv[3];
@@ -202,8 +205,8 @@ InstrForm *p_InstrForm_1(void *argv[], GContext * context, const Allocator *allo
 
   const InstrPart * const parts = Array_get(part_array, 0);
   for (uint32_t i = 0; i < n_parts; i++) {
-    const InstrPart * part = &parts[i];
-    if (form->parts[part->type - 1].layout) { 
+    const InstrPart *part = &parts[i];
+    if (form->parts[part->type - 1].layout) {
       allocator->free(form);
       return nullptr;
     }
@@ -214,7 +217,7 @@ InstrForm *p_InstrForm_1(void *argv[], GContext * context, const Allocator *allo
 
   codegen_t *fn_codegen = GContext_getCodegen(context, enum_InstrForm);
   if (fn_codegen) {
-    Array * buffer = Array_new(sizeof(char_t), allocator);
+    Array *buffer = Array_new(sizeof(char_t), allocator);
     fn_codegen(context, form, buffer);
   }
   return form;
@@ -327,16 +330,24 @@ MappingItem *p_MappingItem_0(void *argv[], GContext *context, const Allocator *a
 MappingItems *p_MappingItems_0(void *argv[], GContext *, const Allocator *allocator) {
   MappingItems *items = (MappingItems *) argv[0];
   MappingItem *item = (MappingItem *) argv[2];
-  Array_append(items->items, item, 1);
+
+  if (item->field) { items->lowest = min(item->field->lower, items->lowest); }
+  uint32_t index = Array_length(items->itemArray);
+  AVLTree_set(items->itemTree, (uint64_t) item->field, (void *) (uint64_t) index);
+  Array_append(items->itemArray, item, 1);
   allocator->free(item);
   return items;
 }
 
 MappingItems *p_MappingItems_1(void *argv[], GContext *, const Allocator *allocator) {
   MappingItem *item = (MappingItem *) argv[0];
+
   MappingItems *items = allocator->calloc(1, sizeof(MappingItems));
-  items->items = Array_new(sizeof(MappingItem), allocator);
-  Array_append(items->items, item, 1);
+  items->itemArray = Array_new(sizeof(MappingItem), allocator);
+  items->itemTree = AVLTree_new(allocator, (compare_t *) BitField_cmp);
+  Array_append(items->itemArray, item, 1);
+  AVLTree_set(items->itemTree, (uint64_t) item->field, (void *) 0);
+  items->lowest = item->field->lower;
   allocator->free(item);
   return items;
 }

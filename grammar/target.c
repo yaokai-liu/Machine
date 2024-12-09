@@ -84,11 +84,9 @@ void releaseMappingItem(MappingItem *item, const Allocator *allocator) {
 }
 
 void releaseMappingItems(MappingItems *items, const Allocator *) {
-  if (items->itemTree) {
-    AVLTree_destroy(items->itemTree, nullptr);
-  }
-  Array_reset(items->items, (destruct_t *) releaseMappingItem);
-  Array_destroy(items->items);
+  if (items->itemTree) { AVLTree_destroy(items->itemTree, nullptr); }
+  Array_reset(items->itemArray, (destruct_t *) releaseMappingItem);
+  Array_destroy(items->itemArray);
 }
 
 void releaseLayout(Layout *layout, const Allocator *allocator) {
@@ -113,9 +111,9 @@ void releaseInstrPart(InstrPart *part, const Allocator *allocator) {
 void releaseInstrForm(InstrForm *form, const Allocator *allocator) {
   releasePattern(form->pattern, allocator);
   allocator->free(form->pattern);
-  for (int i = 0; i < 3; i ++) {
-    Layout * layout = form->parts[i].layout;
-    if (layout) releaseLayout(layout, allocator);
+  for (int i = 0; i < 3; i++) {
+    Layout *layout = form->parts[i].layout;
+    if (layout) { releaseLayout(layout, allocator); }
     allocator->free(layout);
   }
 }
