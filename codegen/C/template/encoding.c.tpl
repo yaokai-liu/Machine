@@ -8,14 +8,14 @@
 
 #include <stdint.h>
 
-#define min(a, b) ((a) < (b)) ? (a) : (b)
+#define min(a, b)             ((a) < (b)) ? (a) : (b)
 
 #define UINT_N_MAX(n_bits)    ((1LLU << (n_bits)) - 1)
 #define LOW_BITS(val, n_bits) ((val) & UINT_N_MAX(n_bits))
 #define MASK_BITS(bl, bu)     (UINT_N_MAX(bu) - UINT_N_MAX(bl))
 
 #define numSetBits(num, bl, bu, val) \
-  (((num) & ~MASK_BITS(bu, bl)) | (LOW_BITS(val, (bu) - (bl)) << (bl)))
+  (((num) & ~MASK_BITS(bl, bu)) | (LOW_BITS(val, (bu) - (bl)) << (bl)))
 
 #define setEncodingNumber(val) do { number = (val); } while (false)
 
@@ -52,4 +52,6 @@ uint32_t encoding_${InstrForm.Id}(${InstrFormArgs}, Array *buffer) {
     pushEncodingNumber(0x37, 1);
 
     Array_append(buffer, bytes, sizeof(bytes));
+
+    return size;
 }
