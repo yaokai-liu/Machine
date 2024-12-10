@@ -26,7 +26,8 @@ Machine *failed_to_produce(
 Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocator *allocator);
 
 #define MAX_ARGC 0x10
-Machine *parse(const Terminal *tokens, uint32_t *cost, const Allocator *allocator) {
+Machine *
+    parse(const Terminal *tokens, uint32_t *cost, void *getCodegen, const Allocator *allocator) {
   void *result;
   int32_t state = 0;
   const Terminal *tp = tokens;
@@ -36,6 +37,7 @@ Machine *parse(const Terminal *tokens, uint32_t *cost, const Allocator *allocato
   Stack *token_stack = Stack_new(allocator);
   Stack_push(state_stack, &state, sizeof(int32_t));
   GContext *context = GContext_new(allocator);
+  GContext_setCodegen(context, getCodegen);
 
   while (true) {
     const struct grammar_action *act = getAction(state, tp->type);

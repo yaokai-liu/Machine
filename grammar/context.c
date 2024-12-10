@@ -29,6 +29,7 @@ typedef struct GContext {
   Stack *widthStack;
   Stack *identStack;
   AVLTree *mapTree;
+  Array *outputs;
 } GContext;
 
 Namespace *Namespace_new(const Allocator *allocator);
@@ -44,6 +45,7 @@ inline GContext *GContext_new(const Allocator *allocator) {
   GContext *context = allocator->calloc(1, sizeof(GContext));
   context->allocator = allocator;
   context->entries = Array_new(sizeof(Entry), allocator);
+  context->outputs = Array_new(sizeof(char_t), allocator);
   context->inmOpcode = Namespace_new(allocator);
   context->inmRefer = Namespace_new(allocator);
   context->widthStack = Stack_new(allocator);
@@ -54,6 +56,10 @@ inline GContext *GContext_new(const Allocator *allocator) {
 
 inline const Allocator *GContext_getAllocator(GContext *context) {
   return context->allocator;
+}
+
+inline Array *GContext_getOutputBuffer(GContext *context) {
+  return context->outputs;
 }
 
 inline void GContext_setCodegen(GContext *context, codegen_t *(*getCodegen)(uint32_t token_type)) {
@@ -130,6 +136,7 @@ inline void GContext_destroy(GContext *context, const Allocator *allocator) {
   Namespace_destroy(context->inmOpcode);
   Namespace_destroy(context->inmRefer);
   releasePrimeArray(context->entries);
+  releasePrimeArray(context->outputs);
   context->allocator->free(context->inmOpcode);
   context->allocator->free(context->inmRefer);
   contextReleaseStack(widthStack);

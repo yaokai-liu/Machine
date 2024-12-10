@@ -17,6 +17,7 @@ typedef void *fn_reduce(void *argv[], GContext *context, const Allocator *alloca
 
 extern fn_reduce * const PRODUCTS[];
 
-Machine *parse(const Terminal *tokens, uint32_t *cost, const Allocator *allocator);
+Machine *
+    parse(const Terminal *tokens, uint32_t *cost, void *getCodegen, const Allocator *allocator);
 
 #endif  // MACHINE_PARSE_H

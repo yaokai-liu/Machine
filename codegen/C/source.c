@@ -7,6 +7,7 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
+#include "source.h"
 #include "array.h"
 #include "codegen.h"
 #include "context.h"
@@ -63,9 +64,10 @@
     }                                                          \
   } while (false)
 
-#define getMappingItem(_items, bf)                                                                \
-  Array_get(                                                                                      \
-      (_items)->itemArray, (uint32_t) (uint64_t) AVLTree_get((_items)->itemTree, (uint64_t) (bf)) \
+#define getMappingItem(_items, bf)                                                 \
+  Array_get(                                                                       \
+      (_items)->itemArray,                                                         \
+      ((uint32_t) (uint64_t) AVLTree_get((_items)->itemTree, (uint64_t) (bf)) - 1) \
   )
 
 static thread_local char_t FMT_BUFFER[1024] = {};
@@ -91,39 +93,38 @@ int32_t eval_to_val(GContext *context, Evaluable *evaluable, char_t *buffer) {
     }
     case enum_BIT_FIELD: {
       BitField *bf = evaluable->rhs;
+      uint32_t width = bf->upper - bf->lower + 1;
       if (entry->type == enum_Set) {
         // TODO: codegen for set
         return -1;
       } else {
-        return sprintf(
-            buffer, "(%s >> %d) & ((1 << (%d - %d + 1)) - 1)", ident->ptr, bf->lower, bf->upper,
-            bf->lower
-        );
+        return sprintf(buffer, "(%s >> %d) & UINT_N_MAX(%d)", ident->ptr, bf->lower, width);
       }
     }
     case enum_MEM_KEY: {
       Memory *mem = entry->target;
       BitField *bf = (((uint64_t) evaluable->rhs) == MEM_BASE) ? mem->base : mem->offset;
-      return sprintf(
-          buffer, "(%s >> %d) & ((1 << (%d - %d + 1)) - 1)", ident->ptr, bf->lower, bf->upper,
-          bf->lower
-      );
+      uint32_t width = bf->upper - bf->lower + 1;
+      return sprintf(buffer, "(%s >> %d) & UINT_N_MAX(%d)", ident->ptr, bf->lower, width);
     }
   }
   return -1;
 }
-int32_t codegen_items_bf(GContext *context, MappingItems *items, BitField *bf, Array *buffer);
+int32_t codegen_items_bf(GContext *context, MappingItems *items, const BitField *bf, Array *buffer);
 
-int32_t codegen_items_bf(GContext *context, MappingItems *items, BitField *bf, Array *buffer) {
-  MappingItem *item = getMappingItem(items, &bf);
+int32_t
+    codegen_items_bf(GContext *context, MappingItems *items, const BitField *bf, Array *buffer) {
+  const uint32_t pre_len = Array_length(buffer);
+  MappingItem *item = getMappingItem(items, bf);
   uint64_t default_bit = 0;
   getDefaultMappingBit(default_bit);
   if (!item) {
     int len = sprintf(
-        FMT_BUFFER, "numSetBits(number, %d, %d, %lu);", bf->lower, bf->upper + 1, default_bit
+        FMT_BUFFER, "number = numSetBits(number, %d, %d, %ld);", bf->lower, bf->upper + 1,
+        (int64_t) default_bit
     );
     if (len > 0) { push_string(FMT_BUFFER); }
-    return len;
+    return Array_length(buffer) - pre_len;
   }
 
   uint32_t bu = item->field->upper;
@@ -141,20 +142,19 @@ int32_t codegen_items_bf(GContext *context, MappingItems *items, BitField *bf, A
     temp_buffer = GContext_getAllocator(context)->malloc(128 * sizeof(char_t));
   }
   eval_to_val(context, item->evaluable, temp_buffer);
-  sprintf(FMT_BUFFER, "numSetBits(number, %d, %d, %s);", bf->lower, bf->upper + 1, temp_buffer);
+  sprintf(FMT_BUFFER, "number = numSetBits(number, %d, %d, %s);", bl, bu + 1, temp_buffer);
   push_string(FMT_BUFFER);
+  GContext_getAllocator(context)->free(temp_buffer);
 
   if (bu < bf->upper) {
     BitField upper_bf = {.lower = bu + 1, .upper = bf->upper};
     codegen_items_bf(context, items, &upper_bf, buffer);
   }
-  return 0;
+  return Array_length(buffer) - pre_len;
 }
 
-int32_t codegen_instr_form(GContext *context, InstrForm *form, Array *buffer) {
+int32_t codegen_layout(GContext *context, const Layout *layout, uint32_t width, Array *buffer) {
   const uint32_t pre_len = Array_length(buffer);
-  uint32_t width = form->parts[PART_PREFIX - 1].width;
-  const Layout *layout = form->parts[PART_PREFIX - 1].layout;
   switch (layout->type) {
     case enum_Evaluable: {
       Evaluable *evaluable = layout->target;
@@ -166,17 +166,45 @@ int32_t codegen_instr_form(GContext *context, InstrForm *form, Array *buffer) {
     case enum_MappingItems: {
       MappingItems *items = layout->target;
       for (uint32_t i = 0; i < width; i += 64) {
-        BitField bf = {i, min(i + 63, width - 1)};
+        BitField bf = {.lower = i, .upper = min(i + 63, width - 1)};
         codegen_items_bf(context, items, &bf, buffer);
-        sprintf(FMT_BUFFER, "pushInstrBytes(%d)", min(63 + 1, width - i));
+        sprintf(FMT_BUFFER, "pushInstrBytes(%d);", min(64, width - i) / 8);
         push_string(FMT_BUFFER);
+        push_string("number = 0;");
       }
     }
   }
   return Array_length(buffer) - pre_len;
 }
 
+int32_t codegen_instr_form(GContext *context, InstrForm *form, Array *buffer) {
+  const uint32_t pre_len = Array_length(buffer);
+  uint32_t width;
+  const Layout *layout;
+  width = form->parts[PART_PREFIX - 1].width;
+  layout = form->parts[PART_PREFIX - 1].layout;
+  codegen_layout(context, layout, width, buffer);
+  width = form->parts[PART_PRINCIPAL - 1].width;
+  layout = form->parts[PART_PRINCIPAL - 1].layout;
+  codegen_layout(context, layout, width, buffer);
+  width = form->parts[PART_SUFFIX - 1].width;
+  layout = form->parts[PART_SUFFIX - 1].layout;
+  codegen_layout(context, layout, width, buffer);
+  char_t c = '\0';
+  Array_append(buffer, &c, 1);
+  return Array_length(buffer) - pre_len;
+}
+
 int32_t codegen_instruction(GContext *, Instruction *, Array *) {
   // TODO: codegen instruction
   return 0;
+}
+
+codegen_t *get_codegen(uint32_t type) {
+  switch (type) {
+    case enum_InstrForm: {
+      return (codegen_t *) codegen_instr_form;
+    }
+  }
+  return nullptr;
 }

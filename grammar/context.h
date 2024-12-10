@@ -23,6 +23,8 @@ GContext *GContext_new(const Allocator *allocator);
 
 const Allocator *GContext_getAllocator(GContext *context);
 
+Array *GContext_getOutputBuffer(GContext *context);
+
 void GContext_setCodegen(GContext *context, codegen_t *(*getCodegen)(uint32_t token_type));
 
 codegen_t *GContext_getCodegen(GContext *context, uint32_t token_type);

@@ -10,6 +10,7 @@
 #include "allocator.h"
 #include "char_t.h"
 #include "parse.h"
+#include "source.h"
 #include "target.h"
 #include "terminal.h"
 #include "tokenize.h"
@@ -41,15 +42,14 @@ int main() {
   }
   for (uint32_t i = 0; i < n_tokens; i++) {
     uint32_t t_line = terminals[i].lineno;
-    uint32_t t_start  = terminals[i].column;
+    uint32_t t_start = terminals[i].column;
     uint32_t t_end = (terminals[i].length > 0) ? terminals[i].column + terminals[i].length - 1 : 0;
     printf(
         "(line: %u, col: %u-%u, type: %s, value: %p)\n", t_line, t_start, t_end,
-        get_name(terminals[i].type),
-        terminals[i].value
+        get_name(terminals[i].type), terminals[i].value
     );
   }
-  const Machine *machine = parse(terminals, &cost, &STDAllocator);
+  const Machine *machine = parse(terminals, &cost, get_codegen, &STDAllocator);
   if (!machine) {
     printf("failed to parse.\n");
     for (uint32_t i = cost; i < n_tokens; i++) {
@@ -62,6 +62,10 @@ int main() {
   memcpy(string, machine->name->ptr, machine->name->len);
   string[machine->name->len] = '\0';
   printf("machine %s\n", string);
+
+  char_t *outputs = Array_get(GContext_getOutputBuffer(machine->context), 0);
+  printf("%s\n", outputs);
+
   releaseMachine((Machine *) machine, &STDAllocator);
   STDAllocator.free((void *) machine);
   STDAllocator.free((void *) terminals);

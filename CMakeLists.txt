@@ -28,7 +28,8 @@ add_library(codegen_C ${CODEGEN_C_SRC})
 target_include_directories(codegen_C PRIVATE codegen codegen/C)
 
 add_executable(debug test/debug.c)
-target_link_libraries(debug PRIVATE grammar)
+target_link_libraries(debug PRIVATE grammar codegen_C)
+target_include_directories(debug PRIVATE codegen/C)
 
 aux_source_directory(test/common TEST_COMMON_SRC)
 aux_source_directory(test/parse TEST_PARSE_SRC)

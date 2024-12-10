@@ -217,7 +217,7 @@ InstrForm *p_InstrForm_1(void *argv[], GContext *context, const Allocator *alloc
 
   codegen_t *fn_codegen = GContext_getCodegen(context, enum_InstrForm);
   if (fn_codegen) {
-    Array *buffer = Array_new(sizeof(char_t), allocator);
+    Array *buffer = GContext_getOutputBuffer(context);
     fn_codegen(context, form, buffer);
   }
   return form;
@@ -337,7 +337,7 @@ MappingItems *p_MappingItems_0(void *argv[], GContext *, const Allocator *alloca
   } else {
     items->lowest = min(item->field->lower, items->lowest);
     uint32_t index = Array_length(items->itemArray);
-    AVLTree_set(items->itemTree, (uint64_t) item->field, (void *) (uint64_t) index);
+    AVLTree_set(items->itemTree, (uint64_t) item->field, (void *) (uint64_t) index + 1);
     Array_append(items->itemArray, item, 1);
   }
   allocator->free(item);
@@ -355,7 +355,7 @@ MappingItems *p_MappingItems_1(void *argv[], GContext *, const Allocator *alloca
     items->lowest = 0;
   } else {
     Array_append(items->itemArray, item, 1);
-    AVLTree_set(items->itemTree, (uint64_t) item->field, (void *) 0);
+    AVLTree_set(items->itemTree, (uint64_t) item->field, (void *) 1);
     items->lowest = item->field->lower;
   }
   allocator->free(item);
