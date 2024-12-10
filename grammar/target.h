@@ -60,6 +60,7 @@ typedef struct MappingItems {
   AVLTree *itemTree;
   Array *itemArray;
   uint32_t lowest;
+  Evaluable *default_eval;
 } MappingItems;
 
 typedef struct Layout {

@@ -331,10 +331,15 @@ MappingItems *p_MappingItems_0(void *argv[], GContext *, const Allocator *alloca
   MappingItems *items = (MappingItems *) argv[0];
   MappingItem *item = (MappingItem *) argv[2];
 
-  if (item->field) { items->lowest = min(item->field->lower, items->lowest); }
-  uint32_t index = Array_length(items->itemArray);
-  AVLTree_set(items->itemTree, (uint64_t) item->field, (void *) (uint64_t) index);
-  Array_append(items->itemArray, item, 1);
+  if (!item->field) {
+    if (items->default_eval) { return nullptr; }
+    items->default_eval = item->evaluable;
+  } else {
+    items->lowest = min(item->field->lower, items->lowest);
+    uint32_t index = Array_length(items->itemArray);
+    AVLTree_set(items->itemTree, (uint64_t) item->field, (void *) (uint64_t) index);
+    Array_append(items->itemArray, item, 1);
+  }
   allocator->free(item);
   return items;
 }
@@ -345,9 +350,14 @@ MappingItems *p_MappingItems_1(void *argv[], GContext *, const Allocator *alloca
   MappingItems *items = allocator->calloc(1, sizeof(MappingItems));
   items->itemArray = Array_new(sizeof(MappingItem), allocator);
   items->itemTree = AVLTree_new(allocator, (compare_t *) BitField_cmp);
-  Array_append(items->itemArray, item, 1);
-  AVLTree_set(items->itemTree, (uint64_t) item->field, (void *) 0);
-  items->lowest = item->field->lower;
+  if (!item->field) {
+    items->default_eval = item->evaluable;
+    items->lowest = 0;
+  } else {
+    Array_append(items->itemArray, item, 1);
+    AVLTree_set(items->itemTree, (uint64_t) item->field, (void *) 0);
+    items->lowest = item->field->lower;
+  }
   allocator->free(item);
   return items;
 }

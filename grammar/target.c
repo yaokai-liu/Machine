@@ -83,8 +83,12 @@ void releaseMappingItem(MappingItem *item, const Allocator *allocator) {
   allocator->free(item->evaluable);
 }
 
-void releaseMappingItems(MappingItems *items, const Allocator *) {
+void releaseMappingItems(MappingItems *items, const Allocator *allocator) {
   if (items->itemTree) { AVLTree_destroy(items->itemTree, nullptr); }
+  if (items->default_eval) {
+    releaseEvaluable(items->default_eval, allocator);
+    allocator->free(items->default_eval);
+  }
   Array_reset(items->itemArray, (destruct_t *) releaseMappingItem);
   Array_destroy(items->itemArray);
 }
@@ -168,6 +172,7 @@ void releaseSet(Set *set, const Allocator *allocator) {
 #include "string_t.h"
 
 inline int32_t Identifier_cmp(const Identifier *ident1, const Identifier *ident2) {
+  if (ident1 == ident2) { return 0; }
   if (!ident1) { return 1; }
   if (!ident2) { return -1; }
   if (ident1->len < ident2->len) { return -1; }
@@ -177,6 +182,7 @@ inline int32_t Identifier_cmp(const Identifier *ident1, const Identifier *ident2
 }
 
 inline int32_t PatternArgs_cmp(PatternArgs *args1, PatternArgs *args2) {
+  if (args1 == args2) { return 0; }
   if (!args1) { return 1; }
   if (!args2) { return -1; }
   const uint32_t len1 = Array_length(args1);
@@ -196,6 +202,7 @@ inline int32_t PatternArgs_cmp(PatternArgs *args1, PatternArgs *args2) {
 }
 
 inline int32_t BitField_cmp(BitField *bf1, BitField *bf2) {
+  if (bf1 == bf2) { return 0; }
   if (!bf1) { return -1; }
   if (!bf2) { return 1; }
   if (bf1->upper < bf2->lower) { return -1; }

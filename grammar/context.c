@@ -52,6 +52,10 @@ inline GContext *GContext_new(const Allocator *allocator) {
   return context;
 }
 
+inline const Allocator *GContext_getAllocator(GContext *context) {
+  return context->allocator;
+}
+
 inline void GContext_setCodegen(GContext *context, codegen_t *(*getCodegen)(uint32_t token_type)) {
   context->getCodegen = getCodegen;
 }
