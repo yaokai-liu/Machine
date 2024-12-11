@@ -71,20 +71,20 @@ inline codegen_t *GContext_getCodegen(GContext *context, uint32_t token_type) {
   return nullptr;
 }
 
-inline void GContext_addOpcode(GContext *context, Identifier *ident, Instruction *instr) {
+inline void GContext_addOpcode(GContext *context, const Identifier *ident, Instruction *instr) {
   Trie_set(context->inmOpcode->trie, ident->ptr, instr);
 }
-inline void *GContext_findOpcode(GContext *context, Identifier *ident) {
+inline void *GContext_findOpcode(GContext *context, const Identifier *ident) {
   return Trie_get(context->inmOpcode->trie, ident->ptr);
 }
 
-inline void GContext_addRefer(GContext *context, Identifier *ident, Entry *entry) {
+inline void GContext_addRefer(GContext *context, const Identifier *ident, Entry *entry) {
   Array_append(context->entries, entry, 1);
   void *e = (void *) (uint64_t) Array_length(context->entries);
   Trie_set(context->inmRefer->trie, ident->ptr, e);
 }
 
-inline void *GContext_findRefer(GContext *context, Identifier *ident) {
+inline void *GContext_findRefer(GContext *context, const Identifier *ident) {
   uint32_t ndx = (uint64_t) Trie_get(context->inmRefer->trie, ident->ptr);
   if (!ndx) { return nullptr; }
   return Array_get(context->entries, ndx - 1);

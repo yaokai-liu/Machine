@@ -10,7 +10,7 @@
 #include "allocator.h"
 #include "char_t.h"
 #include "parse.h"
-#include "source.h"
+#include "generate.h"
 #include "target.h"
 #include "terminal.h"
 #include "tokenize.h"
