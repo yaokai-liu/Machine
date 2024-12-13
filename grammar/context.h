@@ -15,7 +15,10 @@
 #include "target.h"
 #include "terminal.h"
 
-typedef struct Namespace Namespace;
+typedef struct Record {
+  uint32_t typeid;
+  uint32_t offset;
+} Record;
 
 typedef struct GContext GContext;
 
@@ -33,9 +36,21 @@ void GContext_addOpcode(GContext *context, const Identifier *ident, Instruction 
 
 void *GContext_findOpcode(GContext *context, const Identifier *ident);
 
-void GContext_addRefer(GContext *context, const Identifier *ident, Entry *entry);
+void GContext_addRecord(GContext *context, const Identifier *ident, Record *record);
 
-void *GContext_findRefer(GContext *context, const Identifier *ident);
+void *GContext_findRecord(GContext *context, const Identifier *ident);
+
+uint32_t GContext_addImmediate(GContext *context, const Immediate *imm);
+uint32_t GContext_addRegister(GContext *context, const Register *reg);
+uint32_t GContext_addMemory(GContext *context, const Memory *mem);
+uint32_t GContext_addRegisterGroup(GContext *context, const RegisterGroup *grp);
+uint32_t GContext_addSet(GContext *context, const Set *set);
+
+Immediate *GContext_getImmediate(GContext *context, uint32_t offset);
+Register *GContext_getRegister(GContext *context, uint32_t offset);
+Memory *GContext_getMemory(GContext *context, uint32_t offset);
+RegisterGroup *GContext_getRegisterGroup(GContext *context, uint32_t offset);
+Set *GContext_getSet(GContext *context, uint32_t offset);
 
 void *GContext_findIdentInStack(GContext *context, Identifier *ident);
 
@@ -49,7 +64,7 @@ MappingItem *GContext_getMapItem(GContext *context, BitField *bf);
 
 uint64_t GContext_getLastWidth(GContext *context);
 
-void GContext_destroy(GContext *context, const Allocator *allocator);
+void GContext_destroy(GContext *context);
 
 typedef void fn_ctx_act(GContext *context, void *token);
 

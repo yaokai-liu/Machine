@@ -554,7 +554,7 @@ const Terminal *tokenize(
   const char_t *pText = input;
   uint32_t l = lineno ? *lineno : 0;
   uint32_t c = column ? *column : 0;
-  Array *terminals = Array_new(sizeof(Terminal), allocator);
+  Array *terminals = Array_new(sizeof(Terminal), enum_TERMINATOR, allocator);
   Terminal terminal = {};
   pText += pass_space(pText, &l, &c);
   while (*pText) {
@@ -577,7 +577,7 @@ const Terminal *tokenize(
   }
   *cost = (uint32_t) (pText - input);
   *n_tokens = Array_length(terminals);
-  const Terminal *pTerminals = (*n_tokens == 0) ? nullptr : Array_get(terminals, 0);
+  const Terminal *pTerminals = (*n_tokens == 0) ? nullptr : Array_real_addr(terminals, 0);
   Array_destroy(terminals);
   lineno ? *lineno = l : 0;
   column ? *column = c : 0;

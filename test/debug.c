@@ -63,7 +63,7 @@ int main() {
   string[machine->name->len] = '\0';
   printf("machine %s\n", string);
 
-  char_t *outputs = Array_get(GContext_getOutputBuffer(machine->context), 0);
+  char_t *outputs = Array_real_addr(GContext_getOutputBuffer(machine->context), 0);
   printf("%s\n", outputs);
 
   releaseMachine((Machine *) machine, &STDAllocator);

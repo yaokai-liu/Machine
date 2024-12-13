@@ -43,7 +43,7 @@ Machine *
     const struct grammar_action *act = getAction(state, tp->type);
     if (!act) {
       *cost = (uint32_t) (uint64_t) (tp - tokens);
-      GContext_destroy(context, allocator);
+      GContext_destroy(context);
       return clean_parse_stack(state_stack, token_stack, allocator);
     }
     if (act->action == stack) {
@@ -61,13 +61,13 @@ Machine *
       result = reduce(args, context, allocator);
       if (!result) {
         *cost = (uint32_t) (uint64_t) (tp - tokens);
-        GContext_destroy(context, allocator);
+        GContext_destroy(context);
         return failed_to_produce(state_stack, token_stack, args, states, act->count, allocator);
       }
       state = jump(state, act->type);
       if (state < 0) {
         *cost = (uint32_t) (uint64_t) (tp - tokens);
-        GContext_destroy(context, allocator);
+        GContext_destroy(context);
         return failed_to_get_next_state(state_stack, token_stack, result, act->type, allocator);
       }
       Stack_push(token_stack, &result, sizeof(void *));

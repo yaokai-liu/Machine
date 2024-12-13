@@ -51,7 +51,7 @@ void releaseMachine(Machine *machine, const Allocator *allocator) {
   allocator->free(machine->name);
   Array_reset(machine->entries, (destruct_t *) releaseEntry);
   Array_destroy(machine->entries);
-  GContext_destroy(machine->context, allocator);
+  GContext_destroy(machine->context);
   // TODO: release other arrays.
 }
 
@@ -153,8 +153,7 @@ void releaseRegister(Register *reg, const Allocator *allocator) {
 void releaseRegisterGroup(RegisterGroup *rg, const Allocator *allocator) {
   releaseIdentifier(rg->name, allocator);
   allocator->free(rg->name);
-  Array_reset(rg->registers, (destruct_t *) releaseRegister);
-  Array_destroy(rg->registers);
+  releasePrimeArray(rg->registers);
 }
 
 void releaseSetItem(SetItem *item, const Allocator *allocator) {
@@ -190,8 +189,8 @@ inline int32_t PatternArgs_cmp(PatternArgs *args1, PatternArgs *args2) {
   if (len1 < len2) { return -1; }
   if (len1 > len2) { return 1; }
 
-  const Identifier * const idents1 = Array_get(args1, 0);
-  const Identifier * const idents2 = Array_get(args2, 0);
+  const Identifier * const idents1 = Array_real_addr(args1, 0);
+  const Identifier * const idents2 = Array_real_addr(args2, 0);
   for (uint32_t i = 0; i < len1; i++) {
     const Identifier * const ident1 = &idents1[i];
     const Identifier * const ident2 = &idents2[i];

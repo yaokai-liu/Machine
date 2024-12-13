@@ -13,10 +13,13 @@
 #include "array.h"
 #include "avl-tree.h"
 #include "terminal.h"
+#include "trie.h"
+
+#define REFER(T) T *
 
 typedef struct Entry {
   uint32_t type;
-  void *target;
+  REFER(void) target;
 } Entry;
 
 typedef Array Entries;  // Array<Entry>
@@ -25,23 +28,18 @@ typedef struct Machine {
   Identifier *name;
   Entries *entries;
   void *context;
-  //  Array /*<uint32_t>*/ *regList;
-  //  Array /*<uint32_t>*/ *opcodeList;
-  //  Array /*<uint32_t>*/ *memModelList;
-  //  Array /*<Identifier>*/ *regNameList;
-  //  Array /*<Identifier>*/ *opcodeNameList;
-  //  Array /*<Identifier>*/ *memModelNameList;
 } Machine;
 
 typedef struct Immediate {
+  Identifier *name;
   uint32_t width;
   uint32_t type;
-  Identifier *name;
 } Immediate;
 
 typedef Array PatternArgs;  // Array<Identifier>
 
 typedef struct Pattern {
+  Identifier *name;
   PatternArgs *args;
 } Pattern;
 
@@ -58,7 +56,7 @@ typedef struct MappingItem {
 
 typedef struct MappingItems {
   AVLTree *itemTree;
-  Array *itemArray;
+  Array /*<MappingItem>*/ *itemArray;
   uint32_t lowest;
   Evaluable *default_eval;
 } MappingItems;
@@ -114,7 +112,7 @@ typedef struct Register {
   RegisterGroup *group;
 } Register;
 
-typedef Array Registers;  // Array<Registers>
+typedef Array Registers;  // Array<uint32_t>
 
 typedef struct RegisterGroup {
   Identifier *name;

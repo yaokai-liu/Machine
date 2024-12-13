@@ -66,7 +66,7 @@
   } while (false)
 
 #define getMappingItem(_items, bf)                                                 \
-  Array_get(                                                                       \
+  Array_real_addr(                                                                       \
       (_items)->itemArray,                                                         \
       ((uint32_t) (uint64_t) AVLTree_get((_items)->itemTree, (uint64_t) (bf)) - 1) \
   )
@@ -81,11 +81,11 @@ int32_t eval_to_val(GContext *context, Evaluable *evaluable, char_t *buffer) {
   }
   Identifier *ident = (Identifier *) evaluable->lhs;
   if (ident->len > MAX_IDENT_LEN) { return -1; }
-  Entry *entry = GContext_findRefer(context, ident);
+  Record*record = GContext_findRecord(context, ident);
   switch (evaluable->type) {
     case enum_NUMBER:
     case enum_IDENTIFIER: {
-      if (entry->type == enum_Set) {
+      if (record->typeid == enum_Set) {
         // TODO: codegen for set
         return -1;
       } else {
@@ -95,7 +95,7 @@ int32_t eval_to_val(GContext *context, Evaluable *evaluable, char_t *buffer) {
     case enum_BIT_FIELD: {
       BitField *bf = evaluable->rhs;
       uint32_t width = bf->upper - bf->lower + 1;
-      if (entry->type == enum_Set) {
+      if (record->typeid == enum_Set) {
         // TODO: codegen for set
         return -1;
       } else {
@@ -103,7 +103,7 @@ int32_t eval_to_val(GContext *context, Evaluable *evaluable, char_t *buffer) {
       }
     }
     case enum_MEM_KEY: {
-      Memory *mem = entry->target;
+      Memory *mem = GContext_getMemory(context, record->offset);
       BitField *bf = (((uint64_t) evaluable->rhs) == MEM_BASE) ? mem->base : mem->offset;
       uint32_t width = bf->upper - bf->lower + 1;
       return sprintf(buffer, "(%s >> %d) & UINT_N_MAX(%d)", ident->ptr, bf->lower, width);

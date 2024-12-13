@@ -21,24 +21,18 @@
 
 #define min(a, b) ((a) < (b)) ? (a) : (b)
 
-#define grammarAssertDefinedRefer(ident)               \
-  do {                                                 \
-    Entry *entry = GContext_findRefer(context, ident); \
-    if (!entry) { return nullptr; }                    \
+#define grammarAssertDefinedRecord(ident)                 \
+  do {                                                    \
+    Record *record = GContext_findRecord(context, ident); \
+    if (!record) { return nullptr; }                      \
   } while (false)
 
-#define grammarAssertNotDeclaredRefer(ident)              \
+#define grammarAssertNotDeclaredRecord(ident)             \
   do {                                                    \
-    Entry *entry = GContext_findRefer(context, ident);    \
-    if (entry) { return nullptr; }                        \
+    Record *record = GContext_findRecord(context, ident); \
+    if (record) { return nullptr; }                       \
     void *id = GContext_findIdentInStack(context, ident); \
     if (id) { return nullptr; }                           \
-  } while (false)
-
-#define grammarAddReferDefinition(type, target) \
-  do {                                          \
-    Entry entry = {enum_##type, target};        \
-    GContext_addRefer(context, ident, &entry);  \
   } while (false)
 
 Entries *p_Entries_0(void *argv[], GContext *, const Allocator *allocator) {
@@ -51,7 +45,7 @@ Entries *p_Entries_0(void *argv[], GContext *, const Allocator *allocator) {
 
 Entries *p_Entries_1(void *argv[], GContext *, const Allocator *allocator) {
   Entry *entry = (Entry *) argv[0];
-  Entries *entries = Array_new(sizeof(Entry), allocator);
+  Entries *entries = Array_new(sizeof(Entry), enum_Entry, allocator);
   Array_append(entries, entry, 1);
   allocator->free(entry);
   return entries;
@@ -96,7 +90,7 @@ Evaluable *p_Evaluable_0(void *argv[], GContext *context, const Allocator *alloc
   Identifier *lhs = (Identifier *) argv[0];
   void *rhs = argv[2];
 
-  grammarAssertDefinedRefer(lhs);
+  grammarAssertDefinedRecord(lhs);
 
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_MEM_KEY;
@@ -109,7 +103,7 @@ Evaluable *p_Evaluable_1(void *argv[], GContext *context, const Allocator *alloc
   Identifier *lhs = (Identifier *) argv[0];
   BitField *rhs = (BitField *) argv[1];
 
-  grammarAssertDefinedRefer(lhs);
+  grammarAssertDefinedRecord(lhs);
 
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_BIT_FIELD;
@@ -121,7 +115,7 @@ Evaluable *p_Evaluable_1(void *argv[], GContext *context, const Allocator *alloc
 Evaluable *p_Evaluable_2(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[0];
 
-  grammarAssertDefinedRefer(ident);
+  grammarAssertDefinedRecord(ident);
 
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_IDENTIFIER;
@@ -142,7 +136,7 @@ Evaluable *p_Evaluable_3(void *argv[], GContext *, const Allocator *allocator) {
 Immediate *p_Immediate_0(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[1];
 
-  grammarAssertNotDeclaredRefer(ident);
+  grammarAssertNotDeclaredRecord(ident);
 
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   uint32_t type = (uint64_t) argv[3];
@@ -151,7 +145,8 @@ Immediate *p_Immediate_0(void *argv[], GContext *context, const Allocator *alloc
   imm->width = width;
   imm->name = ident;
 
-  grammarAddReferDefinition(Immediate, imm);
+  GContext_addImmediate(context, imm);
+  allocator->free(imm);
 
   return imm;
 }
@@ -169,7 +164,7 @@ InstrForm *p_InstrForm_0(void *argv[], GContext *context, const Allocator *alloc
   form->tick = 1;
   form->pattern = pattern;
 
-  const InstrPart * const parts = Array_get(part_array, 0);
+  const InstrPart * const parts = Array_real_addr(part_array, 0);
   for (uint32_t i = 0; i < n_parts; i++) {
     const InstrPart *part = &parts[i];
     if (form->parts[part->type].layout) {
@@ -183,7 +178,7 @@ InstrForm *p_InstrForm_0(void *argv[], GContext *context, const Allocator *alloc
 
   codegen_t *fn_codegen = GContext_getCodegen(context, enum_InstrForm);
   if (fn_codegen) {
-    Array *buffer = Array_new(sizeof(char_t), allocator);
+    Array *buffer = Array_new(sizeof(char_t), -2, allocator);
     fn_codegen(context, form, buffer);
   }
   return form;
@@ -203,7 +198,7 @@ InstrForm *p_InstrForm_1(void *argv[], GContext *context, const Allocator *alloc
   form->tick = tick;
   form->pattern = pattern;
 
-  const InstrPart * const parts = Array_get(part_array, 0);
+  const InstrPart * const parts = Array_real_addr(part_array, 0);
   for (uint32_t i = 0; i < n_parts; i++) {
     const InstrPart *part = &parts[i];
     if (form->parts[part->type - 1].layout) {
@@ -233,7 +228,7 @@ InstrForms *p_InstrForms_0(void *argv[], GContext *, const Allocator *allocator)
 
 InstrForms *p_InstrForms_1(void *argv[], GContext *, const Allocator *allocator) {
   InstrForm *form = (InstrForm *) argv[0];
-  InstrForms *forms = Array_new(sizeof(InstrForm), allocator);
+  InstrForms *forms = Array_new(sizeof(InstrForm), enum_InstrForm, allocator);
   Array_append(forms, form, 1);
   allocator->free(form);
   return forms;
@@ -263,7 +258,7 @@ InstrParts *p_InstrParts_0(void *argv[], GContext *, const Allocator *allocator)
 
 InstrParts *p_InstrParts_1(void *argv[], GContext *, const Allocator *allocator) {
   InstrPart *part = (InstrPart *) argv[0];
-  InstrParts *parts = Array_new(sizeof(InstrPart), allocator);
+  InstrParts *parts = Array_new(sizeof(InstrPart), enum_InstrPart, allocator);
   Array_append(parts, part, 1);
   allocator->free(part);
   return parts;
@@ -348,7 +343,7 @@ MappingItems *p_MappingItems_1(void *argv[], GContext *, const Allocator *alloca
   MappingItem *item = (MappingItem *) argv[0];
 
   MappingItems *items = allocator->calloc(1, sizeof(MappingItems));
-  items->itemArray = Array_new(sizeof(MappingItem), allocator);
+  items->itemArray = Array_new(sizeof(MappingItem), enum_MappingItem, allocator);
   items->itemTree = AVLTree_new(allocator, (compare_t *) BitField_cmp);
   if (!item->field) {
     items->default_eval = item->evaluable;
@@ -378,25 +373,26 @@ Memory *p_Memory_0(void *argv[], GContext *context, const Allocator *allocator) 
   MemItem *item1 = (MemItem *) argv[4];
   MemItem *item2 = (MemItem *) argv[5];
 
-  grammarAssertNotDeclaredRefer(ident);
+  grammarAssertNotDeclaredRecord(ident);
 
   if (item1->type == item2->type) { return nullptr; }
-  Memory *memory = allocator->calloc(1, sizeof(Memory));
-  memory->name = ident;
-  memory->width = width;
+  Memory *mem = allocator->calloc(1, sizeof(Memory));
+  mem->name = ident;
+  mem->width = width;
   if (item1->type == MEM_BASE) {
-    memory->base = item1->field;
-    memory->offset = item2->field;
+    mem->base = item1->field;
+    mem->offset = item2->field;
   } else {
-    memory->base = item2->field;
-    memory->offset = item1->field;
+    mem->base = item2->field;
+    mem->offset = item1->field;
   }
   allocator->free(item1);
   allocator->free(item2);
 
-  grammarAddReferDefinition(Memory, memory);
+  GContext_addMemory(context, mem);
+  allocator->free(mem);
 
-  return memory;
+  return mem;
 }
 
 Pattern *p_Pattern_0(void *argv[], GContext *context, const Allocator *allocator) {
@@ -416,7 +412,7 @@ PatternArgs *p_PatternArgs_0(void *argv[], GContext *context, const Allocator *a
   PatternArgs *args = (PatternArgs *) argv[0];
   Identifier *ident = (Identifier *) argv[2];
 
-  grammarAssertDefinedRefer(ident);
+  grammarAssertDefinedRecord(ident);
 
   Array_append(args, ident, 1);
   allocator->free(ident);
@@ -426,9 +422,9 @@ PatternArgs *p_PatternArgs_0(void *argv[], GContext *context, const Allocator *a
 PatternArgs *p_PatternArgs_1(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[0];
 
-  grammarAssertDefinedRefer(ident);
+  grammarAssertDefinedRecord(ident);
 
-  PatternArgs *args = Array_new(sizeof(Identifier), allocator);
+  PatternArgs *args = Array_new(sizeof(Identifier), enum_PatternArgs, allocator);
   Array_append(args, ident, 1);
   allocator->free(ident);
 
@@ -440,14 +436,15 @@ Register *p_Register_0(void *argv[], GContext *context, const Allocator *allocat
   BitField *field = (BitField *) argv[2];
   uint64_t code = (uint64_t) argv[4];
 
-  grammarAssertNotDeclaredRefer(ident);
+  grammarAssertNotDeclaredRecord(ident);
 
   Register *reg = allocator->calloc(1, sizeof(Register));
   reg->name = ident;
   reg->field = field;
   reg->code = code;
 
-  grammarAddReferDefinition(Register, reg);
+  GContext_addRegister(context, reg);
+  allocator->free(reg);
 
   return reg;
 }
@@ -457,16 +454,17 @@ RegisterGroup *p_RegisterGroup_0(void *argv[], GContext *context, const Allocato
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   Registers *registers = (Registers *) argv[4];
 
-  grammarAssertNotDeclaredRefer(ident);
+  grammarAssertNotDeclaredRecord(ident);
 
-  RegisterGroup *group = allocator->calloc(1, sizeof(RegisterGroup));
-  group->name = ident;
-  group->width = width;
-  group->registers = registers;
+  RegisterGroup *grp = allocator->calloc(1, sizeof(RegisterGroup));
+  grp->name = ident;
+  grp->width = width;
+  grp->registers = registers;
 
-  grammarAddReferDefinition(RegisterGroup, group);
+  GContext_addRegisterGroup(context, grp);
+  allocator->free(grp);
 
-  return group;
+  return grp;
 }
 
 Registers *p_Registers_0(void *argv[], GContext *, const Allocator *allocator) {
@@ -479,7 +477,7 @@ Registers *p_Registers_0(void *argv[], GContext *, const Allocator *allocator) {
 
 Registers *p_Registers_1(void *argv[], GContext *, const Allocator *allocator) {
   Register *reg = (Register *) argv[0];
-  Registers *regs = Array_new(sizeof(Register), allocator);
+  Registers *regs = Array_new(sizeof(Register), -1, allocator);
   Array_append(regs, reg, 1);
   allocator->free(reg);
   return regs;
@@ -489,13 +487,14 @@ Set *p_Set_0(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[0];
   SetItems *items = (SetItems *) argv[1];
 
-  grammarAssertNotDeclaredRefer(ident);
+  grammarAssertNotDeclaredRecord(ident);
 
   Set *set = allocator->calloc(1, sizeof(Set));
   set->name = ident;
   set->items = items;
 
-  grammarAddReferDefinition(Set, set);
+  GContext_addSet(context, set);
+  allocator->free(set);
 
   return set;
 }
@@ -504,7 +503,7 @@ SetItems *p_SetItems_0(void *argv[], GContext *context, const Allocator *) {
   SetItems *items = (SetItems *) argv[0];
   Identifier *ident = (Identifier *) argv[2];
 
-  grammarAssertDefinedRefer(ident);
+  grammarAssertDefinedRecord(ident);
 
   SetItem item = {ident};
   Array_append(items, &item, 1);
@@ -515,10 +514,10 @@ SetItems *p_SetItems_0(void *argv[], GContext *context, const Allocator *) {
 SetItems *p_SetItems_1(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[0];
 
-  grammarAssertDefinedRefer(ident);
+  grammarAssertDefinedRecord(ident);
 
   SetItem item = {ident};
-  SetItems *items = Array_new(sizeof(SetItem), allocator);
+  SetItems *items = Array_new(sizeof(SetItem), enum_SetItems, allocator);
   Array_append(items, &item, 1);
 
   return items;

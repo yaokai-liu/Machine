@@ -33,7 +33,7 @@ const char_t ENCODING_DEF_FMT_TAIL[] = "  Array_append(buffer, bytes, sizeof(byt
     push_string("uint32_t encoding_");                            \
     push_string((name)->ptr);                                     \
     const uint32_t n_args = Array_length((form)->pattern->args);  \
-    const Identifier *args = Array_get((form)->pattern->args, 0); \
+    const Identifier *args = Array_real_addr((form)->pattern->args, 0); \
     for (uint32_t j = 0; j < n_args; j++) {                       \
       const Identifier *arg = &args[i];                           \
       push_string("_");                                           \
@@ -63,7 +63,7 @@ int32_t gen_encoding_def(
     Generator *generator, Identifier *names[], InstrForm *forms[], uint32_t n_forms
 ) {
   char_t head_buffer[sizeof(ENCODING_DEF_FMT_HEAD) + 64];
-  Array *buffer = Array_new(sizeof(char_t), generator->allocator);
+  Array *buffer = Array_new(sizeof(char_t), -1, generator->allocator);
   for (uint32_t i = 0; i < n_forms; ++i) {
     const uint32_t n_bytes = forms[i]->width / 8;
     gen_encoding_dec_core(names[i], forms[i]);
@@ -71,7 +71,7 @@ int32_t gen_encoding_def(
     push_string(head_buffer);
     codegen_instr_form(generator->context, forms[i], buffer);
     uint32_t size = Array_length(buffer);
-    char_t *ptr = Array_get(buffer, 0);
+    char_t *ptr = Array_real_addr(buffer, 0);
     Array_append(generator->buffer, ptr, size);
     push_string(ENCODING_DEF_FMT_TAIL);
     Array_reset(buffer, nullptr);

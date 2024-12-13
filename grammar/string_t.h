@@ -10,6 +10,7 @@
 #ifndef MACHINE_STRING_T_H
 #define MACHINE_STRING_T_H
 
+#include "array.h"
 #include "char_t.h"
 #include <stdint.h>
 

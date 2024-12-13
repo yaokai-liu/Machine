@@ -77,6 +77,8 @@ StatementMacros:
   - add_test_for_type
   - releaseArrayCase
   - releaseTokenCase
+  - contextAddRecord_DEF
+  - contextGetFromOffset_DEF
 TabWidth: 2
 UseCRLF: false
 UseTab: Never
