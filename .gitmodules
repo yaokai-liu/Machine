@@ -1,6 +1,6 @@
 [submodule "liu-machine"]
 	path = liu-machine
-	url = git@gitlab.com:yaokai-liu/xnf.git
+	url = git@github.com:yaokai-liu/Xnf.git
 	branch = liu-machine
 [submodule "meman"]
 	path = meman
