@@ -196,10 +196,10 @@ int32_t codegen_instr_form(GContext *context, InstrForm *form, Array *buffer) {
   return Array_length(buffer) - pre_len;
 }
 
-//int32_t codegen_instruction(GContext * context, Instruction * instr, Array *buffer) {
-//
-//  return 0;
-//}
+int32_t codegen_instruction(GContext *, Instruction *, Array *) {
+  // TODO:
+  return 0;
+}
 
 codegen_t *get_codegen(uint32_t type) {
   switch (type) {

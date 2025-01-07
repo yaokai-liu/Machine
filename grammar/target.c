@@ -18,33 +18,7 @@ void releaseIdentifier(Identifier *ident, const Allocator *allocator) {
 
 void releaseBitField(BitField *, const Allocator *) {}
 
-void releaseEntry(Entry *entry, const Allocator *allocator) {
-  destruct_t *fn_release = nullptr;
-  switch (entry->type) {
-    case enum_RegisterGroup: {
-      fn_release = (destruct_t *) releaseRegisterGroup;
-      break;
-    }
-    case enum_Instruction: {
-      fn_release = (destruct_t *) releaseInstruction;
-      break;
-    }
-    case enum_Memory: {
-      fn_release = (destruct_t *) releaseMemory;
-      break;
-    }
-    case enum_Immediate: {
-      fn_release = (destruct_t *) releaseImmediate;
-      break;
-    }
-    case enum_Set: {
-      fn_release = (destruct_t *) releaseSet;
-      break;
-    }
-  }
-  fn_release(entry->target, allocator);
-  allocator->free(entry->target);
-}
+void releaseEntry(Entry *, const Allocator *) {}
 
 void releaseMachine(Machine *machine, const Allocator *allocator) {
   releaseIdentifier(machine->name, allocator);

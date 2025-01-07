@@ -13,9 +13,8 @@
 #include "array.h"
 #include "avl-tree.h"
 #include "terminal.h"
-#include "trie.h"
 
-#define REFER(T) T *
+#define REFER(T) /*VirtAddr*/T *
 
 typedef struct Entry {
   uint32_t type;
@@ -109,10 +108,10 @@ typedef struct Register {
   Identifier *name;
   BitField *field;
   uint64_t code;
-  RegisterGroup *group;
+  REFER(RegisterGroup) group;
 } Register;
 
-typedef Array Registers;  // Array<uint32_t>
+typedef Array Registers;  // Array<REFER(Register)>
 
 typedef struct RegisterGroup {
   Identifier *name;

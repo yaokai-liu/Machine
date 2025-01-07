@@ -1,6 +1,6 @@
 /**
  * Project Name: machine
- * Module Name: contana
+ * Module Name: grammar
  * Filename: string_t.c
  * Creator: Yaokai Liu
  * Create Date: 2024-12-05

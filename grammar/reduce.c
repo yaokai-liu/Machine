@@ -35,6 +35,10 @@
     if (id) { return nullptr; }                           \
   } while (false)
 
+#define grammarAssert(bool_expr) do { \
+  if (!(bool_expr)) { return nullptr; } \
+} while (false)
+
 Entries *p_Entries_0(void *argv[], GContext *, const Allocator *allocator) {
   Entries *entries = (Entries *) argv[0];
   Entry *entry = (Entry *) argv[1];
@@ -431,55 +435,47 @@ PatternArgs *p_PatternArgs_1(void *argv[], GContext *context, const Allocator *a
   return args;
 }
 
-Register *p_Register_0(void *argv[], GContext *context, const Allocator *allocator) {
+Register *p_Register_0(void *argv[], GContext *context, const Allocator *) {
   Identifier *ident = (Identifier *) argv[0];
   BitField *field = (BitField *) argv[2];
   uint64_t code = (uint64_t) argv[4];
 
   grammarAssertNotDeclaredRecord(ident);
 
-  Register *reg = allocator->calloc(1, sizeof(Register));
-  reg->name = ident;
-  reg->field = field;
-  reg->code = code;
-
-  GContext_addRegister(context, reg);
-  allocator->free(reg);
-
-  return reg;
+  Register reg = {.name = ident, .field = field, .code = code};
+  return GContext_addRegister(context, &reg);
 }
 
-RegisterGroup *p_RegisterGroup_0(void *argv[], GContext *context, const Allocator *allocator) {
+RegisterGroup *p_RegisterGroup_0(void *argv[], GContext *context, const Allocator *) {
   Identifier *ident = (Identifier *) argv[1];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   Registers *registers = (Registers *) argv[4];
 
   grammarAssertNotDeclaredRecord(ident);
 
-  RegisterGroup *grp = allocator->calloc(1, sizeof(RegisterGroup));
-  grp->name = ident;
-  grp->width = width;
-  grp->registers = registers;
+  const uint32_t len = Array_length(registers);
+  grammarAssert(len > 0);
 
-  GContext_addRegisterGroup(context, grp);
-  allocator->free(grp);
-
-  return grp;
+  RegisterGroup grp = { .name = ident, .width = width, .registers = registers };
+  RegisterGroup *result = GContext_addRegisterGroup(context, &grp);
+  Register *regs = Array_real_addr(registers, 0);
+  for (uint32_t i = 0; i < len; i ++) {
+    regs[i].group = result;
+  }
+  return result;
 }
 
-Registers *p_Registers_0(void *argv[], GContext *, const Allocator *allocator) {
+Registers *p_Registers_0(void *argv[], GContext *, const Allocator *) {
   Registers *regs = (Registers *) argv[0];
   Register *reg = (Register *) argv[1];
-  Array_append(regs, reg, 1);
-  allocator->free(reg);
+  Array_append(regs, &reg, 1);
   return regs;
 }
 
 Registers *p_Registers_1(void *argv[], GContext *, const Allocator *allocator) {
-  Register *reg = (Register *) argv[0];
-  Registers *regs = Array_new(sizeof(Register), -1, allocator);
-  Array_append(regs, reg, 1);
-  allocator->free(reg);
+  Register *reg = argv[0];
+  Registers *regs = Array_new(sizeof(REFER(Register)), -1, allocator);
+  Array_append(regs, &reg, 1);
   return regs;
 }
 

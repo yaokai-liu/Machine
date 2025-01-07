@@ -8,7 +8,6 @@
  **/
 
 #include "encoding.h"
-#include "tokens.gen.h"
 #include <stdio.h>
 #include <string.h>
 

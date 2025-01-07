@@ -12,13 +12,35 @@
 
 #include "allocator.h"
 #include "codegen.h"
+#include "stack.h"
 #include "target.h"
 #include "terminal.h"
+#include "trie.h"
 
 typedef struct Record {
   uint32_t typeid;
   uint32_t offset;
 } Record;
+
+typedef struct GContext {
+  const Allocator *allocator;
+  Array /*<Register>*/ *regArray;
+  Array /*<Immediate>*/ *immArray;
+  Array /*<Memory>*/ *memArray;
+  Array /*<Set>*/ *setArray;
+  Array /*<RegisterGroup>*/ *grpArray;
+  Array /*<Record>*/ *recordArray;
+  Trie /*<uint32_t>*/ *objectMap;
+  Trie /*<uint32_t>*/ *opcodeMap;
+  codegen_t *(*getCodegen)(uint32_t token_type);
+
+  // temporary variable
+  Array *patterns;
+  Stack *widthStack;
+  Stack *identStack;
+  AVLTree *mappingTree;
+  Array *outputs;
+} GContext;
 
 typedef struct GContext GContext;
 
@@ -40,11 +62,11 @@ void GContext_addRecord(GContext *context, const Identifier *ident, Record *reco
 
 void *GContext_findRecord(GContext *context, const Identifier *ident);
 
-uint32_t GContext_addImmediate(GContext *context, const Immediate *imm);
-uint32_t GContext_addRegister(GContext *context, const Register *reg);
-uint32_t GContext_addMemory(GContext *context, const Memory *mem);
-uint32_t GContext_addRegisterGroup(GContext *context, const RegisterGroup *grp);
-uint32_t GContext_addSet(GContext *context, const Set *set);
+REFER(Immediate) GContext_addImmediate(GContext *context, const Immediate *imm);
+REFER(Register) GContext_addRegister(GContext *context, const Register *reg);
+REFER(Memory) GContext_addMemory(GContext *context, const Memory *mem);
+REFER(RegisterGroup) GContext_addRegisterGroup(GContext *context, const RegisterGroup *grp);
+REFER(Set) GContext_addSet(GContext *context, const Set *set);
 
 Immediate *GContext_getImmediate(GContext *context, uint32_t offset);
 Register *GContext_getRegister(GContext *context, uint32_t offset);

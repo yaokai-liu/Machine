@@ -7,7 +7,6 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "define.h"
 #include "char_t.h"
 #include <stdint.h>
 

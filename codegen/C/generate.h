@@ -11,9 +11,7 @@
 #define MACHINE_GENERATE_H
 
 #include "array.h"
-#include "char_t.h"
 #include "context.h"
-#include "target.h"
 #include <stdbool.h>
 #include <stdint.h>
 

@@ -16,26 +16,6 @@
 #include "trie.h"
 #include <stdint.h>
 
-typedef struct GContext {
-  const Allocator *allocator;
-  Array /*<Register>*/ *regArray;
-  Array /*<Immediate>*/ *immArray;
-  Array /*<Memory>*/ *memArray;
-  Array /*<Set>*/ *setArray;
-  Array /*<RegisterGroup>*/ *grpArray;
-  Array /*<Record>*/ *recordArray;
-  Trie /*<uint32_t>*/ *objectMap;
-  Trie /*<uint32_t>*/ *opcodeMap;
-  codegen_t *(*getCodegen)(uint32_t token_type);
-
-  // temporary variable
-  Array *patterns;
-  Stack *widthStack;
-  Stack *identStack;
-  AVLTree *mappingTree;
-  Array *outputs;
-} GContext;
-
 inline GContext *GContext_new(const Allocator *allocator) {
   GContext *context = allocator->calloc(1, sizeof(GContext));
   context->allocator = allocator;
@@ -74,6 +54,7 @@ inline void GContext_destroy(GContext *context) {
   contextReleaseArray(setArray, releaseSet);
   contextReleaseArray(grpArray, releaseRegisterGroup);
   releasePrimeArray(context->recordArray);
+  releasePrimeArray(context->outputs);
   Trie_destroy(context->objectMap);
   Trie_destroy(context->opcodeMap);
   contextReleaseStack(widthStack);
@@ -118,12 +99,12 @@ inline void *GContext_findRecord(GContext *context, const Identifier *ident) {
 }
 
 #define contextAddRecord_DEF(type, array, obj)                             \
-  inline uint32_t GContext_add##type(GContext *context, const type *obj) { \
+  inline REFER(type) GContext_add##type(GContext *context, const type *obj) {    \
     uint32_t offset = Array_length(context->array);                        \
     Record record = {enum_##type, offset};                                 \
     Array_append(context->array, obj, 1);                                  \
     GContext_addRecord(context, obj->name, &record);                       \
-    return offset;                                                         \
+    return Array_virt_addr(context->array, offset);                        \
   }
 contextAddRecord_DEF(Immediate, immArray, imm);
 contextAddRecord_DEF(Register, regArray, reg);
