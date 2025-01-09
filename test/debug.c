@@ -9,8 +9,8 @@
 
 #include "allocator.h"
 #include "char_t.h"
-#include "parse.h"
 #include "generate.h"
+#include "parse.h"
 #include "target.h"
 #include "terminal.h"
 #include "tokenize.h"

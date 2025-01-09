@@ -8,10 +8,10 @@
  **/
 
 #include "generate.h"
-#include "encoding.h"
 #include "array.h"
 #include "codegen.h"
 #include "context.h"
+#include "encoding.h"
 #include "enum.h"
 #include "target.h"
 #include "terminal.h"
@@ -25,20 +25,20 @@
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
 
-#define setEncodingNumber(val_str)     \
-  do {                                 \
-    push_string("setEncodingNumber("); \
-    push_string(val_str);              \
-    push_string(");");                 \
+#define setEncodingNumber(val_str)       \
+  do {                                   \
+    push_string("  setEncodingNumber("); \
+    push_string(val_str);                \
+    push_string(");\n");                 \
   } while (false)
 
 #define pushEncodingNumber(val_str, count_str) \
   do {                                         \
-    push_string("pushEncodingNumber(");        \
+    push_string("  pushEncodingNumber(");      \
     push_string(val_str);                      \
     push_string(", ");                         \
     push_string(count_str);                    \
-    push_string(");");                         \
+    push_string(");\n");                       \
   } while (false)
 
 #define pushEncodingNumberN(val_str, count) \
@@ -66,7 +66,7 @@
   } while (false)
 
 #define getMappingItem(_items, bf)                                                 \
-  Array_real_addr(                                                                       \
+  Array_real_addr(                                                                 \
       (_items)->itemArray,                                                         \
       ((uint32_t) (uint64_t) AVLTree_get((_items)->itemTree, (uint64_t) (bf)) - 1) \
   )
@@ -81,7 +81,7 @@ int32_t eval_to_val(GContext *context, Evaluable *evaluable, char_t *buffer) {
   }
   Identifier *ident = (Identifier *) evaluable->lhs;
   if (ident->len > MAX_IDENT_LEN) { return -1; }
-  Record*record = GContext_findRecord(context, ident);
+  Record *record = GContext_findRecord(context, ident);
   switch (evaluable->type) {
     case enum_NUMBER:
     case enum_IDENTIFIER: {
@@ -121,7 +121,7 @@ int32_t
   getDefaultMappingBit(default_bit);
   if (!item) {
     int len = sprintf(
-        FMT_BUFFER, "number = numSetBits(number, %d, %d, %ld);", bf->lower, bf->upper + 1,
+        FMT_BUFFER, "  number = numSetBits(number, %d, %d, %ld);\n", bf->lower, bf->upper + 1,
         (int64_t) default_bit
     );
     if (len > 0) { push_string(FMT_BUFFER); }
@@ -143,7 +143,7 @@ int32_t
     temp_buffer = GContext_getAllocator(context)->malloc(128 * sizeof(char_t));
   }
   eval_to_val(context, item->evaluable, temp_buffer);
-  sprintf(FMT_BUFFER, "number = numSetBits(number, %d, %d, %s);", bl, bu + 1, temp_buffer);
+  sprintf(FMT_BUFFER, "  number = numSetBits(number, %d, %d, %s);\n", bl, bu + 1, temp_buffer);
   push_string(FMT_BUFFER);
   GContext_getAllocator(context)->free(temp_buffer);
 
@@ -169,42 +169,44 @@ int32_t codegen_layout(GContext *context, const Layout *layout, uint32_t width, 
       for (uint32_t i = 0; i < width; i += 64) {
         BitField bf = {.lower = i, .upper = min(i + 63, width - 1)};
         codegen_items_bf(context, items, &bf, buffer);
-        sprintf(FMT_BUFFER, "pushInstrBytes(%d);", min(64, width - i) / 8);
+        sprintf(FMT_BUFFER, "  pushInstrBytes(%d);\n", min(64, width - i) / 8);
         push_string(FMT_BUFFER);
-        push_string("number = 0;");
+        push_string("  number = 0;\n");
       }
     }
   }
   return Array_length(buffer) - pre_len;
 }
 
-int32_t codegen_instr_form(GContext *context, InstrForm *form, Array *buffer) {
+#define codegen_form_part(part)                     \
+  do {                                              \
+    uint32_t width;                                 \
+    const Layout *layout;                           \
+    width = form->parts[(part) - 1].width;          \
+    layout = form->parts[(part) - 1].layout;        \
+    codegen_layout(context, layout, width, buffer); \
+  } while (false)
+int32_t codegen_instr_form(GContext *context, const InstrForm *form, Array *buffer) {
   const uint32_t pre_len = Array_length(buffer);
-  uint32_t width;
-  const Layout *layout;
-  width = form->parts[PART_PREFIX - 1].width;
-  layout = form->parts[PART_PREFIX - 1].layout;
-  codegen_layout(context, layout, width, buffer);
-  width = form->parts[PART_PRINCIPAL - 1].width;
-  layout = form->parts[PART_PRINCIPAL - 1].layout;
-  codegen_layout(context, layout, width, buffer);
-  width = form->parts[PART_SUFFIX - 1].width;
-  layout = form->parts[PART_SUFFIX - 1].layout;
-  codegen_layout(context, layout, width, buffer);
-  char_t c = '\0';
-  Array_append(buffer, &c, 1);
+  codegen_form_part(PART_PREFIX);
+  codegen_form_part(PART_PRINCIPAL);
+  codegen_form_part(PART_SUFFIX);
   return Array_length(buffer) - pre_len;
 }
 
-int32_t codegen_instruction(GContext *, Instruction *, Array *) {
+int32_t codegen_instruction(GContext *context, Instruction *instr, Array *buffer) {
   // TODO:
+  Generator generator = {.context = context, .buffer = buffer, .allocator = context->allocator};
+  const InstrForm *forms = Array_real_addr(instr->forms, 0);
+  const uint32_t n_forms = Array_length(instr->forms);
+  gen_instr_encoding_def(&generator, instr->name->ptr, forms, n_forms);
   return 0;
 }
 
 codegen_t *get_codegen(uint32_t type) {
   switch (type) {
-    case enum_InstrForm: {
-      return (codegen_t *) codegen_instr_form;
+    case enum_Instruction: {
+      return (codegen_t *) codegen_instruction;
     }
   }
   return nullptr;

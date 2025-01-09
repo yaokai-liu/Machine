@@ -14,7 +14,7 @@
 #include "avl-tree.h"
 #include "terminal.h"
 
-#define REFER(T) /*VirtAddr*/T *
+#define REFER(T) /*VirtAddr*/ T *
 
 typedef struct Entry {
   uint32_t type;

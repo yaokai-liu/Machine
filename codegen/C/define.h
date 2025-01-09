@@ -10,6 +10,4 @@
 #ifndef MACHINE_DEFINE_H
 #define MACHINE_DEFINE_H
 
-
-
 #endif  // MACHINE_DEFINE_H

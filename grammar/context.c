@@ -98,13 +98,13 @@ inline void *GContext_findRecord(GContext *context, const Identifier *ident) {
   return Array_real_addr(context->recordArray, ndx - 1);
 }
 
-#define contextAddRecord_DEF(type, array, obj)                             \
-  inline REFER(type) GContext_add##type(GContext *context, const type *obj) {    \
-    uint32_t offset = Array_length(context->array);                        \
-    Record record = {enum_##type, offset};                                 \
-    Array_append(context->array, obj, 1);                                  \
-    GContext_addRecord(context, obj->name, &record);                       \
-    return Array_virt_addr(context->array, offset);                        \
+#define contextAddRecord_DEF(type, array, obj)                                \
+  inline REFER(type) GContext_add##type(GContext *context, const type *obj) { \
+    uint32_t offset = Array_length(context->array);                           \
+    Record record = {enum_##type, offset};                                    \
+    Array_append(context->array, obj, 1);                                     \
+    GContext_addRecord(context, obj->name, &record);                          \
+    return Array_virt_addr(context->array, offset);                           \
   }
 contextAddRecord_DEF(Immediate, immArray, imm);
 contextAddRecord_DEF(Register, regArray, reg);

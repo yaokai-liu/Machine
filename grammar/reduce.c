@@ -35,9 +35,10 @@
     if (id) { return nullptr; }                           \
   } while (false)
 
-#define grammarAssert(bool_expr) do { \
-  if (!(bool_expr)) { return nullptr; } \
-} while (false)
+#define grammarAssert(bool_expr)          \
+  do {                                    \
+    if (!(bool_expr)) { return nullptr; } \
+  } while (false)
 
 Entries *p_Entries_0(void *argv[], GContext *, const Allocator *allocator) {
   Entries *entries = (Entries *) argv[0];
@@ -155,7 +156,7 @@ Immediate *p_Immediate_0(void *argv[], GContext *context, const Allocator *alloc
   return imm;
 }
 
-InstrForm *p_InstrForm_0(void *argv[], GContext *context, const Allocator *allocator) {
+InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   InstrParts *part_array = (InstrParts *) argv[4];
@@ -179,16 +180,10 @@ InstrForm *p_InstrForm_0(void *argv[], GContext *context, const Allocator *alloc
     form->parts[part->type].layout = part->layout;
   }
   releasePrimeArray(part_array);
-
-  codegen_t *fn_codegen = GContext_getCodegen(context, enum_InstrForm);
-  if (fn_codegen) {
-    Array *buffer = Array_new(sizeof(char_t), -2, allocator);
-    fn_codegen(context, form, buffer);
-  }
   return form;
 }
 
-InstrForm *p_InstrForm_1(void *argv[], GContext *context, const Allocator *allocator) {
+InstrForm *p_InstrForm_1(void *argv[], GContext *, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   uint32_t tick = (uint32_t) (uint64_t) argv[3];
@@ -213,12 +208,6 @@ InstrForm *p_InstrForm_1(void *argv[], GContext *context, const Allocator *alloc
     form->parts[part->type - 1].layout = part->layout;
   }
   releasePrimeArray(part_array);
-
-  codegen_t *fn_codegen = GContext_getCodegen(context, enum_InstrForm);
-  if (fn_codegen) {
-    Array *buffer = GContext_getOutputBuffer(context);
-    fn_codegen(context, form, buffer);
-  }
   return form;
 }
 
@@ -268,12 +257,17 @@ InstrParts *p_InstrParts_1(void *argv[], GContext *, const Allocator *allocator)
   return parts;
 }
 
-Instruction *p_Instruction_0(void *argv[], GContext *, const Allocator *allocator) {
+Instruction *p_Instruction_0(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *identifier = (Identifier *) argv[1];
   InstrForms *forms = (InstrForms *) argv[3];
   Instruction *instr = allocator->calloc(1, sizeof(Instruction));
   instr->name = identifier;
   instr->forms = forms;
+  codegen_t *fn_codegen = GContext_getCodegen(context, enum_Instruction);
+  if (fn_codegen) {
+    Array *buffer = GContext_getOutputBuffer(context);
+    fn_codegen(context, instr, buffer);
+  }
   return instr;
 }
 
@@ -456,12 +450,10 @@ RegisterGroup *p_RegisterGroup_0(void *argv[], GContext *context, const Allocato
   const uint32_t len = Array_length(registers);
   grammarAssert(len > 0);
 
-  RegisterGroup grp = { .name = ident, .width = width, .registers = registers };
+  RegisterGroup grp = {.name = ident, .width = width, .registers = registers};
   RegisterGroup *result = GContext_addRegisterGroup(context, &grp);
   Register *regs = Array_real_addr(registers, 0);
-  for (uint32_t i = 0; i < len; i ++) {
-    regs[i].group = result;
-  }
+  for (uint32_t i = 0; i < len; i++) { regs[i].group = result; }
   return result;
 }
 
