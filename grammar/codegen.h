@@ -15,6 +15,6 @@
 
 typedef struct GContext GContext;
 
-typedef int32_t codegen_t(GContext *context, void *object, Array *buffer);
+typedef int32_t codegen_t(GContext *context, void *object);
 
 #endif  // MACHINE_CODEGEN_H

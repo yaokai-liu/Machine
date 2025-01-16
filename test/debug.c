@@ -27,7 +27,7 @@ int main() {
   FILE *pFile = fopen("/mnt/d/Codelib/machine/liu-machine/demo.mm", "r");
   if (!pFile) { return -1; }
   uint32_t length = fread(testString, sizeof(char_t), MAX_CHAR, pFile);
-  printf("read %u characters from file.\n", length);
+  printf("read %u characters from file.\n\n", length);
   if (fclose(pFile)) {
     printf("failed to close file.\n");
     return -2;
@@ -40,15 +40,15 @@ int main() {
     STDAllocator.free((void *) terminals);
     return -3;
   }
-  for (uint32_t i = 0; i < n_tokens; i++) {
-    uint32_t t_line = terminals[i].lineno;
-    uint32_t t_start = terminals[i].column;
-    uint32_t t_end = (terminals[i].length > 0) ? terminals[i].column + terminals[i].length - 1 : 0;
-    printf(
-        "(line: %u, col: %u-%u, type: %s, value: %p)\n", t_line, t_start, t_end,
-        get_name(terminals[i].type), terminals[i].value
-    );
-  }
+  //  for (uint32_t i = 0; i < n_tokens; i++) {
+  //    uint32_t t_line = terminals[i].lineno;
+  //    uint32_t t_start = terminals[i].column;
+  //    uint32_t t_end = (terminals[i].length > 0) ? terminals[i].column + terminals[i].length - 1 :
+  //    0; printf(
+  //        "(line: %u, col: %u-%u, type: %s, value: %p)\n", t_line, t_start, t_end,
+  //        get_name(terminals[i].type), terminals[i].value
+  //    );
+  //  }
   const Machine *machine = parse(terminals, &cost, get_codegen, &STDAllocator);
   if (!machine) {
     printf("failed to parse.\n");
@@ -58,12 +58,15 @@ int main() {
     STDAllocator.free((void *) terminals);
     return -4;
   }
-  char_t string[512] = {};
-  memcpy(string, machine->name->ptr, machine->name->len);
-  string[machine->name->len] = '\0';
-  printf("machine %s\n", string);
+  //  char_t string[512] = {};
+  //  memcpy(string, machine->name->ptr, machine->name->len);
+  //  string[machine->name->len] = '\0';
+  //  printf("machine %s\n", string);
 
-  char_t *outputs = Array_real_addr(GContext_getOutputBuffer(machine->context), 0);
+  char_t *outputs;
+  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_encoding_dec), 0);
+  printf("%s\n", outputs);
+  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_encoding_def), 0);
   printf("%s\n", outputs);
 
   releaseMachine((Machine *) machine, &STDAllocator);

@@ -27,7 +27,7 @@ inline GContext *GContext_new(const Allocator *allocator) {
   context->recordArray = Array_new(sizeof(Record), INT32_MAX - 1, allocator);
   context->objectMap = Trie_new(allocator);
   context->opcodeMap = Trie_new(allocator);
-  context->outputs = Array_new(sizeof(char_t), INT32_MAX, allocator);
+  for (uint32_t i = 0; i < 16; i++) { context->outputs[i] = nullptr; }
   context->widthStack = Stack_new(allocator);
   context->identStack = Stack_new(allocator);
   context->mappingTree = nullptr;
@@ -54,7 +54,9 @@ inline void GContext_destroy(GContext *context) {
   contextReleaseArray(setArray, releaseSet);
   contextReleaseArray(grpArray, releaseRegisterGroup);
   releasePrimeArray(context->recordArray);
-  releasePrimeArray(context->outputs);
+  for (uint32_t i = 0; i < 16; i++) {
+    if (context->outputs[i]) { releasePrimeArray(context->outputs[i]); }
+  }
   Trie_destroy(context->objectMap);
   Trie_destroy(context->opcodeMap);
   contextReleaseStack(widthStack);
@@ -66,8 +68,11 @@ inline const Allocator *GContext_getAllocator(GContext *context) {
   return context->allocator;
 }
 
-inline Array *GContext_getOutputBuffer(GContext *context) {
-  return context->outputs;
+inline Array *GContext_getOutputBuffer(GContext *context, uint32_t index) {
+  if (!context->outputs[index]) {
+    context->outputs[index] = Array_new(sizeof(char_t), INT32_MAX, context->allocator);
+  }
+  return context->outputs[index];
 }
 
 inline void GContext_setCodegen(GContext *context, codegen_t *(*getCodegen)(uint32_t token_type)) {

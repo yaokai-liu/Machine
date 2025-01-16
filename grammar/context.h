@@ -22,6 +22,20 @@ typedef struct Record {
   uint32_t offset;
 } Record;
 
+enum Ctx_ByteBuffer {
+  CtxBuf_encoding_def,
+  CtxBuf_encoding_dec,
+  CtxBuf_register_enum,
+  CtxBuf_memory_enum,
+  CtxBuf_immediate_enum,
+  CtxBuf_register_dec,
+  CtxBuf_memory_dec,
+  CtxBuf_immediate_dec,
+  CtxBuf_register_def,
+  CtxBuf_memory_def,
+  CtxBuf_immediate_def,
+};
+
 typedef struct GContext {
   const Allocator *allocator;
   Array /*<Register>*/ *regArray;
@@ -39,7 +53,7 @@ typedef struct GContext {
   Stack *widthStack;
   Stack *identStack;
   AVLTree *mappingTree;
-  Array *outputs;
+  Array *outputs[16];
 } GContext;
 
 typedef struct GContext GContext;
@@ -48,7 +62,7 @@ GContext *GContext_new(const Allocator *allocator);
 
 const Allocator *GContext_getAllocator(GContext *context);
 
-Array *GContext_getOutputBuffer(GContext *context);
+Array *GContext_getOutputBuffer(GContext *context, uint32_t index);
 
 void GContext_setCodegen(GContext *context, codegen_t *(*getCodegen)(uint32_t token_type));
 

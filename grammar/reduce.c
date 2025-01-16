@@ -138,22 +138,21 @@ Evaluable *p_Evaluable_3(void *argv[], GContext *, const Allocator *allocator) {
   return evaluable;
 }
 
-Immediate *p_Immediate_0(void *argv[], GContext *context, const Allocator *allocator) {
+Immediate *p_Immediate_0(void *argv[], GContext *context, const Allocator *) {
   Identifier *ident = (Identifier *) argv[1];
 
   grammarAssertNotDeclaredRecord(ident);
 
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   uint32_t type = (uint64_t) argv[3];
-  Immediate *imm = allocator->calloc(1, sizeof(Immediate));
-  imm->type = type;
-  imm->width = width;
-  imm->name = ident;
+  Immediate imm = {.type = type, .width = width, .name = ident};
 
-  GContext_addImmediate(context, imm);
-  allocator->free(imm);
+  Immediate *result = GContext_addImmediate(context, &imm);
 
-  return imm;
+  codegen_t *fn_codegen = GContext_getCodegen(context, enum_Immediate);
+  if (fn_codegen) { fn_codegen(context, result); }
+
+  return result;
 }
 
 InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
@@ -264,10 +263,7 @@ Instruction *p_Instruction_0(void *argv[], GContext *context, const Allocator *a
   instr->name = identifier;
   instr->forms = forms;
   codegen_t *fn_codegen = GContext_getCodegen(context, enum_Instruction);
-  if (fn_codegen) {
-    Array *buffer = GContext_getOutputBuffer(context);
-    fn_codegen(context, instr, buffer);
-  }
+  if (fn_codegen) { fn_codegen(context, instr); }
   return instr;
 }
 
@@ -374,23 +370,23 @@ Memory *p_Memory_0(void *argv[], GContext *context, const Allocator *allocator) 
   grammarAssertNotDeclaredRecord(ident);
 
   if (item1->type == item2->type) { return nullptr; }
-  Memory *mem = allocator->calloc(1, sizeof(Memory));
-  mem->name = ident;
-  mem->width = width;
+  Memory mem = {.name = ident, .width = width};
   if (item1->type == MEM_BASE) {
-    mem->base = item1->field;
-    mem->offset = item2->field;
+    mem.base = item1->field;
+    mem.offset = item2->field;
   } else {
-    mem->base = item2->field;
-    mem->offset = item1->field;
+    mem.base = item2->field;
+    mem.offset = item1->field;
   }
   allocator->free(item1);
   allocator->free(item2);
 
-  GContext_addMemory(context, mem);
-  allocator->free(mem);
+  Memory *result = GContext_addMemory(context, &mem);
 
-  return mem;
+  codegen_t *fn_codegen = GContext_getCodegen(context, enum_Memory);
+  if (fn_codegen) { fn_codegen(context, result); }
+
+  return result;
 }
 
 Pattern *p_Pattern_0(void *argv[], GContext *context, const Allocator *allocator) {
@@ -451,9 +447,13 @@ RegisterGroup *p_RegisterGroup_0(void *argv[], GContext *context, const Allocato
   grammarAssert(len > 0);
 
   RegisterGroup grp = {.name = ident, .width = width, .registers = registers};
-  RegisterGroup *result = GContext_addRegisterGroup(context, &grp);
+  REFER(RegisterGroup) result = GContext_addRegisterGroup(context, &grp);
   Register *regs = Array_real_addr(registers, 0);
   for (uint32_t i = 0; i < len; i++) { regs[i].group = result; }
+
+  codegen_t *fn_codegen = GContext_getCodegen(context, enum_RegisterGroup);
+  if (fn_codegen) { fn_codegen(context, result); }
+
   return result;
 }
 
@@ -471,20 +471,15 @@ Registers *p_Registers_1(void *argv[], GContext *, const Allocator *allocator) {
   return regs;
 }
 
-Set *p_Set_0(void *argv[], GContext *context, const Allocator *allocator) {
+Set *p_Set_0(void *argv[], GContext *context, const Allocator *) {
   Identifier *ident = (Identifier *) argv[0];
   SetItems *items = (SetItems *) argv[1];
 
   grammarAssertNotDeclaredRecord(ident);
 
-  Set *set = allocator->calloc(1, sizeof(Set));
-  set->name = ident;
-  set->items = items;
+  Set set = {.name = ident, .items = items};
 
-  GContext_addSet(context, set);
-  allocator->free(set);
-
-  return set;
+  return GContext_addSet(context, &set);
 }
 
 SetItems *p_SetItems_0(void *argv[], GContext *context, const Allocator *) {

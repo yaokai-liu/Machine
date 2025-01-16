@@ -71,6 +71,11 @@ const char_t MACROS[] = "#define min(a, b)             ((a) < (b)) ? (a) : (b)\n
                         "    pushInstrBytes(count);             \\\n"
                         "  } while (false)\n";
 
+const char_t TYPE_DEFS[] = "typedef struct {\n"
+                           "  uint32_t type;\n"
+                           "  uint64_t value;\n"
+                           "} Entry;\n";
+
 int32_t set_header(Generator *generator, char_t *filename, int32_t year, char_t *cr_holder) {
   uint32_t fn_len = strlen(filename);
   uint32_t cr_len = strlen(cr_holder);
