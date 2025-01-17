@@ -8,7 +8,10 @@
  **/
 
 #include "char_t.h"
+#include "context.h"
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 const char_t MEM_ENUM_FMT[] = "enum_MEM_%s";
 const char_t IMM_ENUM_FMT[] = "enum_IMM_%s";
@@ -47,5 +50,55 @@ const char_t IMM_DEF_FMT[] =
 const char_t REG_DEF_FMT[] = "const static Entry {\n"
                              "  .type = enum_REG_%s,\n"
                              "  .value = enum_REG_%s,\n"
-                             "} Entry_REG_%s;"
-                             "const Entry * REG_%s = &Entry_REG_%s\n";
+                             "} Entry_REG_%s;\n"
+                             "const Entry * REG_%s = &Entry_REG_%s;\n";
+
+#define push_string(s) \
+  do { Array_append(buffer, s, strlen(s)); } while (false)
+
+void gen_memory_dec(GContext *, Array *buffer, const Memory *mem) {
+  char_t temp_buffer[512] = {};
+  sprintf(temp_buffer, MEM_DEC_FMT, mem->name->ptr);
+  push_string(temp_buffer);
+  push_string(";\n");
+}
+
+void gen_memory_def(GContext *, Array *buffer, const Memory *mem) {
+  char_t temp_buffer[512] = {};
+  sprintf(temp_buffer, MEM_DEC_FMT, mem->name->ptr);
+  push_string(temp_buffer);
+  sprintf(
+      temp_buffer, MEM_DEF_FMT, mem->name->ptr, mem->base->lower, mem->base->upper,
+      mem->offset->lower, mem->offset->upper
+  );
+  push_string(temp_buffer);
+}
+
+void gen_immediate_dec(GContext *, Array *buffer, const Immediate *imm) {
+  char_t temp_buffer[512] = {};
+  sprintf(temp_buffer, IMM_DEC_FMT, imm->name->ptr);
+  push_string(temp_buffer);
+  push_string(";\n");
+}
+
+void gen_immediate_def(GContext *, Array *buffer, const Immediate *imm) {
+  char_t temp_buffer[512] = {};
+  sprintf(temp_buffer, IMM_DEC_FMT, imm->name->ptr);
+  push_string(temp_buffer);
+  sprintf(temp_buffer, IMM_DEF_FMT, imm->name->ptr);
+  push_string(temp_buffer);
+}
+
+void gen_register_dec(GContext *, Array *buffer, const Register *reg) {
+  char_t temp_buffer[512] = {};
+  sprintf(temp_buffer, REG_DEC_FMT, reg->name->ptr);
+  push_string(temp_buffer);
+  push_string(";\n");
+}
+
+void gen_register_def(GContext *, Array *buffer, const Register *reg) {
+  char_t temp_buffer[512] = {};
+  const char_t *name = reg->name->ptr;
+  sprintf(temp_buffer, REG_DEF_FMT, name, name, name, name, name);
+  push_string(temp_buffer);
+}

@@ -12,3 +12,5 @@ output
 build
 build-*
 generated
+perf.*
+.perf-*

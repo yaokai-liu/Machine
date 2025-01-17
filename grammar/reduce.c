@@ -448,8 +448,11 @@ RegisterGroup *p_RegisterGroup_0(void *argv[], GContext *context, const Allocato
 
   RegisterGroup grp = {.name = ident, .width = width, .registers = registers};
   REFER(RegisterGroup) result = GContext_addRegisterGroup(context, &grp);
-  Register *regs = Array_real_addr(registers, 0);
-  for (uint32_t i = 0; i < len; i++) { regs[i].group = result; }
+  REFER(Register) *regs = Array_real_addr(registers, 0);
+  for (uint32_t i = 0; i < len; i++) {
+    Register *reg = Array_vert2real(context->regArray, regs[i]);
+    reg->group = result;
+  }
 
   codegen_t *fn_codegen = GContext_getCodegen(context, enum_RegisterGroup);
   if (fn_codegen) { fn_codegen(context, result); }

@@ -68,6 +68,18 @@ int main() {
   printf("%s\n", outputs);
   outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_encoding_def), 0);
   printf("%s\n", outputs);
+  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_memory_dec), 0);
+  printf("%s\n", outputs);
+  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_memory_def), 0);
+  printf("%s\n", outputs);
+  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_immediate_dec), 0);
+  printf("%s\n", outputs);
+  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_immediate_def), 0);
+  printf("%s\n", outputs);
+  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_register_dec), 0);
+  printf("%s\n", outputs);
+  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_register_def), 0);
+  printf("%s\n", outputs);
 
   releaseMachine((Machine *) machine, &STDAllocator);
   STDAllocator.free((void *) machine);
