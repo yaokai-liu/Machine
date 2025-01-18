@@ -28,20 +28,22 @@ const char_t ENCODING_DEF_FMT_TAIL[] = "  Array_append(buffer, bytes, sizeof(byt
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
 
-#define gen_encoding_dec_core(form)                                    \
-  do {                                                                 \
-    char_t func_name[sizeof(ENCODING_DEF_FMT_HEAD) + 64] = {};         \
-    sprintf(func_name, "uint32_t encoding_%s_%d(", instr_op, i);       \
-    push_string(func_name);                                            \
-    const uint32_t n_args = Array_length((form).pattern->args);        \
-    const Identifier *args = Array_real_addr((form).pattern->args, 0); \
-    for (uint32_t j = 0; j < n_args; j++) {                            \
-      const Identifier *arg = &args[j];                                \
-      push_string("uint64_t ");                                        \
-      push_string(arg->ptr);                                           \
-      push_string(", ");                                               \
-    }                                                                  \
-    push_string("Array *buffer)");                                     \
+#define gen_encoding_dec_core(form)                                      \
+  do {                                                                   \
+    char_t func_name[sizeof(ENCODING_DEF_FMT_HEAD) + 64] = {};           \
+    sprintf(func_name, "uint32_t encoding_%s_%d(", instr_op, i);         \
+    push_string(func_name);                                              \
+    if ((form).pattern->args) {                                          \
+      const uint32_t n_args = Array_length((form).pattern->args);        \
+      const Identifier *args = Array_real_addr((form).pattern->args, 0); \
+      for (uint32_t j = 0; j < n_args; j++) {                            \
+        const Identifier *arg = &args[j];                                \
+        push_string("uint64_t ");                                        \
+        push_string(arg->ptr);                                           \
+        push_string(", ");                                               \
+      }                                                                  \
+    }                                                                    \
+    push_string("Array *buffer)");                                       \
   } while (false)
 
 int32_t gen_instr_encoding_dec(
@@ -230,13 +232,15 @@ int32_t codegen_layout(GContext *context, Array *buffer, const Layout *layout, u
   return Array_length(buffer) - pre_len;
 }
 
-#define codegen_form_part(part)                     \
-  do {                                              \
-    uint32_t width;                                 \
-    const Layout *layout;                           \
-    width = form->parts[(part) - 1].width;          \
-    layout = form->parts[(part) - 1].layout;        \
-    codegen_layout(context, buffer, layout, width); \
+#define codegen_form_part(part)                       \
+  do {                                                \
+    uint32_t width;                                   \
+    const Layout *layout;                             \
+    width = form->parts[(part) - 1].width;            \
+    if (width > 0) {                                  \
+      layout = form->parts[(part) - 1].layout;        \
+      codegen_layout(context, buffer, layout, width); \
+    }                                                 \
   } while (false)
 int32_t codegen_instr_form(GContext *context, Array *buffer, const InstrForm *form) {
   const uint32_t pre_len = Array_length(buffer);

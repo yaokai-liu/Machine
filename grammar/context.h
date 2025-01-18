@@ -23,11 +23,9 @@ typedef struct Record {
 } Record;
 
 enum Ctx_ByteBuffer {
+  CtxBuf_enum_item,
   CtxBuf_encoding_def,
   CtxBuf_encoding_dec,
-  CtxBuf_register_enum,
-  CtxBuf_memory_enum,
-  CtxBuf_immediate_enum,
   CtxBuf_register_dec,
   CtxBuf_memory_dec,
   CtxBuf_immediate_dec,
@@ -48,12 +46,13 @@ typedef struct GContext {
   Trie /*<uint32_t>*/ *opcodeMap;
   codegen_t *(*getCodegen)(uint32_t token_type);
 
+  Array *outputs[16];
+
   // temporary variable
   Array *patterns;
   Stack *widthStack;
   Stack *identStack;
   AVLTree *mappingTree;
-  Array *outputs[16];
 } GContext;
 
 typedef struct GContext GContext;

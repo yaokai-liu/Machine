@@ -35,6 +35,7 @@ void releaseImmediate(Immediate *immediate, const Allocator *allocator) {
 }
 
 void releasePattern(Pattern *pattern, const Allocator *) {
+  if (!pattern->args) { return; }
   Array_reset(pattern->args, (destruct_t *) releaseIdentifier);
   Array_destroy(pattern->args);
 }

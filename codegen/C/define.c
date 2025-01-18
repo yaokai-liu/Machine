@@ -56,6 +56,13 @@ const char_t REG_DEF_FMT[] = "const static Entry {\n"
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
 
+void gen_memory_enum_item(GContext *, Array *buffer, const Memory *mem) {
+  char_t temp_buffer[512] = {};
+  sprintf(temp_buffer, MEM_ENUM_FMT, mem->name->ptr);
+  push_string(temp_buffer);
+  push_string(",\n");
+}
+
 void gen_memory_dec(GContext *, Array *buffer, const Memory *mem) {
   char_t temp_buffer[512] = {};
   sprintf(temp_buffer, MEM_DEC_FMT, mem->name->ptr);
@@ -74,6 +81,13 @@ void gen_memory_def(GContext *, Array *buffer, const Memory *mem) {
   push_string(temp_buffer);
 }
 
+void gen_immediate_enum_item(GContext *, Array *buffer, const Immediate *imm) {
+  char_t temp_buffer[512] = {};
+  sprintf(temp_buffer, IMM_ENUM_FMT, imm->name->ptr);
+  push_string(temp_buffer);
+  push_string(",\n");
+}
+
 void gen_immediate_dec(GContext *, Array *buffer, const Immediate *imm) {
   char_t temp_buffer[512] = {};
   sprintf(temp_buffer, IMM_DEC_FMT, imm->name->ptr);
@@ -87,6 +101,13 @@ void gen_immediate_def(GContext *, Array *buffer, const Immediate *imm) {
   push_string(temp_buffer);
   sprintf(temp_buffer, IMM_DEF_FMT, imm->name->ptr);
   push_string(temp_buffer);
+}
+
+void gen_register_enum_item(GContext *, Array *buffer, const Register *reg) {
+  char_t temp_buffer[512] = {};
+  sprintf(temp_buffer, REG_ENUM_FMT, reg->name->ptr);
+  push_string(temp_buffer);
+  push_string(",\n");
 }
 
 void gen_register_dec(GContext *, Array *buffer, const Register *reg) {

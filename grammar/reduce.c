@@ -171,12 +171,12 @@ InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
   const InstrPart * const parts = Array_real_addr(part_array, 0);
   for (uint32_t i = 0; i < n_parts; i++) {
     const InstrPart *part = &parts[i];
-    if (form->parts[part->type].layout) {
+    if (form->parts[part->type - 1].layout) {
       allocator->free(form);
       return nullptr;
     }
-    form->parts[part->type].width = part->width;
-    form->parts[part->type].layout = part->layout;
+    form->parts[part->type - 1].width = part->width;
+    form->parts[part->type - 1].layout = part->layout;
   }
   releasePrimeArray(part_array);
   return form;
@@ -396,6 +396,15 @@ Pattern *p_Pattern_0(void *argv[], GContext *context, const Allocator *allocator
 
   Pattern *pattern = allocator->calloc(1, sizeof(Pattern));
   pattern->args = args;
+
+  GContext_addPattern(context, pattern);
+
+  return pattern;
+}
+
+Pattern *p_Pattern_1(void *[], GContext *context, const Allocator *allocator) {
+  Pattern *pattern = allocator->calloc(1, sizeof(Pattern));
+  pattern->args = nullptr;
 
   GContext_addPattern(context, pattern);
 
