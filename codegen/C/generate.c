@@ -69,6 +69,7 @@ int32_t codegen_instruction(GContext *context, Instruction *instr) {
 
   Array *dec_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_dec);
   Array *def_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_def);
+
   gen_instr_encoding_dec(context, dec_buffer, instr->name->ptr, forms, n_forms);
   gen_instr_encoding_def(context, def_buffer, instr->name->ptr, forms, n_forms);
 

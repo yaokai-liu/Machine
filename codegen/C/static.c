@@ -76,6 +76,16 @@ const char_t TYPE_DEFS[] = "typedef struct {\n"
                            "  uint64_t value;\n"
                            "} Entry;\n";
 
+const char_t JUMP_ITEM[] = "struct jump_item {\n"
+                           "  uint32_t expected_type;\n"
+                           "  uint32_t next_state_index;\n"
+                           "};\n";
+
+const char_t JUMP_STATE[] = "struct jump_state {\n"
+                            "  uint32_t offset_in_items;\n"
+                            "  uint32_t count_of_items;\n"
+                            "};";
+
 int32_t set_header(Generator *generator, char_t *filename, int32_t year, char_t *cr_holder) {
   uint32_t fn_len = strlen(filename);
   uint32_t cr_len = strlen(cr_holder);
