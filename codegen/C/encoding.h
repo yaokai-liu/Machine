@@ -22,6 +22,10 @@ int32_t gen_instr_encoding_def(
     GContext *context, Array *buffer, const char_t *instr_op, const InstrForm forms[],
     uint32_t n_forms
 );
+int32_t gen_instr_encoding_mat(
+    GContext *context, Array *buffer, const char_t *instr_op, const InstrForm forms[],
+    uint32_t n_forms
+);
 
 int32_t codegen_instr_form(GContext *context, Array *buffer, const InstrForm *form);
 

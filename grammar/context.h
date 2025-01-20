@@ -32,6 +32,7 @@ enum Ctx_ByteBuffer {
   CtxBuf_register_def,
   CtxBuf_memory_def,
   CtxBuf_immediate_def,
+  CtxBuf_encoding_mat,
 };
 
 typedef struct GContext {

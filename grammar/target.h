@@ -38,7 +38,6 @@ typedef struct Immediate {
 typedef Array PatternArgs;  // Array<Identifier>
 
 typedef struct Pattern {
-  Identifier *name;
   PatternArgs *args;
 } Pattern;
 

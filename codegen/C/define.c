@@ -49,7 +49,7 @@ const char_t IMM_DEF_FMT[] =
     "}\n";
 const char_t REG_DEF_FMT[] = "const static Entry {\n"
                              "  .type = enum_REG_%s,\n"
-                             "  .value = enum_REG_%s,\n"
+                             "  .value = 0x%lx,\n"
                              "} Entry_REG_%s;\n"
                              "const Entry * REG_%s = &Entry_REG_%s;\n";
 
@@ -120,6 +120,6 @@ void gen_register_dec(GContext *, Array *buffer, const Register *reg) {
 void gen_register_def(GContext *, Array *buffer, const Register *reg) {
   char_t temp_buffer[512] = {};
   const char_t *name = reg->name->ptr;
-  sprintf(temp_buffer, REG_DEF_FMT, name, name, name, name, name);
+  sprintf(temp_buffer, REG_DEF_FMT, name, reg->code, name, name, name);
   push_string(temp_buffer);
 }

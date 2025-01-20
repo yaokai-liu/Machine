@@ -78,6 +78,51 @@ int32_t gen_instr_encoding_def(
   return 0;
 }
 
+uint64_t get_record_ndx(const void *ndx_ptr) {
+  return *(const uint64_t *) ndx_ptr;
+}
+
+Trie *build_args_trie(GContext *context, const InstrForm forms[], uint32_t n_forms) {
+  Trie *args_trie = Trie_new(4, get_record_ndx, context->allocator);
+  uint64_t *ndx_array = nullptr;
+  for (uint64_t i = 0; i < n_forms; i++) {
+    Pattern *pattern = forms[i].pattern;
+    if (!pattern->args) {
+      const uint64_t ndx = 0;
+      Trie_set(args_trie, &ndx, (void *) i);
+    } else {
+      uint32_t length = Array_length(pattern->args);
+      void *p = context->allocator->realloc(ndx_array, (length + 1) * sizeof(uint64_t));
+      if (p) {
+        ndx_array = p;
+      } else {
+        if (ndx_array) { context->allocator->free(ndx_array); }
+        Trie_destroy(args_trie);
+        return nullptr;
+      }
+      const Identifier *idents = Array_real_addr(pattern->args, 0);
+      for (uint32_t j = 0; j < length; j++) {
+        uint64_t ndx = (uint64_t) Trie_get(context->objectMap, idents[j].ptr);
+        ndx_array[j] = ndx + 1;
+      }
+      ndx_array[length] = 0;
+      Trie_set(args_trie, ndx_array, (void *) i);
+      void *k = Trie_get(args_trie, ndx_array);
+      printf("%p\n", k);
+    }
+  }
+  if (ndx_array) { context->allocator->free(ndx_array); }
+  return args_trie;
+}
+
+int32_t gen_instr_encoding_mat(
+    GContext *context, Array *, const char_t *, const InstrForm forms[], uint32_t n_forms
+) {
+  Trie *args_trie = build_args_trie(context, forms, n_forms);
+  if (!args_trie) { return -1; }
+  return 0;
+}
+
 #define min(a, b) ((a) < (b)) ? (a) : (b)
 
 #define setEncodingNumber(val_str)       \

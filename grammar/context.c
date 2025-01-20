@@ -16,6 +16,10 @@
 #include "trie.h"
 #include <stdint.h>
 
+uint64_t getchar(const void *key) {
+  return *(const char_t *) key;
+}
+
 inline GContext *GContext_new(const Allocator *allocator) {
   GContext *context = allocator->calloc(1, sizeof(GContext));
   context->allocator = allocator;
@@ -25,8 +29,8 @@ inline GContext *GContext_new(const Allocator *allocator) {
   context->setArray = Array_new(sizeof(Set), enum_Set, allocator);
   context->grpArray = Array_new(sizeof(RegisterGroup), enum_RegisterGroup, allocator);
   context->recordArray = Array_new(sizeof(Record), INT32_MAX - 1, allocator);
-  context->objectMap = Trie_new(allocator);
-  context->opcodeMap = Trie_new(allocator);
+  context->objectMap = Trie_new(1, getchar, allocator);
+  context->opcodeMap = Trie_new(1, getchar, allocator);
   for (uint32_t i = 0; i < 16; i++) { context->outputs[i] = nullptr; }
   context->widthStack = Stack_new(allocator);
   context->identStack = Stack_new(allocator);
