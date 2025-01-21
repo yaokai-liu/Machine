@@ -84,6 +84,7 @@ const char_t JUMP_ITEM[] = "struct jump_item {\n"
 const char_t JUMP_STATE[] = "struct jump_state {\n"
                             "  uint32_t count_of_items;\n"
                             "  uint32_t offset_in_items;\n"
+                            "  uint64_t form_index;\n"
                             "};";
 
 int32_t set_header(Generator *generator, char_t *filename, int32_t year, char_t *cr_holder) {

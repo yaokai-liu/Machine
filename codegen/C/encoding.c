@@ -10,6 +10,7 @@
 #include "encoding.h"
 #include "enum.h"
 #include "tokens.gen.h"
+#include "trie-dump.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -24,6 +25,11 @@ const char_t ENCODING_DEF_FMT_HEAD[] = "{\n"
 const char_t ENCODING_DEF_FMT_TAIL[] = "  Array_append(buffer, bytes, sizeof(bytes));\n"
                                        "  return size;\n"
                                        "}\n";
+
+const char_t JUMP_KEY_HEADER_FMT[] = "struct jump_item JUMP_TABLE_KEY_%s[] = {\n";
+const char_t JUMP_STATE_HEADER_FMT[] = "struct jump_state JUMP_TABLE_STATE_%s[] = {\n";
+const char_t KEY_ITEM_FMT[] = "  { .key = enum_%s_%s, .next_node = %lu },\n";
+const char_t STATE_ITEM_FMT[] = "  { .offset = %u, .count = %u, .value = 0x%lx },\n";
 
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
@@ -82,17 +88,19 @@ uint64_t get_record_ndx(const void *ndx_ptr) {
   return *(const uint64_t *) ndx_ptr;
 }
 
-Trie *build_args_trie(GContext *context, const InstrForm forms[], uint32_t n_forms) {
-  Trie *args_trie = Trie_new(4, get_record_ndx, context->allocator);
-  uint64_t *ndx_array = nullptr;
+Trie /*<REFER(Record), uint64_t>*/ *
+    build_args_trie(GContext *context, const InstrForm forms[], uint32_t n_forms) {
+  Trie /*<REFER(Record), uint64_t>*/ *args_trie =
+      Trie_new(sizeof(void *), get_record_ndx, context->allocator);
+  REFER(Record) *ndx_array = nullptr;
   for (uint64_t i = 0; i < n_forms; i++) {
     Pattern *pattern = forms[i].pattern;
     if (!pattern->args) {
-      const uint64_t ndx = 0;
-      Trie_set(args_trie, &ndx, (void *) i);
+      const uint64_t ndx = 0LLU;
+      Trie_set(args_trie, &ndx, (void *) (i + 1));
     } else {
       uint32_t length = Array_length(pattern->args);
-      void *p = context->allocator->realloc(ndx_array, (length + 1) * sizeof(uint64_t));
+      void *p = context->allocator->realloc(ndx_array, (length + 1) * sizeof(REFER(Record)));
       if (p) {
         ndx_array = p;
       } else {
@@ -103,23 +111,66 @@ Trie *build_args_trie(GContext *context, const InstrForm forms[], uint32_t n_for
       const Identifier *idents = Array_real_addr(pattern->args, 0);
       for (uint32_t j = 0; j < length; j++) {
         uint64_t ndx = (uint64_t) Trie_get(context->objectMap, idents[j].ptr);
-        ndx_array[j] = ndx + 1;
+        ndx_array[j] = Array_virt_addr(context->recordArray, ndx - 1);
       }
-      ndx_array[length] = 0;
-      Trie_set(args_trie, ndx_array, (void *) i);
-      void *k = Trie_get(args_trie, ndx_array);
-      printf("%p\n", k);
+      ndx_array[length] = nullptr;
+      Trie_set(args_trie, ndx_array, (void *) (i + 1));
     }
   }
   if (ndx_array) { context->allocator->free(ndx_array); }
   return args_trie;
 }
 
+#define key_case_item(Type, var, PREFIX)                                                \
+  case enum_##Type: {                                                                   \
+    const Type *var = Array_real_addr(context->var##Array, record->offset);             \
+    sprintf(temp_buffer, KEY_ITEM_FMT, PREFIX, var->name->ptr, key_items[i].next_node); \
+    Array_append(key_buffer, temp_buffer, strlen(temp_buffer));                         \
+    break;                                                                              \
+  }
 int32_t gen_instr_encoding_mat(
-    GContext *context, Array *, const char_t *, const InstrForm forms[], uint32_t n_forms
+    GContext *context, Array *key_buffer, Array *state_buffer, const char_t *instr_op,
+    const InstrForm forms[], uint32_t n_forms
 ) {
-  Trie *args_trie = build_args_trie(context, forms, n_forms);
+  Trie /*<REFER(Record), uint64_t>*/ *args_trie = build_args_trie(context, forms, n_forms);
   if (!args_trie) { return -1; }
+  Array *key_array = Array_new(sizeof(struct TrieKeyItem), -1, context->allocator);
+  Array *node_array = Array_new(sizeof(struct TrieNodeItem), -1, context->allocator);
+  Trie_dump(args_trie, key_array, node_array);
+  Trie_destroy(args_trie);
+  char_t temp_buffer[256] = {};
+
+  sprintf(temp_buffer, JUMP_KEY_HEADER_FMT, instr_op);
+  Array_append(key_buffer, temp_buffer, strlen(temp_buffer));
+  sprintf(temp_buffer, JUMP_STATE_HEADER_FMT, instr_op);
+  Array_append(state_buffer, temp_buffer, strlen(temp_buffer));
+
+  uint32_t key_count = Array_length(key_array);
+  const struct TrieKeyItem *key_items = Array_real_addr(key_array, 0);
+  for (uint32_t i = 0; i < key_count; i++) {
+    Record *record = Array_vert2real(context->recordArray, (REFER(Record)) key_items[i].key);
+    switch (record->typeid) {
+      key_case_item(Memory, mem, "MEM");
+      key_case_item(Immediate, imm, "IMM");
+      key_case_item(Register, reg, "REG");
+      key_case_item(RegisterGroup, grp, "GRP");
+      default: {
+      }
+    }
+  }
+  uint32_t state_count = Array_length(node_array);
+  const struct TrieNodeItem *state_items = Array_real_addr(node_array, 0);
+  for (uint32_t i = 0; i < state_count; i++) {
+    sprintf(
+        temp_buffer, STATE_ITEM_FMT, state_items[i].offset, state_items[i].count,
+        (uint64_t) state_items[i].value
+    );
+    Array_append(state_buffer, temp_buffer, strlen(temp_buffer));
+  }
+
+  Array_append(key_buffer, "};\n", sizeof("};\n") - 1);
+  Array_append(state_buffer, "};\n", sizeof("};\n") - 1);
+
   return 0;
 }
 

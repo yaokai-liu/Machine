@@ -32,7 +32,8 @@ enum Ctx_ByteBuffer {
   CtxBuf_register_def,
   CtxBuf_memory_def,
   CtxBuf_immediate_def,
-  CtxBuf_encoding_mat,
+  CtxBuf_encoding_jump_table_key,
+  CtxBuf_encoding_jump_table_state,
 };
 
 typedef struct GContext {
@@ -70,7 +71,7 @@ codegen_t *GContext_getCodegen(GContext *context, uint32_t token_type);
 
 void GContext_addOpcode(GContext *context, const Identifier *ident, Instruction *instr);
 
-void *GContext_findOpcode(GContext *context, const Identifier *ident);
+Instruction *GContext_findOpcode(GContext *context, const Identifier *ident);
 
 void GContext_addRecord(GContext *context, const Identifier *ident, Record *record);
 

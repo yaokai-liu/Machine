@@ -91,7 +91,7 @@ inline codegen_t *GContext_getCodegen(GContext *context, uint32_t token_type) {
 inline void GContext_addOpcode(GContext *context, const Identifier *ident, Instruction *instr) {
   Trie_set(context->opcodeMap, ident->ptr, instr);
 }
-inline void *GContext_findOpcode(GContext *context, const Identifier *ident) {
+inline Instruction *GContext_findOpcode(GContext *context, const Identifier *ident) {
   return Trie_get(context->opcodeMap, ident->ptr);
 }
 

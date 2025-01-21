@@ -82,6 +82,14 @@ int main() {
   printf("%s\n", outputs);
   outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_enum_item), 0);
   printf("%s\n", outputs);
+  outputs = Array_real_addr(
+      GContext_getOutputBuffer(machine->context, CtxBuf_encoding_jump_table_key), 0
+  );
+  printf("%s\n", outputs);
+  outputs = Array_real_addr(
+      GContext_getOutputBuffer(machine->context, CtxBuf_encoding_jump_table_state), 0
+  );
+  printf("%s\n", outputs);
 
   releaseMachine((Machine *) machine, &STDAllocator);
   STDAllocator.free((void *) machine);

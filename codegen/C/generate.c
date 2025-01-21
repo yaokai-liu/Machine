@@ -69,11 +69,12 @@ int32_t codegen_instruction(GContext *context, Instruction *instr) {
 
   Array *dec_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_dec);
   Array *def_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_def);
-  Array *mat_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_mat);
+  Array *key_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_jump_table_key);
+  Array *state_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_jump_table_state);
 
   gen_instr_encoding_dec(context, dec_buffer, instr->name->ptr, forms, n_forms);
   gen_instr_encoding_def(context, def_buffer, instr->name->ptr, forms, n_forms);
-  gen_instr_encoding_mat(context, mat_buffer, instr->name->ptr, forms, n_forms);
+  gen_instr_encoding_mat(context, key_buffer, state_buffer, instr->name->ptr, forms, n_forms);
 
   return 0;
 }

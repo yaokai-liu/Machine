@@ -35,6 +35,14 @@
     if (id) { return nullptr; }                           \
   } while (false)
 
+#define grammarAssertNotDeclaredOpcode(ident)                 \
+  do {                                                        \
+    Instruction *instr = GContext_findOpcode(context, ident); \
+    if (instr) { return nullptr; }                            \
+    void *id = GContext_findIdentInStack(context, ident);     \
+    if (id) { return nullptr; }                               \
+  } while (false)
+
 #define grammarAssert(bool_expr)          \
   do {                                    \
     if (!(bool_expr)) { return nullptr; } \
@@ -259,9 +267,15 @@ InstrParts *p_InstrParts_1(void *argv[], GContext *, const Allocator *allocator)
 Instruction *p_Instruction_0(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *identifier = (Identifier *) argv[1];
   InstrForms *forms = (InstrForms *) argv[3];
+
+  grammarAssertNotDeclaredOpcode(identifier);
+
   Instruction *instr = allocator->calloc(1, sizeof(Instruction));
   instr->name = identifier;
   instr->forms = forms;
+
+  GContext_addOpcode(context, identifier, instr);
+
   codegen_t *fn_codegen = GContext_getCodegen(context, enum_Instruction);
   if (fn_codegen) { fn_codegen(context, instr); }
   return instr;
