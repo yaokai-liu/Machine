@@ -17,6 +17,7 @@
 #include "tokens.gen.h"
 #include <stdint.h>
 
+void gen_pattern_match(GContext *pContext);
 int32_t codegen_memory(GContext *context, REFER(Memory) mem) {
   mem = Array_vert2real(context->memArray, mem);
 
@@ -64,19 +65,28 @@ int32_t codegen_register_group(GContext *context, REFER(RegisterGroup) grp) {
 }
 
 int32_t codegen_instruction(GContext *context, Instruction *instr) {
+  instr = Array_vert2real(context->instrArray, instr);
   const InstrForm *forms = Array_real_addr(instr->forms, 0);
   const uint32_t n_forms = Array_length(instr->forms);
 
   Array *dec_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_dec);
   Array *def_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_def);
-  Array *key_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_jump_table_key);
-  Array *state_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_jump_table_state);
 
   gen_instr_encoding_dec(context, dec_buffer, instr->name->ptr, forms, n_forms);
   gen_instr_encoding_def(context, def_buffer, instr->name->ptr, forms, n_forms);
-  gen_instr_encoding_mat(context, key_buffer, state_buffer, instr->name->ptr, forms, n_forms);
 
   return 0;
+}
+
+int32_t codegen_machine(GContext *context, Machine *) {
+  gen_pattern_match(context);
+  return 0;
+}
+
+void gen_pattern_match(GContext *context) {
+  Array *key_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_jump_table_key);
+  Array *state_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_jump_table_state);
+  gen_instr_encoding_mat(context, key_buffer, state_buffer);
 }
 
 codegen_t *get_codegen(uint32_t type) {
@@ -92,6 +102,9 @@ codegen_t *get_codegen(uint32_t type) {
     }
     case enum_Instruction: {
       return (codegen_t *) codegen_instruction;
+    }
+    case enum_Machine: {
+      return (codegen_t *) codegen_machine;
     }
   }
   return nullptr;

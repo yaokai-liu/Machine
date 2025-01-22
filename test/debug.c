@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAX_CHAR 1024
+#define MAX_CHAR 4096
 
 int main() {
   char_t testString[MAX_CHAR] = {};

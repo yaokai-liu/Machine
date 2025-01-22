@@ -36,7 +36,7 @@ int32_t check_mapping_item(GContext *context, BitField *bit_field, Evaluable *ev
     }
     case enum_MEM_KEY: {
       Record *record = GContext_findRecord(context, evaluable->lhs);
-      Memory *memory = GContext_getMemory(context, record->offset);
+      const Memory *memory = GContext_getMemory(context, record->offset);
       BitField *bf = (MEM_BASE == (uint64_t) evaluable->lhs) ? memory->base : memory->offset;
       width = bf->upper - bf->lower + 1;
       break;

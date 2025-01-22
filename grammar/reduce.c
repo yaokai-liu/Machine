@@ -274,7 +274,9 @@ Instruction *p_Instruction_0(void *argv[], GContext *context, const Allocator *a
   instr->name = identifier;
   instr->forms = forms;
 
-  GContext_addOpcode(context, identifier, instr);
+  instr = GContext_addInstruction(context, instr);
+
+  GContext_dump_instruction(context, instr);
 
   codegen_t *fn_codegen = GContext_getCodegen(context, enum_Instruction);
   if (fn_codegen) { fn_codegen(context, instr); }
@@ -297,12 +299,16 @@ Layout *p_Layout_1(void *argv[], GContext *, const Allocator *allocator) {
   return layout;
 }
 
-Machine *p_Machine_0(void *argv[], GContext *, const Allocator *allocator) {
+Machine *p_Machine_0(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *identifier = (Identifier *) argv[1];
   Entries *entries = argv[3];
   Machine *machine = allocator->calloc(1, sizeof(Machine));
   machine->name = identifier;
   machine->entries = entries;
+
+  codegen_t *fn_codegen = GContext_getCodegen(context, enum_Machine);
+  if (fn_codegen) { fn_codegen(context, machine); }
+
   return machine;
 }
 

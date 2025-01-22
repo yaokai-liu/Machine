@@ -87,6 +87,7 @@ typedef Array InstrForms;  // Array<InstrForm>
 typedef struct Instruction {
   Identifier *name;
   InstrForms *forms;
+  uint32_t entry_offset;
 } Instruction;
 
 typedef struct MemItem {

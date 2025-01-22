@@ -43,7 +43,10 @@ typedef struct GContext {
   Array /*<Memory>*/ *memArray;
   Array /*<Set>*/ *setArray;
   Array /*<RegisterGroup>*/ *grpArray;
+  Array /*<Instruction>*/ *instrArray;
   Array /*<Record>*/ *recordArray;
+  Array /*<TrieKeyItem>*/ *keyArray;
+  Array /*<TrieNodeItem>*/ *stateArray;
   Trie /*<uint32_t>*/ *objectMap;
   Trie /*<uint32_t>*/ *opcodeMap;
   codegen_t *(*getCodegen)(uint32_t token_type);
@@ -82,12 +85,14 @@ REFER(Register) GContext_addRegister(GContext *context, const Register *reg);
 REFER(Memory) GContext_addMemory(GContext *context, const Memory *mem);
 REFER(RegisterGroup) GContext_addRegisterGroup(GContext *context, const RegisterGroup *grp);
 REFER(Set) GContext_addSet(GContext *context, const Set *set);
+REFER(Instruction) GContext_addInstruction(GContext *context, const Instruction *instr);
 
-Immediate *GContext_getImmediate(GContext *context, uint32_t offset);
-Register *GContext_getRegister(GContext *context, uint32_t offset);
-Memory *GContext_getMemory(GContext *context, uint32_t offset);
-RegisterGroup *GContext_getRegisterGroup(GContext *context, uint32_t offset);
-Set *GContext_getSet(GContext *context, uint32_t offset);
+const Immediate *GContext_getImmediate(GContext *context, uint32_t offset);
+const Register *GContext_getRegister(GContext *context, uint32_t offset);
+const Memory *GContext_getMemory(GContext *context, uint32_t offset);
+const RegisterGroup *GContext_getRegisterGroup(GContext *context, uint32_t offset);
+const Instruction *GContext_getInstruction(GContext *context, uint32_t index);
+const Set *GContext_getSet(GContext *context, uint32_t offset);
 
 void *GContext_findIdentInStack(GContext *context, Identifier *ident);
 
@@ -98,6 +103,10 @@ bool GContext_testPattern(GContext *context, PatternArgs *patternArgs);
 void GContext_addMapItem(GContext *context, MappingItem *item);
 
 MappingItem *GContext_getMapItem(GContext *context, BitField *bf);
+
+Trie /*<REFER(Record), uint64_t>*/ *
+    GContext_build_args_trie(GContext *context, const Instruction *instr);
+void GContext_dump_instruction(GContext *context, Instruction *instr);
 
 uint64_t GContext_getLastWidth(GContext *context);
 

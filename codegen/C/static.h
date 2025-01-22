@@ -12,6 +12,7 @@
 
 #include "generate.h"
 
-int32_t set_header(Generator *generator, char_t *filename, int32_t year, char_t *cr_holder);
+int32_t
+    set_header(GContext *context, Array *buffer, char_t *filename, int32_t year, char_t *cr_holder);
 
 #endif  // MACHINE_STATIC_H

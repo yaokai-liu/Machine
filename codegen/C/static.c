@@ -87,13 +87,15 @@ const char_t JUMP_STATE[] = "struct jump_state {\n"
                             "  uint64_t form_index;\n"
                             "};";
 
-int32_t set_header(Generator *generator, char_t *filename, int32_t year, char_t *cr_holder) {
+int32_t set_header(
+    GContext *context, Array *buffer, char_t *filename, int32_t year, char_t *cr_holder
+) {
   uint32_t fn_len = strlen(filename);
   uint32_t cr_len = strlen(cr_holder);
-  char_t *buffer = generator->allocator->malloc(sizeof(HEADER_FMT) + fn_len + cr_len + 32);
-  int32_t size = sprintf(buffer, HEADER_FMT, filename, year, cr_holder);
+  char_t *temp_buffer = context->allocator->malloc(sizeof(HEADER_FMT) + fn_len + cr_len + 32);
+  int32_t size = sprintf(temp_buffer, HEADER_FMT, filename, year, cr_holder);
   if (size < 0) { return size; }
-  Array_append(generator->buffer, buffer, size);
-  generator->allocator->free(buffer);
+  Array_append(buffer, temp_buffer, size);
+  context->allocator->free(temp_buffer);
   return size;
 }

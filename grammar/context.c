@@ -13,11 +13,15 @@
 #include "target.h"
 #include "terminal.h"
 #include "tokens.gen.h"
+#include "trie-dump.h"
 #include "trie.h"
 #include <stdint.h>
 
 uint64_t getchar(const void *key) {
   return *(const char_t *) key;
+}
+uint64_t get_record_ndx(const void *ndx_ptr) {
+  return *(const uint64_t *) ndx_ptr;
 }
 
 inline GContext *GContext_new(const Allocator *allocator) {
@@ -28,7 +32,10 @@ inline GContext *GContext_new(const Allocator *allocator) {
   context->memArray = Array_new(sizeof(Memory), enum_Memory, allocator);
   context->setArray = Array_new(sizeof(Set), enum_Set, allocator);
   context->grpArray = Array_new(sizeof(RegisterGroup), enum_RegisterGroup, allocator);
+  context->instrArray = Array_new(sizeof(Instruction), enum_Instruction, allocator);
   context->recordArray = Array_new(sizeof(Record), INT32_MAX - 1, allocator);
+  context->keyArray = Array_new(sizeof(TrieKeyItem), INT32_MAX - 2, allocator);
+  context->stateArray = Array_new(sizeof(TrieNodeItem), INT32_MAX - 3, allocator);
   context->objectMap = Trie_new(1, getchar, allocator);
   context->opcodeMap = Trie_new(1, getchar, allocator);
   for (uint32_t i = 0; i < 16; i++) { context->outputs[i] = nullptr; }
@@ -57,6 +64,7 @@ inline void GContext_destroy(GContext *context) {
   contextReleaseArray(memArray, releaseMemory);
   contextReleaseArray(setArray, releaseSet);
   contextReleaseArray(grpArray, releaseRegisterGroup);
+  contextReleaseArray(instrArray, releaseInstruction);
   releasePrimeArray(context->recordArray);
   for (uint32_t i = 0; i < 16; i++) {
     if (context->outputs[i]) { releasePrimeArray(context->outputs[i]); }
@@ -121,9 +129,17 @@ contextAddRecord_DEF(Memory, memArray, mem);
 contextAddRecord_DEF(RegisterGroup, grpArray, grp);
 contextAddRecord_DEF(Set, setArray, set);
 
-#define contextGetFromOffset_DEF(type, array)                           \
-  inline type *GContext_get##type(GContext *context, uint32_t offset) { \
-    return Array_real_addr(context->array, offset);                     \
+inline REFER(Instruction) GContext_addInstruction(GContext *context, const Instruction *instr) {
+  uint32_t ndx = Array_length(context->instrArray);
+  Array_append(context->instrArray, instr, 1);
+  REFER(Instruction) v_instr = Array_virt_addr(context->instrArray, ndx);
+  GContext_addOpcode(context, instr->name, v_instr);
+  return v_instr;
+}
+
+#define contextGetFromOffset_DEF(type, array)                                 \
+  inline const type *GContext_get##type(GContext *context, uint32_t offset) { \
+    return Array_real_addr(context->array, offset);                           \
   }
 
 contextGetFromOffset_DEF(Immediate, immArray);
@@ -131,6 +147,10 @@ contextGetFromOffset_DEF(Register, regArray);
 contextGetFromOffset_DEF(Memory, memArray);
 contextGetFromOffset_DEF(RegisterGroup, grpArray);
 contextGetFromOffset_DEF(Set, setArray);
+
+inline const Instruction *GContext_getInstruction(GContext *context, uint32_t index) {
+  return Array_real_addr(context->instrArray, index);
+}
 
 inline void *GContext_findIdentInStack(GContext *context, Identifier *ident) {
   const uint32_t length = Stack_size(context->identStack) / sizeof(Identifier *);
@@ -172,6 +192,52 @@ inline void GContext_addMapItem(GContext *context, MappingItem *item) {
 
 inline MappingItem *GContext_getMapItem(GContext *context, BitField *bf) {
   return AVLTree_get(context->mappingTree, (uint64_t) bf);
+}
+
+#define instrFormNdx(instr, i) ((void *) (((uint64_t) (instr_ndx)) << 32) + ((i) + 1))
+Trie /*<REFER(Record), uint64_t>*/ *
+    GContext_build_args_trie(GContext *context, const Instruction *instr) {
+  Trie /*<REFER(Record), uint64_t>*/ *args_trie =
+      Trie_new(sizeof(void *), get_record_ndx, context->allocator);
+  const uint32_t n_forms = Array_length(instr->forms);
+  const InstrForm *forms = Array_real_addr(instr->forms, 0);
+  REFER(Record) *ndx_array = nullptr;
+  const uint32_t instr_ndx = (uint32_t) (uint64_t) GContext_findOpcode(context, instr->name);
+  for (uint64_t i = 0; i < n_forms; i++) {
+    Pattern *pattern = forms[i].pattern;
+    if (!pattern->args) {
+      const uint64_t ndx = 0LLU;
+      Trie_set(args_trie, &ndx, instrFormNdx(instr_ndx, i));
+    } else {
+      const uint32_t length = Array_length(pattern->args);
+      void *p = context->allocator->realloc(ndx_array, (length + 1) * sizeof(REFER(Record)));
+      if (p) {
+        ndx_array = p;
+      } else {
+        if (ndx_array) { context->allocator->free(ndx_array); }
+        Trie_destroy(args_trie);
+        return nullptr;
+      }
+      const Identifier *idents = Array_real_addr(pattern->args, 0);
+      for (uint32_t j = 0; j < length; j++) {
+        uint64_t ndx = (uint64_t) Trie_get(context->objectMap, idents[j].ptr);
+        ndx_array[j] = Array_virt_addr(context->recordArray, ndx - 1);
+      }
+      ndx_array[length] = nullptr;
+      Trie_set(args_trie, ndx_array, instrFormNdx(instr_ndx, i));
+    }
+  }
+  if (ndx_array) { context->allocator->free(ndx_array); }
+  return args_trie;
+}
+
+void GContext_dump_instruction(GContext *context, Instruction *instr) {
+  instr = Array_vert2real(context->instrArray, instr);
+  Trie /*<REFER(Record), uint64_t>*/ *args_trie = GContext_build_args_trie(context, instr);
+  if (!args_trie) { return; }
+  Trie_dump(args_trie, context->keyArray, context->stateArray);
+  instr->entry_offset = Array_length(context->stateArray);
+  Trie_destroy(args_trie);
 }
 
 void push_context_ident(GContext *context, void *token) {
