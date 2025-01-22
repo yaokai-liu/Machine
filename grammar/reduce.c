@@ -264,17 +264,15 @@ InstrParts *p_InstrParts_1(void *argv[], GContext *, const Allocator *allocator)
   return parts;
 }
 
-Instruction *p_Instruction_0(void *argv[], GContext *context, const Allocator *allocator) {
+Instruction *p_Instruction_0(void *argv[], GContext *context, const Allocator *) {
   Identifier *identifier = (Identifier *) argv[1];
   InstrForms *forms = (InstrForms *) argv[3];
 
   grammarAssertNotDeclaredOpcode(identifier);
 
-  Instruction *instr = allocator->calloc(1, sizeof(Instruction));
-  instr->name = identifier;
-  instr->forms = forms;
+  Instruction instruction =  { .name = identifier, .forms = forms };
 
-  instr = GContext_addInstruction(context, instr);
+  REFER(Instruction) instr = GContext_addInstruction(context, &instruction);
 
   GContext_dump_instruction(context, instr);
 

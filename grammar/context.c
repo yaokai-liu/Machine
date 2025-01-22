@@ -65,6 +65,8 @@ inline void GContext_destroy(GContext *context) {
   contextReleaseArray(setArray, releaseSet);
   contextReleaseArray(grpArray, releaseRegisterGroup);
   contextReleaseArray(instrArray, releaseInstruction);
+  releasePrimeArray(context->keyArray);
+  releasePrimeArray(context->stateArray);
   releasePrimeArray(context->recordArray);
   for (uint32_t i = 0; i < 16; i++) {
     if (context->outputs[i]) { releasePrimeArray(context->outputs[i]); }
