@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #define MAX_CHAR 4096
 
@@ -32,6 +33,8 @@ int main() {
     printf("failed to close file.\n");
     return -2;
   }
+  int start = clock();
+
   //    const char_t * str = string_t("[23-12]");
   const Terminal *terminals =
       tokenize(testString, &cost, &n_tokens, &lineno, &column, &STDAllocator);
@@ -49,6 +52,7 @@ int main() {
   //        get_name(terminals[i].type), terminals[i].value
   //    );
   //  }
+  //  const Machine *machine = parse(terminals, &cost, get_online_codegen, &STDAllocator);
   const Machine *machine = parse(terminals, &cost, get_codegen, &STDAllocator);
   if (!machine) {
     printf("failed to parse.\n");
@@ -58,29 +62,34 @@ int main() {
     STDAllocator.free((void *) terminals);
     return -4;
   }
+  int end = clock();
+
   //  char_t string[512] = {};
   //  memcpy(string, machine->name->ptr, machine->name->len);
   //  string[machine->name->len] = '\0';
   //  printf("machine %s\n", string);
-
   char_t *outputs;
-  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_encoding_dec), 0);
+  //  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_encoding_dec), 0);
+  //  printf("%s\n", outputs);
+  //  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_encoding_def), 0);
+  //  printf("%s\n", outputs);
+  //  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_memory_dec), 0);
+  //  printf("%s\n", outputs);
+  //  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_memory_def), 0);
+  //  printf("%s\n", outputs);
+  //  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_immediate_dec),
+  //  0); printf("%s\n", outputs); outputs =
+  //  Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_immediate_def), 0);
+  //  printf("%s\n", outputs);
+  //  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_register_dec), 0);
+  //  printf("%s\n", outputs);
+  //  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_register_def), 0);
+  //  printf("%s\n", outputs);
+  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_declare), 0);
   printf("%s\n", outputs);
-  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_encoding_def), 0);
+  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_definition), 0);
   printf("%s\n", outputs);
-  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_memory_dec), 0);
-  printf("%s\n", outputs);
-  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_memory_def), 0);
-  printf("%s\n", outputs);
-  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_immediate_dec), 0);
-  printf("%s\n", outputs);
-  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_immediate_def), 0);
-  printf("%s\n", outputs);
-  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_register_dec), 0);
-  printf("%s\n", outputs);
-  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_register_def), 0);
-  printf("%s\n", outputs);
-  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_enum_item), 0);
+  outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, CtxBuf_enum_record), 0);
   printf("%s\n", outputs);
   outputs = Array_real_addr(
       GContext_getOutputBuffer(machine->context, CtxBuf_encoding_jump_table_key), 0
@@ -90,6 +99,8 @@ int main() {
       GContext_getOutputBuffer(machine->context, CtxBuf_encoding_jump_table_state), 0
   );
   printf("%s\n", outputs);
+
+  printf("time cost: %fms\n", (double) (end - start) / CLOCKS_PER_SEC * 1000);
 
   releaseMachine((Machine *) machine, &STDAllocator);
   STDAllocator.free((void *) machine);

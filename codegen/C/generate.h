@@ -21,6 +21,7 @@ typedef struct Generator {
   Array *buffer;
 } Generator;
 
+codegen_t *get_online_codegen(uint32_t type);
 codegen_t *get_codegen(uint32_t type);
 
 #endif  // MACHINE_GENERATE_H

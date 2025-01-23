@@ -270,7 +270,7 @@ Instruction *p_Instruction_0(void *argv[], GContext *context, const Allocator *)
 
   grammarAssertNotDeclaredOpcode(identifier);
 
-  Instruction instruction =  { .name = identifier, .forms = forms };
+  Instruction instruction = {.name = identifier, .forms = forms};
 
   REFER(Instruction) instr = GContext_addInstruction(context, &instruction);
 
@@ -502,8 +502,8 @@ Registers *p_Registers_1(void *argv[], GContext *, const Allocator *allocator) {
 }
 
 Set *p_Set_0(void *argv[], GContext *context, const Allocator *) {
-  Identifier *ident = (Identifier *) argv[0];
-  SetItems *items = (SetItems *) argv[1];
+  Identifier *ident = (Identifier *) argv[1];
+  SetItems *items = (SetItems *) argv[3];
 
   grammarAssertNotDeclaredRecord(ident);
 

@@ -23,7 +23,9 @@ typedef struct Record {
 } Record;
 
 enum Ctx_ByteBuffer {
-  CtxBuf_enum_item,
+  CtxBuf_enum_record,
+  CtxBuf_declare,
+  CtxBuf_definition,
   CtxBuf_encoding_def,
   CtxBuf_encoding_dec,
   CtxBuf_register_dec,
