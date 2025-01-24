@@ -27,6 +27,11 @@
     if (!record) { return nullptr; }                      \
   } while (false)
 
+#define grammarAssertHasArgument(ident)                                   \
+  do {                                                                    \
+    if (!GContext_testEvalIdentLegal(context, ident)) { return nullptr; } \
+  } while (false)
+
 #define grammarAssertNotDeclaredRecord(ident)             \
   do {                                                    \
     Record *record = GContext_findRecord(context, ident); \
@@ -104,6 +109,7 @@ Evaluable *p_Evaluable_0(void *argv[], GContext *context, const Allocator *alloc
   void *rhs = argv[2];
 
   grammarAssertDefinedRecord(lhs);
+  grammarAssertHasArgument(lhs);
 
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_MEM_KEY;
@@ -117,6 +123,7 @@ Evaluable *p_Evaluable_1(void *argv[], GContext *context, const Allocator *alloc
   BitField *rhs = (BitField *) argv[1];
 
   grammarAssertDefinedRecord(lhs);
+  grammarAssertHasArgument(lhs);
 
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_BIT_FIELD;
@@ -129,6 +136,7 @@ Evaluable *p_Evaluable_2(void *argv[], GContext *context, const Allocator *alloc
   Identifier *ident = (Identifier *) argv[0];
 
   grammarAssertDefinedRecord(ident);
+  grammarAssertHasArgument(ident);
 
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_IDENTIFIER;

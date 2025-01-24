@@ -12,9 +12,9 @@
 
 #include "generate.h"
 
-void set_header(
+void gen_header(
     GContext *context, Array *buffer, char_t *filename, int32_t year, char_t *cr_holder
 );
-void set_definitions(GContext *context, Array *buffer);
+void gen_static_definitions(GContext *context);
 
 #endif  // MACHINE_STATIC_H

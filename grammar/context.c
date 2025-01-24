@@ -196,6 +196,19 @@ inline MappingItem *GContext_getMapItem(GContext *context, BitField *bf) {
   return AVLTree_get(context->mappingTree, (uint64_t) bf);
 }
 
+inline bool GContext_testEvalIdentLegal(GContext *context, Identifier *ident) {
+  if (!context->patterns) { return false; }
+  uint32_t n_patterns = Array_length(context->patterns);
+  if (n_patterns == 0) { return false; }
+  Pattern *pattern = *(Pattern **) Array_real_addr(context->patterns, n_patterns - 1);
+  const uint32_t n_args = Array_length(pattern->args);
+  const Identifier *args = Array_real_addr(pattern->args, 0);
+  for (uint32_t i = 0; i < n_args; i++) {
+    if (Identifier_cmp(ident, &args[i]) == 0) { return true; }
+  }
+  return false;
+}
+
 #define instrFormNdx(instr, i) ((void *) (((uint64_t) (instr_ndx)) << 32) + ((i) + 1))
 Trie /*<REFER(Record), uint64_t>*/ *
     GContext_build_args_trie(GContext *context, const Instruction *instr) {

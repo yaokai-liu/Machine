@@ -36,6 +36,8 @@ enum Ctx_ByteBuffer {
   CtxBuf_immediate_def,
   CtxBuf_encoding_jump_table_key,
   CtxBuf_encoding_jump_table_state,
+  CtxBuf_set_grp_val,
+  CtxBuf_set_grp_state,
 };
 
 typedef struct GContext {
@@ -56,7 +58,7 @@ typedef struct GContext {
   Array *outputs[16];
 
   // temporary variable
-  Array *patterns;
+  Array /*<Pattern *>*/ *patterns;
   Stack *widthStack;
   Stack *identStack;
   AVLTree *mappingTree;
@@ -105,6 +107,8 @@ bool GContext_testPattern(GContext *context, PatternArgs *patternArgs);
 void GContext_addMapItem(GContext *context, MappingItem *item);
 
 MappingItem *GContext_getMapItem(GContext *context, BitField *bf);
+
+bool GContext_testEvalIdentLegal(GContext *context, Identifier *ident);
 
 Trie /*<REFER(Record), uint64_t>*/ *
     GContext_build_args_trie(GContext *context, const Instruction *instr);

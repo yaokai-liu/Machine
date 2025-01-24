@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 
-const char_t HEADER_FMT[] =
+constexpr char_t HEADER_FMT[] =
     "/**\n"
     " * Filename: %s\n"
     " *\n"
@@ -48,46 +48,55 @@ const char_t HEADER_FMT[] =
     " *\n"
     " **/";
 
-const char_t MACROS[] = "#define min(a, b)             ((a) < (b)) ? (a) : (b)\n"
-                        "#define UINT_N_MAX(n_bits)    ((1LLU << (n_bits)) - 1)\n"
-                        "#define LOW_BITS(val, n_bits) ((val) & UINT_N_MAX(n_bits))\n"
-                        "#define MASK_BITS(bl, bu)     (UINT_N_MAX(bu) - UINT_N_MAX(bl))\n"
-                        "#define numSetBits(num, bl, bu, val) \\\n"
-                        "  (((num) & ~MASK_BITS(bl, bu)) | (LOW_BITS(val, (bu) - (bl)) << (bl)))\n"
-                        "#define setEncodingNumber(val) \\\n"
-                        "  do { number = (val); } while (false)\n"
-                        "#define pushInstrBytes(_count)                 \\\n"
-                        "  do {                                         \\\n"
-                        "    uint32_t last = min(_count + index, size); \\\n"
-                        "    for (uint32_t i = index; i < last; i++) {  \\\n"
-                        "      bytes[i] = number & 0xFF;                \\\n"
-                        "      number >>= 8;                            \\\n"
-                        "    }                                          \\\n"
-                        "    index = last;                              \\\n"
-                        "  } while (false)\n"
-                        "#define pushEncodingNumber(val, count) \\\n"
-                        "  do {                                 \\\n"
-                        "    setEncodingNumber(val);            \\\n"
-                        "    pushInstrBytes(count);             \\\n"
-                        "  } while (false)\n";
+constexpr char_t INCLUDES[] = "#include <stdint.h>\n"
+                              "#include \"array.h\"\n";
 
-const char_t TYPE_DEFS[] = "typedef struct {\n"
-                           "  enum ENTRY_TYPE_ENUM type;\n"
-                           "  uint64_t value;\n"
-                           "} Entry;\n";
+constexpr char_t MACROS[] =
+    "#define min(a, b)         ((a) < (b)) ? (a) : (b)\n"
+    "#define UINT_N_MAX(n_bits)    (n_bits == 64 ? -1 : ((1LLU << (n_bits)) - 1))\n"
+    "#define LOW_BITS(val, n_bits) ((val) & UINT_N_MAX(n_bits))\n"
+    "#define MASK_BITS(bl, bu)     (UINT_N_MAX(bu) - UINT_N_MAX(bl))\n"
+    "#define numSetBits(num, bl, bu, val) \\\n"
+    "  (((num) & ~MASK_BITS(bl, bu)) | (LOW_BITS(val, (bu) - (bl)) << (bl)))\n"
+    "#define setEncodingNumber(val) \\\n"
+    "  do { number = (val); } while (false)\n"
+    "#define pushInstrBytes(_count)                 \\\n"
+    "  do {                                         \\\n"
+    "    uint32_t last = min(_count + index, size); \\\n"
+    "    for (uint32_t i = index; i < last; i++) {  \\\n"
+    "      bytes[i] = number & 0xFF;                \\\n"
+    "      number >>= 8;                            \\\n"
+    "    }                                          \\\n"
+    "    index = last;                              \\\n"
+    "  } while (false)\n"
+    "#define pushEncodingNumber(val, count) \\\n"
+    "  do {                                 \\\n"
+    "    setEncodingNumber(val);            \\\n"
+    "    pushInstrBytes(count);             \\\n"
+    "  } while (false)\n";
 
-const char_t JUMP_ITEM[] = "struct jump_item {\n"
-                           "  enum ENTRY_TYPE_ENUM expected_type;\n"
-                           "  uint32_t next_state_index;\n"
-                           "};\n";
+constexpr char_t TYPE_DEFS[] = "typedef struct {\n"
+                               "  enum ENTRY_TYPE_ENUM type;\n"
+                               "  uint64_t value;\n"
+                               "} Entry;\n";
 
-const char_t JUMP_STATE[] = "struct jump_state {\n"
-                            "  uint32_t count_of_items;\n"
-                            "  uint32_t offset_in_items;\n"
-                            "  uint64_t form_index;\n"
-                            "};";
+constexpr char_t JUMP_ITEM[] = "struct jump_item {\n"
+                               "  enum ENTRY_TYPE_ENUM expected_type;\n"
+                               "  uint32_t next_state_index;\n"
+                               "};\n";
 
-void set_header(
+constexpr char_t JUMP_STATE[] = "struct jump_state {\n"
+                                "  uint32_t count;\n"
+                                "  uint32_t index;\n"
+                                "  void *fn_encoding;\n"
+                                "};\n";
+
+constexpr char_t SET_GRP_JUMP_STATE[] = "struct set_grp_jump_state {\n"
+                                        "  uint32_t count;\n"
+                                        "  uint32_t index;\n"
+                                        "};\n";
+
+void gen_header(
     GContext *context, Array *buffer, char_t *filename, int32_t year, char_t *cr_holder
 ) {
   uint32_t fn_len = strlen(filename);
@@ -101,9 +110,13 @@ void set_header(
 
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
-void set_definitions(GContext *, Array *buffer) {
+void gen_static_definitions(GContext *context) {
+  Array *buffer = GContext_getOutputBuffer(context, CtxBuf_definition);
+  push_string(INCLUDES);
   push_string(MACROS);
   push_string(TYPE_DEFS);
   push_string(JUMP_ITEM);
   push_string(JUMP_STATE);
+  push_string(SET_GRP_JUMP_STATE);
 }
+

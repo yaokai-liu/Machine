@@ -28,6 +28,8 @@ int32_t online_gen_instr_encoding_def(
 int32_t online_gen_instr_encoding_op(
     GContext *context, Array *buffer, char_t *name, const InstrForm *forms, uint32_t n_forms
 );
+void gen_instr_exec_and_encoding(GContext *context);
+
 int32_t gen_instr_encoding_mat(
     GContext *context, const Machine *machine, Array *key_buffer, Array *state_buffer
 );

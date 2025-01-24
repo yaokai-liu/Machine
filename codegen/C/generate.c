@@ -14,6 +14,7 @@
 #include "define.h"
 #include "encoding.h"
 #include "pattern_match.h"
+#include "static.h"
 #include "target.h"
 #include "tokens.gen.h"
 #include <stdint.h>
@@ -78,10 +79,13 @@ int32_t online_codegen_machine(GContext *context, Machine * /*unused*/) {
   return 0;
 }
 int32_t codegen_machine(GContext *context, Machine *machine) {
+  gen_static_definitions(context);
   gen_context_dec(context);
   gen_context_def(context);
   gen_pattern_match(context, machine);
   gen_enum_item(context, machine);
+  gen_instr_exec_and_encoding(context);
+  gen_set_grp_jump_table(context, machine);
   return 0;
 }
 

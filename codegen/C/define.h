@@ -22,6 +22,8 @@ void online_gen_register_dec(GContext *context, Array *buffer, const Register *r
 void online_gen_register_def(GContext *context, Array *buffer, const Register *reg);
 
 void gen_enum_item(GContext *context, const Machine *machine);
+void gen_set_grp_jump_table(GContext *context, Machine *machine);
+
 void gen_context_dec(GContext *context);
 void gen_context_def(GContext *context);
 

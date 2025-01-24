@@ -19,24 +19,21 @@
 #include <stdio.h>
 #include <string.h>
 
-const char_t ENCODING_DEC_FMT[] = "uint32_t encoding_%s_%u(%s, Array *buffer)";
+constexpr char_t ENCODING_DEF_FMT_HEAD[] = "{\n"
+                                           "  const uint32_t size = %u;\n"
+                                           "  uint8_t bytes[%u] = {};\n"
+                                           "  uint64_t number = 0;\n"
+                                           "  uint32_t index = 0;\n";
 
-const char_t ENCODING_DEF_FMT_HEAD[] = "{\n"
-                                       "  const uint32_t size = %u;\n"
-                                       "  uint8_t bytes[%u] = {};\n"
-                                       "  uint64_t number = 0;\n"
-                                       "  uint32_t index = 0;\n";
+constexpr char_t ENCODING_DEF_FMT_TAIL[] = "  Array_append(buffer, bytes, sizeof(bytes));\n"
+                                           "  return size;\n"
+                                           "}\n";
 
-const char_t ENCODING_DEF_FMT_TAIL[] = "  Array_append(buffer, bytes, sizeof(bytes));\n"
-                                       "  return size;\n"
-                                       "}\n";
+constexpr char_t ENCODING_FUNC_NAME_FMT[] = "encoding_%s_%u";
+constexpr char_t ENUM_OPCODE_FMT[] = "enum_OP_%s";
 
-const char_t JUMP_KEY_HEADER_FMT[] = "struct jump_item JUMP_TABLE_KEY_%s[] = {\n";
-const char_t JUMP_STATE_HEADER_FMT[] = "struct jump_state JUMP_TABLE_STATE_%s[] = {\n";
-const char_t KEY_ITEM_FMT[] = "  { .key = enum_%s_%s, .next_node = %lu },\n";
-const char_t STATE_ITEM_FMT[] = "  { .offset = %u, .count = %u, .value = %s },\n";
-const char_t ENCODING_FUNC_NAME_FMT[] = "encoding_%s_%u";
-const char_t ENUM_OPCODE_FMT[] = "enum_OP_%s";
+#define _push_string(buffer, s) \
+  do { Array_append(buffer, s, strlen(s)); } while (false)
 
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
@@ -101,11 +98,48 @@ int32_t online_gen_instr_encoding_op(
   return 0;
 }
 
-#define key_case_item(Type, var, PREFIX)                                                \
+const char_t INSTR_EXEC_DEC_FMT[] = "int32_t %s(Array *buffer, ...);\n";
+const char_t INSTR_EXEC_DEF_FMT[] = "int32_t %s(Array *buffer, ...) {\n"
+                                    "constexpr uint32_t entry_offset = %u;\n"
+                                    "}\n";
+void gen_instr_exec_and_encoding(GContext *context) {
+  char_t temp_buffer[512] = {};
+  Array *emit_dec_buffer = GContext_getOutputBuffer(context, CtxBuf_declare);
+  Array *emit_def_buffer = GContext_getOutputBuffer(context, CtxBuf_definition);
+  Array *encoding_dec_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_dec);
+  Array *encoding_def_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_def);
+
+  const uint32_t n_instr = Array_length(context->instrArray);
+  const Instruction *instructions = Array_real_addr(context->instrArray, 0);
+  for (uint32_t i = 0; i < n_instr; i++) {
+    const uint32_t n_forms = Array_length(instructions[i].forms);
+    const InstrForm *forms = Array_real_addr(instructions[i].forms, 0);
+    online_gen_instr_encoding_dec(
+        context, encoding_dec_buffer, instructions[i].name->ptr, forms, n_forms
+    );
+    online_gen_instr_encoding_def(
+        context, encoding_def_buffer, instructions[i].name->ptr, forms, n_forms
+    );
+    sprintf(temp_buffer, INSTR_EXEC_DEC_FMT, instructions[i].name->ptr);
+    _push_string(emit_dec_buffer, temp_buffer);
+    sprintf(
+        temp_buffer, INSTR_EXEC_DEF_FMT, instructions[i].name->ptr, instructions[i].entry_offset
+    );
+    _push_string(emit_def_buffer, temp_buffer);
+  }
+}
+
+constexpr char_t JUMP_KEY_HEADER_FMT[] = "const static struct jump_item\n"
+                                         "JUMP_TABLE_KEY_%s[] = {\n";
+constexpr char_t JUMP_STATE_HEADER_FMT[] = "const static struct jump_state\n"
+                                           "JUMP_TABLE_STATE_%s[] = {\n";
+constexpr char_t KEY_ITEM_FMT[] = "  { .expected_type = enum_%s_%s, .next_state_index = %lu },\n";
+constexpr char_t STATE_ITEM_FMT[] = "  { .count = %u, .index = %u, .fn_encoding = %s },\n";
+#define val_case_item(Type, var, PREFIX)                                                \
   case enum_##Type: {                                                                   \
     const Type *var = Array_real_addr(context->var##Array, record->offset);             \
     sprintf(temp_buffer, KEY_ITEM_FMT, PREFIX, var->name->ptr, key_items[i].next_node); \
-    Array_append(key_buffer, temp_buffer, strlen(temp_buffer));                         \
+    _push_string(key_buffer, temp_buffer);                                              \
     break;                                                                              \
   }
 int32_t gen_instr_encoding_mat(
@@ -114,26 +148,26 @@ int32_t gen_instr_encoding_mat(
   char_t temp_buffer[512] = {};
   char_t temp2_buffer[256] = {};
 
-  sprintf(temp_buffer, "const static TrieKeyItem KEY_LIST_OF_%s[] = {\n", machine->name->ptr);
-  Array_append(key_buffer, temp_buffer, strlen(temp_buffer));
+  sprintf(temp_buffer, JUMP_KEY_HEADER_FMT, machine->name->ptr);
+  _push_string(key_buffer, temp_buffer);
   uint32_t key_count = Array_length(context->keyArray);
   const TrieKeyItem *key_items = Array_real_addr(context->keyArray, 0);
   for (uint32_t i = 0; i < key_count; i++) {
     const Record *record = Array_vert2real(context->recordArray, (REFER(Record)) key_items[i].key);
     switch (record->typeid) {
-      key_case_item(Memory, mem, "MEM");
-      key_case_item(Immediate, imm, "IMM");
-      key_case_item(Register, reg, "REG");
-      key_case_item(RegisterGroup, grp, "GRP");
-      key_case_item(Set, set, "SET");
+      val_case_item(Memory, mem, "MEM");
+      val_case_item(Immediate, imm, "IMM");
+      val_case_item(Register, reg, "REG");
+      val_case_item(RegisterGroup, grp, "GRP");
+      val_case_item(Set, set, "SET");
       default: {
       }
     }
   }
-  Array_append(key_buffer, "};\n", strlen("};\n"));
+  _push_string(key_buffer, "};\n");
 
-  sprintf(temp_buffer, "const static TrieNodeItem STATE_LIST_OF_%s[] = {\n", machine->name->ptr);
-  Array_append(state_buffer, temp_buffer, strlen(temp_buffer));
+  sprintf(temp_buffer, JUMP_STATE_HEADER_FMT, machine->name->ptr);
+  _push_string(state_buffer, temp_buffer);
   uint32_t state_count = Array_length(context->stateArray);
   const TrieNodeItem *state_items = Array_real_addr(context->stateArray, 0);
   for (uint32_t i = 0; i < state_count; i++) {
@@ -143,14 +177,14 @@ int32_t gen_instr_encoding_mat(
     if (form_ndx != 0) {
       sprintf(temp2_buffer, ENCODING_FUNC_NAME_FMT, instr->name->ptr, form_ndx - 1);
       sprintf(
-          temp_buffer, STATE_ITEM_FMT, state_items[i].offset, state_items[i].count, temp2_buffer
+          temp_buffer, STATE_ITEM_FMT, state_items[i].count, state_items[i].offset, temp2_buffer
       );
     } else {
-      sprintf(temp_buffer, STATE_ITEM_FMT, state_items[i].offset, state_items[i].count, "nullptr");
+      sprintf(temp_buffer, STATE_ITEM_FMT, state_items[i].count, state_items[i].offset, "nullptr");
     }
-    Array_append(state_buffer, temp_buffer, strlen(temp_buffer));
+    _push_string(state_buffer, temp_buffer);
   }
-  Array_append(state_buffer, "};\n", strlen("};\n"));
+  _push_string(state_buffer, "};\n");
 
   return 0;
 }
@@ -217,22 +251,13 @@ int32_t eval_to_val(GContext *context, Evaluable *evaluable, char_t *buffer) {
   switch (evaluable->type) {
     case enum_NUMBER:
     case enum_IDENTIFIER: {
-      if (record->typeid == enum_Set) {
-        // TODO: codegen for set
-        return -1;
-      } else {
-        return sprintf(buffer, "%s", ident->ptr);
-      }
+      return sprintf(buffer, "%s", ident->ptr);
     }
     case enum_BIT_FIELD: {
       BitField *bf = evaluable->rhs;
       uint32_t width = bf->upper - bf->lower + 1;
-      if (record->typeid == enum_Set) {
-        // TODO: codegen for set
-        return -1;
-      } else {
-        return sprintf(buffer, "(%s >> %d) & UINT_N_MAX(%d)", ident->ptr, bf->lower, width);
-      }
+      // TODO: if record refers to a set there may has different behaviors, please solve it.
+      return sprintf(buffer, "(%s >> %d) & UINT_N_MAX(%d)", ident->ptr, bf->lower, width);
     }
     case enum_MEM_KEY: {
       const Memory *mem = GContext_getMemory(context, record->offset);
