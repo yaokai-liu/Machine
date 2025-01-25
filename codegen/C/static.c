@@ -204,7 +204,7 @@ void gen_driver(GContext *context, Machine *) {
 
 void gen_export_header(GContext *context, Machine *machine) {
   char_t temp_buffer[256];
-  const auto name = machine->name->ptr;
+  const char_t * const name = machine->name->ptr;
   sprintf(temp_buffer, EXPORT_HEADER_FMT, name, name);
   ctx_push_string(exports, temp_buffer);
   ctx_push_string(exports, EXPORT_INCLUDES);
@@ -213,7 +213,7 @@ void gen_export_header(GContext *context, Machine *machine) {
 
 void gen_export_tail(GContext *context, Machine *machine) {
   char_t temp_buffer[256];
-  const auto name = machine->name->ptr;
+  const char_t * const name = machine->name->ptr;
   sprintf(temp_buffer, EXPORT_TAIL_FMT, name);
   ctx_push_string(exports, temp_buffer);
 }

@@ -61,7 +61,7 @@ int32_t online_gen_instr_encoding_def(
 ) {
   char_t head_buffer[sizeof(ENCODING_DEF_FMT_HEAD) + 256];
   for (uint32_t i = 0; i < n_forms; ++i) {
-    const auto encoding_dec_fmt =
+    const char_t * const encoding_dec_fmt =
         forms->pattern->args ? ENCODING_DEC_FMT : ENCODING_DEC_NO_ARGS_FMT;
     sprintf(head_buffer, encoding_dec_fmt, instr_op, i);
     push_string(head_buffer);

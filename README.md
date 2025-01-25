@@ -7,18 +7,17 @@ This project tries to provide a method to generate C lib to describe a backend's
 With this program, users can:
 
 1. call a function `Array<uint32_t> * listRegisters(Machine *)` to get register-ids of a machine;
-2. call a function `Array<uint32_t> * listInstructions(Machine *)` to get instruction-forms of a machine;
-3. call a function `Array<uint32_t> * listMemoryModel(Machine *)` to get memory-models of a machine;
-4. call a function `char * getRegisterName(Machine *, uint32_t)` to get the name of a register-id in a machine;
-5. call a function `char * getInstrOp(Machine *, uint32_t)` to get the opcode(in assembly) of an instruction-form in a machine;
-6. call a function `char * getMemModelName(Machine *, uint32_t)` to get the name of a memory-model in a machine;
-7. call a function `Array<uint8_t> * encodeInstr(char *, uint32_t)` to encode an instruction in assembly;
-8. call a function `uint32_t decodeInstr(Array<uint8_t> *, char *, uint32_t)` to decode an instruction to assembly;
-9. call a function `uint32_t emitInstr(Array<uint8_t> *, uint32_t, ...)` to emit an instruction and record registers' allocation;
-10. call a function `uint32_t dumpRegAllocation(void *)` to dump the registers' allocation;
-11. call a function `uint32_t loadRegAllocation(void *)` to load a registers' allocation;
-12. call a function `bool isAllocated(Machine *, uint32_t)` to query if the register is used.
-13. call a function `bool popNotAllocated(Machine *, uint32_t)` to populate a number of not allocated registers.
+2. call a function `Array<uint32_t> * listMemoryModel(Machine *)` to get memory-models of a machine;
+3. call a function `Register * getRegisterInfo(Machine *, uint32_t)` to get information of a register in a machine by id;
+4. call a function `Memory * getMemModelInfo(Machine *, uint32_t)` to get information of a memory-model in a machine by id;
+5. call a function `uint32_t ${instr}(Array<uint8_t> *, ...)` to encode an instruction and write into an array;
+6. call a function `uint32_t emit_${instr}(Array<uint8_t> *, ...)` to emit an instruction and record registers' allocation;
+7. call a function `uint32_t getCycles()` to get cycles count of instructions emitted till now;
+8. call a function `void setCycles(uint32_t)` to set initial cycles count from now;
+9. call a function `uint32_t dumpRegAllocation(void *)` to dump the registers' allocation;
+10. call a function `uint32_t loadRegAllocation(void *)` to load a registers' allocation;
+11. call a function `bool isAllocated(Machine *, uint32_t)` to query if the register is used.
+12. call a function `bool popNotAllocated(Machine *, uint32_t)` to populate a number of not allocated registers.
 
 ## Grammar of machine file
 
