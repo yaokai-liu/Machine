@@ -17,6 +17,8 @@
 #include "trie.h"
 #include <stdint.h>
 
+#define max(a, b) ((a) > (b) ? (a) : (b))
+
 uint64_t getchar(const void *key) {
   return *(const char_t *) key;
 }
@@ -167,6 +169,9 @@ inline void *GContext_findIdentInStack(GContext *context, Identifier *ident) {
 inline void GContext_addPattern(GContext *context, Pattern *pattern) {
   if (!context->patterns) {
     context->patterns = Array_new(sizeof(Pattern *), enum_Pattern, context->allocator);
+  }
+  if (pattern->args) {
+    context->maxArgCount = max(Array_length(pattern->args), context->maxArgCount);
   }
   Array_append(context->patterns, &pattern, 1);
 }

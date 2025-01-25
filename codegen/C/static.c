@@ -48,8 +48,11 @@ constexpr char_t HEADER_FMT[] =
     " *\n"
     " **/";
 
-constexpr char_t INCLUDES[] = "#include <stdint.h>\n"
+constexpr char_t INCLUDES[] = "#include \"machine-%s.h\"\n"
+                              "#include <stdarg.h>\n"
                               "#include \"array.h\"\n";
+
+constexpr char_t EXPORT_INCLUDES[] = "#include <stdint.h>\n";
 
 constexpr char_t MACROS[] =
     "#define min(a, b)         ((a) < (b)) ? (a) : (b)\n"
@@ -75,26 +78,87 @@ constexpr char_t MACROS[] =
     "    pushInstrBytes(count);             \\\n"
     "  } while (false)\n";
 
-constexpr char_t TYPE_DEFS[] = "typedef struct {\n"
-                               "  enum ENTRY_TYPE_ENUM type;\n"
-                               "  uint64_t value;\n"
-                               "} Entry;\n";
+constexpr char_t EXPORT_DECLARE[] = "typedef struct Entry Entry;\n";
 
-constexpr char_t JUMP_ITEM[] = "struct jump_item {\n"
-                               "  enum ENTRY_TYPE_ENUM expected_type;\n"
-                               "  uint32_t next_state_index;\n"
-                               "};\n";
+constexpr char_t TYPEDEF_ENTRY[] = "typedef struct Entry {\n"
+                                   "  enum ENTRY_TYPE_ENUM type;\n"
+                                   "  uint64_t value;\n"
+                                   "} Entry;\n";
 
-constexpr char_t JUMP_STATE[] = "struct jump_state {\n"
-                                "  uint32_t count;\n"
-                                "  uint32_t index;\n"
-                                "  void *fn_encoding;\n"
-                                "};\n";
+constexpr char_t TYPEDEF_MACHINE_FMT[] = "typedef struct {\n"
+                                         "  uint32_t argCount;\n"
+                                         "  Entry entries[%u];\n"
+                                         "} Machine;\n";
 
-constexpr char_t SET_GRP_JUMP_STATE[] = "struct set_grp_jump_state {\n"
-                                        "  uint32_t count;\n"
-                                        "  uint32_t index;\n"
-                                        "};\n";
+constexpr char_t CURRENT_MACHINE[] = "Machine *CURRENT_MACHINE;\n";
+
+constexpr char_t MAX_ARGS_DECLARE[] = "constexpr uint32_t MAX_ARGS;\n";
+constexpr char_t MAX_ARGS_FMT[] = "constexpr uint32_t MAX_ARGS = %u;\n";
+
+constexpr char_t STRUCT_JUMP_ITEM[] = "struct jump_item {\n"
+                                      "  enum ENTRY_TYPE_ENUM expected_type;\n"
+                                      "  uint32_t next_state_index;\n"
+                                      "};\n";
+
+constexpr char_t STRUCT_JUMP_STATE[] = "struct jump_state {\n"
+                                       "  uint32_t count;\n"
+                                       "  uint32_t index;\n"
+                                       "  uint32_t (*fn_encoding)(Array *, uint64_t[]);\n"
+                                       "};\n";
+
+constexpr char_t STRUCT_SET_GRP_JUMP_STATE[] = "struct set_grp_jump_state {\n"
+                                               "  uint32_t count;\n"
+                                               "  uint32_t index;\n"
+                                               "};\n";
+
+constexpr char_t ENTRY_TYPE_CHECK_DEC[] =
+    "bool entry_type_check(enum ENTRY_TYPE_ENUM type1, enum ENTRY_TYPE_ENUM type2);\n";
+constexpr char_t ENTRY_TYPE_CHECK_DEF[] =
+    "bool entry_type_check(enum ENTRY_TYPE_ENUM type1, enum ENTRY_TYPE_ENUM type2) {\n"
+    "  if (type1 == type2) { return true; }\n"
+    "  else if (enum_BEGIN_SET_GRP < type1 && type1 < enum_TYPE_ENUM_UPPER_BOUND) {\n"
+    "    auto state = &SET_GRP_STATE_TABLE[type1 - enum_BEGIN_SET_GRP + 1];\n"
+    "    for (uint32_t i = 0 ; i < state->count; i ++) {\n"
+    "      type1 = SET_GRP_VAL_TABLE[state->index + i];\n"
+    "      if (entry_type_check(type1, type2)) { return true; }\n"
+    "    }\n"
+    "  }\n"
+    "  return false;\n"
+    "}\n";
+
+constexpr char_t CONVERT_INSTR_TO_BYTES_DEC[] =
+    "uint32_t convert_instr_to_bytes(\n"
+    "    uint32_t offset, Array *buffer, enum ENTRY_TYPE_ENUM types[],\n"
+    "    uint64_t values[], uint32_t n_args\n"
+    ");\n";
+constexpr char_t CONVERT_INSTR_TO_BYTES_DEF[] =
+    "uint32_t convert_instr_to_bytes(\n"
+    "    uint32_t offset, Array *buffer, enum ENTRY_TYPE_ENUM types[],\n"
+    "    uint64_t values[], uint32_t n_args\n"
+    ") {\n"
+    "  auto state = &JUMP_STATE_TABLE[offset];\n"
+    "  uint32_t ndx = 0;\n"
+    "  while (ndx < n_args) {\n"
+    "    bool matched = false;\n"
+    "    for (uint32_t j = 0; j < state->count; j++) {\n"
+    "      auto type1 = &JUMP_KEY_TABLE[state->index + j];\n"
+    "      if (entry_type_check(type1->expected_type, types[ndx])) {\n"
+    "        matched = true;\n"
+    "        offset = type1->next_state_index;\n"
+    "        break;\n"
+    "      }\n"
+    "    }\n"
+    "    if (!matched) { return 0; }\n"
+    "    state = &JUMP_STATE_TABLE[offset];\n"
+    "  }\n"
+    "  if (!state->fn_encoding) { return 0; }\n"
+    "  return state->fn_encoding(buffer, values);\n"
+    "}\n";
+
+constexpr char_t EXPORT_HEADER_FMT[] = "#ifndef MACHINE_%s_H\n"
+                                       "#define MACHINE_%s_H\n\n";
+
+constexpr char_t EXPORT_TAIL_FMT[] = "\n#endif  // MACHINE_%s_H\n";
 
 void gen_header(
     GContext *context, Array *buffer, char_t *filename, int32_t year, char_t *cr_holder
@@ -108,15 +172,48 @@ void gen_header(
   context->allocator->free(temp_buffer);
 }
 
+#define ctx_push_string(type, s) \
+  do { Array_append(GContext_getOutputBuffer(context, CtxBuf_##type), s, strlen(s)); } while (false)
+
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
-void gen_static_definitions(GContext *context) {
-  Array *buffer = GContext_getOutputBuffer(context, CtxBuf_definition);
-  push_string(INCLUDES);
-  push_string(MACROS);
-  push_string(TYPE_DEFS);
-  push_string(JUMP_ITEM);
-  push_string(JUMP_STATE);
-  push_string(SET_GRP_JUMP_STATE);
+
+void gen_static_definitions(GContext *context, Machine *machine) {
+  char_t temp_buffer[256];
+  sprintf(temp_buffer, INCLUDES, machine->name->ptr);
+  ctx_push_string(includes, temp_buffer);
+  ctx_push_string(macros, MACROS);
+  ctx_push_string(types, TYPEDEF_ENTRY);
+  sprintf(temp_buffer, TYPEDEF_MACHINE_FMT, context->maxArgCount);
+  ctx_push_string(types, temp_buffer);
+  ctx_push_string(types, STRUCT_JUMP_ITEM);
+  ctx_push_string(types, STRUCT_JUMP_STATE);
+  ctx_push_string(types, STRUCT_SET_GRP_JUMP_STATE);
+  ctx_push_string(declares, CURRENT_MACHINE);
+  ctx_push_string(declares, MAX_ARGS_DECLARE);
+  ctx_push_string(declares, ENTRY_TYPE_CHECK_DEC);
+  ctx_push_string(declares, CONVERT_INSTR_TO_BYTES_DEC);
+}
+void gen_driver(GContext *context, Machine *) {
+  char_t temp_buffer[256];
+  sprintf(temp_buffer, MAX_ARGS_FMT, context->maxArgCount);
+  ctx_push_string(definitions, temp_buffer);
+  ctx_push_string(definitions, ENTRY_TYPE_CHECK_DEF);
+  ctx_push_string(definitions, CONVERT_INSTR_TO_BYTES_DEF);
 }
 
+void gen_export_header(GContext *context, Machine *machine) {
+  char_t temp_buffer[256];
+  const auto name = machine->name->ptr;
+  sprintf(temp_buffer, EXPORT_HEADER_FMT, name, name);
+  ctx_push_string(exports, temp_buffer);
+  ctx_push_string(exports, EXPORT_INCLUDES);
+  ctx_push_string(exports, EXPORT_DECLARE);
+}
+
+void gen_export_tail(GContext *context, Machine *machine) {
+  char_t temp_buffer[256];
+  const auto name = machine->name->ptr;
+  sprintf(temp_buffer, EXPORT_TAIL_FMT, name);
+  ctx_push_string(exports, temp_buffer);
+}

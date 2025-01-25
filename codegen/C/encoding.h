@@ -30,9 +30,8 @@ int32_t online_gen_instr_encoding_op(
 );
 void gen_instr_exec_and_encoding(GContext *context);
 
-int32_t gen_instr_encoding_mat(
-    GContext *context, const Machine *machine, Array *key_buffer, Array *state_buffer
-);
+void gen_jump_table_dec(GContext *context, const Machine *);
+void gen_jump_table_def(GContext *context, const Machine *, Array *key_buffer, Array *state_buffer);
 
 int32_t codegen_instr_form(GContext *context, Array *buffer, const InstrForm *form);
 

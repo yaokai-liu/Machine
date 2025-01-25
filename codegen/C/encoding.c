@@ -20,17 +20,22 @@
 #include <string.h>
 
 constexpr char_t ENCODING_DEF_FMT_HEAD[] = "{\n"
-                                           "  const uint32_t size = %u;\n"
+                                           "  constexpr uint32_t size = %u;\n"
                                            "  uint8_t bytes[%u] = {};\n"
                                            "  uint64_t number = 0;\n"
                                            "  uint32_t index = 0;\n";
 
-constexpr char_t ENCODING_DEF_FMT_TAIL[] = "  Array_append(buffer, bytes, sizeof(bytes));\n"
+constexpr char_t ENCODING_DEF_FMT_TAIL[] = "  Array_append(buffer, bytes, size);\n"
                                            "  return size;\n"
                                            "}\n";
 
-constexpr char_t ENCODING_FUNC_NAME_FMT[] = "encoding_%s_%u";
+constexpr char_t ENCODING_DEC_FMT[] = "uint32_t encoding_%s_%u(Array *buffer, uint64_t args[])";
+constexpr char_t ENCODING_DEC_NO_ARGS_FMT[] = "uint32_t encoding_%s_%u(Array *buffer, uint64_t [])";
+constexpr char_t ENCODING_NAME_FMT[] = "encoding_%s_%u";
 constexpr char_t ENUM_OPCODE_FMT[] = "enum_OP_%s";
+
+#define ctx_push_string(type, s) \
+  do { Array_append(GContext_getOutputBuffer(context, CtxBuf_##type), s, strlen(s)); } while (false)
 
 #define _push_string(buffer, s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
@@ -38,29 +43,13 @@ constexpr char_t ENUM_OPCODE_FMT[] = "enum_OP_%s";
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
 
-#define online_gen_encoding_dec_core(form)                               \
-  do {                                                                   \
-    char_t func_name[sizeof(ENCODING_DEF_FMT_HEAD) + 64] = {};           \
-    sprintf(func_name, "uint32_t encoding_%s_%d(", instr_op, i);         \
-    push_string(func_name);                                              \
-    if ((form).pattern->args) {                                          \
-      const uint32_t n_args = Array_length((form).pattern->args);        \
-      const Identifier *args = Array_real_addr((form).pattern->args, 0); \
-      for (uint32_t j = 0; j < n_args; j++) {                            \
-        const Identifier *arg = &args[j];                                \
-        push_string("uint64_t ");                                        \
-        push_string(arg->ptr);                                           \
-        push_string(", ");                                               \
-      }                                                                  \
-    }                                                                    \
-    push_string("Array *buffer)");                                       \
-  } while (false)
-
 int32_t online_gen_instr_encoding_dec(
-    GContext *, Array *buffer, const char_t *instr_op, const InstrForm forms[], uint32_t n_forms
+    GContext *, Array *buffer, const char_t *instr_op, const InstrForm[], uint32_t n_forms
 ) {
+  char_t head_buffer[sizeof(ENCODING_DEF_FMT_HEAD) + 256];
   for (uint32_t i = 0; i < n_forms; ++i) {
-    online_gen_encoding_dec_core(forms[i]);
+    sprintf(head_buffer, ENCODING_DEC_FMT, instr_op, i);
+    push_string(head_buffer);
     push_string(";\n");
   }
   return 0;
@@ -70,21 +59,26 @@ int32_t online_gen_instr_encoding_def(
     GContext *context, Array *buffer, const char_t *instr_op, const InstrForm forms[],
     uint32_t n_forms
 ) {
-  char_t head_buffer[sizeof(ENCODING_DEF_FMT_HEAD) + 64];
-  Array *temp_buffer = Array_new(sizeof(char_t), -1, context->allocator);
+  char_t head_buffer[sizeof(ENCODING_DEF_FMT_HEAD) + 256];
   for (uint32_t i = 0; i < n_forms; ++i) {
+    const auto encoding_dec_fmt =
+        forms->pattern->args ? ENCODING_DEC_FMT : ENCODING_DEC_NO_ARGS_FMT;
+    sprintf(head_buffer, encoding_dec_fmt, instr_op, i);
+    push_string(head_buffer);
     const uint32_t n_bytes = forms[i].width / 8;
-    online_gen_encoding_dec_core(forms[i]);
     sprintf(head_buffer, ENCODING_DEF_FMT_HEAD, n_bytes, n_bytes);
     push_string(head_buffer);
-    codegen_instr_form(context, temp_buffer, &forms[i]);
-    uint32_t size = Array_length(temp_buffer);
-    char_t *ptr = Array_real_addr(temp_buffer, 0);
-    Array_append(buffer, ptr, size);
+    if (forms[i].pattern->args) {
+      const uint32_t n_args = Array_length(forms[i].pattern->args);
+      const Identifier *args = Array_real_addr(forms[i].pattern->args, 0);
+      for (uint32_t j = 0; j < n_args; j++) {
+        sprintf(head_buffer, "  uint64_t %s = args[%u];\n", args[j].ptr, j);
+        push_string(head_buffer);
+      }
+    }
+    codegen_instr_form(context, buffer, &forms[i]);
     push_string(ENCODING_DEF_FMT_TAIL);
-    Array_reset(temp_buffer, nullptr);
   }
-  Array_destroy(temp_buffer);
   return 0;
 }
 
@@ -98,16 +92,32 @@ int32_t online_gen_instr_encoding_op(
   return 0;
 }
 
-const char_t INSTR_EXEC_DEC_FMT[] = "int32_t %s(Array *buffer, ...);\n";
-const char_t INSTR_EXEC_DEF_FMT[] = "int32_t %s(Array *buffer, ...) {\n"
-                                    "constexpr uint32_t entry_offset = %u;\n"
-                                    "}\n";
+const char_t INSTR_EXEC_DEC_FMT[] = "uint32_t %s(Array *buffer, ...);\n";
+const char_t INSTR_EXEC_DEF_HEAD_FMT[] = "uint32_t %s(Array *buffer, ...) {\n"
+                                         "  constexpr uint32_t entry_offset = %u;\n";
+const char_t INSTR_EXEC_DEF_BODY[] = "  enum ENTRY_TYPE_ENUM types[MAX_ARGS] = {};\n"
+                                     "  uint64_t values[MAX_ARGS] = {};\n"
+                                     "  va_list entries;\n"
+                                     "  va_start(entries, buffer);\n"
+                                     "  uint32_t n_args = 0;\n"
+                                     "  for (; n_args < MAX_ARGS; n_args ++) {\n"
+                                     "    Entry * entry = va_arg(entries, Entry *);\n"
+                                     "    if (!entry) { return 0; }\n"
+                                     "    types[n_args] = entry->type;\n"
+                                     "    values[n_args] = entry->value;\n"
+                                     "  }\n"
+                                     "  va_end(entries);\n"
+                                     "  CURRENT_MACHINE->argCount = 0;\n"
+                                     "  return convert_instr_to_bytes(\n"
+                                     "        entry_offset, buffer, types, values, n_args\n"
+                                     "  );\n"
+                                     "}\n";
 void gen_instr_exec_and_encoding(GContext *context) {
   char_t temp_buffer[512] = {};
-  Array *emit_dec_buffer = GContext_getOutputBuffer(context, CtxBuf_declare);
-  Array *emit_def_buffer = GContext_getOutputBuffer(context, CtxBuf_definition);
-  Array *encoding_dec_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_dec);
-  Array *encoding_def_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_def);
+  Array *dec_buffer = GContext_getOutputBuffer(context, CtxBuf_declares);
+  Array *def_buffer = GContext_getOutputBuffer(context, CtxBuf_definitions);
+  Array *encoding_dec_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
+  Array *encoding_def_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
 
   const uint32_t n_instr = Array_length(context->instrArray);
   const Instruction *instructions = Array_real_addr(context->instrArray, 0);
@@ -121,18 +131,32 @@ void gen_instr_exec_and_encoding(GContext *context) {
         context, encoding_def_buffer, instructions[i].name->ptr, forms, n_forms
     );
     sprintf(temp_buffer, INSTR_EXEC_DEC_FMT, instructions[i].name->ptr);
-    _push_string(emit_dec_buffer, temp_buffer);
+    _push_string(dec_buffer, temp_buffer);
     sprintf(
-        temp_buffer, INSTR_EXEC_DEF_FMT, instructions[i].name->ptr, instructions[i].entry_offset
+        temp_buffer, INSTR_EXEC_DEF_HEAD_FMT, instructions[i].name->ptr,
+        instructions[i].entry_offset
     );
-    _push_string(emit_def_buffer, temp_buffer);
+    _push_string(def_buffer, temp_buffer);
+    _push_string(def_buffer, INSTR_EXEC_DEF_BODY);
   }
+  Array_concat(dec_buffer, encoding_dec_buffer);
+  Array_concat(def_buffer, encoding_def_buffer);
+  releasePrimeArray(encoding_dec_buffer);
+  releasePrimeArray(encoding_def_buffer);
 }
 
+constexpr char_t JUMP_KEY_DEC_FMT[] = "const static struct jump_item\n"
+                                      "JUMP_KEY_TABLE[];\n";
+constexpr char_t JUMP_STATE_DEC_FMT[] = "const static struct jump_state\n"
+                                        "JUMP_STATE_TABLE[];\n";
+void gen_jump_table_dec(GContext *context, const Machine *) {
+  ctx_push_string(declares, JUMP_KEY_DEC_FMT);
+  ctx_push_string(declares, JUMP_STATE_DEC_FMT);
+}
 constexpr char_t JUMP_KEY_HEADER_FMT[] = "const static struct jump_item\n"
-                                         "JUMP_TABLE_KEY_%s[] = {\n";
+                                         "JUMP_KEY_TABLE[] = {\n";
 constexpr char_t JUMP_STATE_HEADER_FMT[] = "const static struct jump_state\n"
-                                           "JUMP_TABLE_STATE_%s[] = {\n";
+                                           "JUMP_STATE_TABLE[] = {\n";
 constexpr char_t KEY_ITEM_FMT[] = "  { .expected_type = enum_%s_%s, .next_state_index = %lu },\n";
 constexpr char_t STATE_ITEM_FMT[] = "  { .count = %u, .index = %u, .fn_encoding = %s },\n";
 #define val_case_item(Type, var, PREFIX)                                                \
@@ -142,14 +166,15 @@ constexpr char_t STATE_ITEM_FMT[] = "  { .count = %u, .index = %u, .fn_encoding 
     _push_string(key_buffer, temp_buffer);                                              \
     break;                                                                              \
   }
-int32_t gen_instr_encoding_mat(
-    GContext *context, const Machine *machine, Array *key_buffer, Array *state_buffer
+void gen_jump_table_def(
+    GContext *context, const Machine *, Array *key_buffer, Array *state_buffer
 ) {
   char_t temp_buffer[512] = {};
   char_t temp2_buffer[256] = {};
 
-  sprintf(temp_buffer, JUMP_KEY_HEADER_FMT, machine->name->ptr);
-  _push_string(key_buffer, temp_buffer);
+  _push_string(key_buffer, JUMP_KEY_HEADER_FMT);
+  _push_string(state_buffer, JUMP_STATE_HEADER_FMT);
+
   uint32_t key_count = Array_length(context->keyArray);
   const TrieKeyItem *key_items = Array_real_addr(context->keyArray, 0);
   for (uint32_t i = 0; i < key_count; i++) {
@@ -164,10 +189,7 @@ int32_t gen_instr_encoding_mat(
       }
     }
   }
-  _push_string(key_buffer, "};\n");
 
-  sprintf(temp_buffer, JUMP_STATE_HEADER_FMT, machine->name->ptr);
-  _push_string(state_buffer, temp_buffer);
   uint32_t state_count = Array_length(context->stateArray);
   const TrieNodeItem *state_items = Array_real_addr(context->stateArray, 0);
   for (uint32_t i = 0; i < state_count; i++) {
@@ -175,7 +197,7 @@ int32_t gen_instr_encoding_mat(
     const Instruction *instr = GContext_getInstruction(context, instr_ndx);
     uint32_t form_ndx = (uint32_t) (uint64_t) state_items[i].value;
     if (form_ndx != 0) {
-      sprintf(temp2_buffer, ENCODING_FUNC_NAME_FMT, instr->name->ptr, form_ndx - 1);
+      sprintf(temp2_buffer, ENCODING_NAME_FMT, instr->name->ptr, form_ndx - 1);
       sprintf(
           temp_buffer, STATE_ITEM_FMT, state_items[i].count, state_items[i].offset, temp2_buffer
       );
@@ -184,9 +206,9 @@ int32_t gen_instr_encoding_mat(
     }
     _push_string(state_buffer, temp_buffer);
   }
-  _push_string(state_buffer, "};\n");
 
-  return 0;
+  _push_string(key_buffer, "};\n");
+  _push_string(state_buffer, "};\n");
 }
 
 #define min(a, b) ((a) < (b)) ? (a) : (b)

@@ -22,8 +22,8 @@
 int32_t online_codegen_memory(GContext *context, REFER(Memory) mem) {
   mem = Array_vert2real(context->memArray, mem);
 
-  Array *dec_buffer = GContext_getOutputBuffer(context, CtxBuf_memory_dec);
-  Array *def_buffer = GContext_getOutputBuffer(context, CtxBuf_memory_def);
+  Array *dec_buffer = GContext_getOutputBuffer(context, CtxBuf_declares);
+  Array *def_buffer = GContext_getOutputBuffer(context, CtxBuf_definitions);
 
   online_gen_memory_dec(context, dec_buffer, mem);
   online_gen_memory_def(context, def_buffer, mem);
@@ -34,8 +34,8 @@ int32_t online_codegen_memory(GContext *context, REFER(Memory) mem) {
 int32_t online_codegen_immediate(GContext *context, REFER(Immediate) imm) {
   imm = Array_vert2real(context->immArray, imm);
 
-  Array *dec_buffer = GContext_getOutputBuffer(context, CtxBuf_immediate_dec);
-  Array *def_buffer = GContext_getOutputBuffer(context, CtxBuf_immediate_def);
+  Array *dec_buffer = GContext_getOutputBuffer(context, CtxBuf_declares);
+  Array *def_buffer = GContext_getOutputBuffer(context, CtxBuf_definitions);
 
   online_gen_immediate_dec(context, dec_buffer, imm);
   online_gen_immediate_def(context, def_buffer, imm);
@@ -46,8 +46,8 @@ int32_t online_codegen_immediate(GContext *context, REFER(Immediate) imm) {
 int32_t online_codegen_register_group(GContext *context, REFER(RegisterGroup) grp) {
   grp = Array_vert2real(context->grpArray, grp);
 
-  Array *dec_buffer = GContext_getOutputBuffer(context, CtxBuf_register_dec);
-  Array *def_buffer = GContext_getOutputBuffer(context, CtxBuf_register_def);
+  Array *dec_buffer = GContext_getOutputBuffer(context, CtxBuf_declares);
+  Array *def_buffer = GContext_getOutputBuffer(context, CtxBuf_definitions);
 
   const uint32_t n_regs = Array_length(grp->registers);
   REFER(Register) *regs = (REFER(Register) *) Array_real_addr(grp->registers, 0);
@@ -64,8 +64,8 @@ int32_t online_codegen_instruction(GContext *context, Instruction *instr) {
   const InstrForm *forms = Array_real_addr(instr->forms, 0);
   const uint32_t n_forms = Array_length(instr->forms);
 
-  Array *dec_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_dec);
-  Array *def_buffer = GContext_getOutputBuffer(context, CtxBuf_encoding_def);
+  Array *dec_buffer = GContext_getOutputBuffer(context, CtxBuf_declares);
+  Array *def_buffer = GContext_getOutputBuffer(context, CtxBuf_definitions);
 
   online_gen_instr_encoding_dec(context, dec_buffer, instr->name->ptr, forms, n_forms);
   online_gen_instr_encoding_def(context, def_buffer, instr->name->ptr, forms, n_forms);
@@ -79,13 +79,16 @@ int32_t online_codegen_machine(GContext *context, Machine * /*unused*/) {
   return 0;
 }
 int32_t codegen_machine(GContext *context, Machine *machine) {
-  gen_static_definitions(context);
+  gen_export_header(context, machine);
+  gen_static_definitions(context, machine);
   gen_context_dec(context);
   gen_context_def(context);
   gen_pattern_match(context, machine);
   gen_enum_item(context, machine);
   gen_instr_exec_and_encoding(context);
   gen_set_grp_jump_table(context, machine);
+  gen_driver(context, machine);
+  gen_export_tail(context, machine);
   return 0;
 }
 

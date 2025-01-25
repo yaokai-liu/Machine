@@ -85,15 +85,27 @@ int main() {
   //  show(CtxBuf_register_dec);
   //  show(CtxBuf_register_def);
 
-  show(CtxBuf_enum_record);
-  show(CtxBuf_declare);
-  show(CtxBuf_definition);
-  show(CtxBuf_encoding_dec);
-  show(CtxBuf_encoding_def);
-  show(CtxBuf_encoding_jump_table_key);
-  show(CtxBuf_encoding_jump_table_state);
-  show(CtxBuf_set_grp_val);
-  show(CtxBuf_set_grp_state);
+  //  show(CtxBuf_declare);
+  //  show(CtxBuf_driver_dec);
+  //  show(CtxBuf_enum_record);
+  //  show(CtxBuf_definition);
+  //  show(CtxBuf_encoding_dec);
+  //  show(CtxBuf_encoding_def);
+  //  show(CtxBuf_encoding_jump_table_key);
+  //  show(CtxBuf_encoding_jump_table_state);
+  //  show(CtxBuf_set_grp_val);
+  //  show(CtxBuf_set_grp_state);
+  //  show(CtxBuf_driver_def);
+  //  show(CtxBuf_declare);
+  show(CtxBuf_exports);
+
+  show(CtxBuf_includes);
+  show(CtxBuf_macros);
+  show(CtxBuf_enums);
+  show(CtxBuf_types);
+  show(CtxBuf_declares);
+  show(CtxBuf_definitions);
+  show(CtxBuf_tables);
 
   printf("time cost: %fms\n", (double) (end - start) / CLOCKS_PER_SEC * 1000);
 

@@ -23,21 +23,14 @@ typedef struct Record {
 } Record;
 
 enum Ctx_ByteBuffer {
-  CtxBuf_enum_record,
-  CtxBuf_declare,
-  CtxBuf_definition,
-  CtxBuf_encoding_def,
-  CtxBuf_encoding_dec,
-  CtxBuf_register_dec,
-  CtxBuf_memory_dec,
-  CtxBuf_immediate_dec,
-  CtxBuf_register_def,
-  CtxBuf_memory_def,
-  CtxBuf_immediate_def,
-  CtxBuf_encoding_jump_table_key,
-  CtxBuf_encoding_jump_table_state,
-  CtxBuf_set_grp_val,
-  CtxBuf_set_grp_state,
+  CtxBuf_exports,
+  CtxBuf_includes,
+  CtxBuf_macros,
+  CtxBuf_enums,
+  CtxBuf_types,
+  CtxBuf_declares,
+  CtxBuf_definitions,
+  CtxBuf_tables
 };
 
 typedef struct GContext {
@@ -62,6 +55,7 @@ typedef struct GContext {
   Stack *widthStack;
   Stack *identStack;
   AVLTree *mappingTree;
+  uint32_t maxArgCount;
 } GContext;
 
 typedef struct GContext GContext;
