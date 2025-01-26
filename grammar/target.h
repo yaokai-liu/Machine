@@ -23,10 +23,11 @@ typedef struct Entry {
 
 typedef Array Entries;  // Array<Entry>
 
+typedef struct GContext GContext;
+
 typedef struct Machine {
   Identifier *name;
-  Entries *entries;
-  void *context;
+  GContext *context;
 } Machine;
 
 typedef struct Immediate {

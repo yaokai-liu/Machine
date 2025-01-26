@@ -38,12 +38,12 @@ inline GContext *GContext_new(const Allocator *allocator) {
   context->recordArray = Array_new(sizeof(Record), INT32_MAX - 1, allocator);
   context->keyArray = Array_new(sizeof(TrieKeyItem), INT32_MAX - 2, allocator);
   context->stateArray = Array_new(sizeof(TrieNodeItem), INT32_MAX - 3, allocator);
-  context->objectMap = Trie_new(1, getchar, allocator);
-  context->opcodeMap = Trie_new(1, getchar, allocator);
-  for (uint32_t i = 0; i < 16; i++) { context->outputs[i] = nullptr; }
+  context->objectMap = Trie_new(sizeof(char_t), getchar, allocator);
+  context->opcodeMap = Trie_new(sizeof(char_t), getchar, allocator);
   context->widthStack = Stack_new(allocator);
   context->identStack = Stack_new(allocator);
   context->mappingTree = nullptr;
+  context->errorMessage = nullptr;
   return context;
 }
 
@@ -70,9 +70,6 @@ inline void GContext_destroy(GContext *context) {
   releasePrimeArray(context->keyArray);
   releasePrimeArray(context->stateArray);
   releasePrimeArray(context->recordArray);
-  for (uint32_t i = 0; i < 16; i++) {
-    if (context->outputs[i]) { releasePrimeArray(context->outputs[i]); }
-  }
   Trie_destroy(context->objectMap);
   Trie_destroy(context->opcodeMap);
   contextReleaseStack(widthStack);
@@ -80,24 +77,8 @@ inline void GContext_destroy(GContext *context) {
   context->allocator->free(context);
 }
 
-inline const Allocator *GContext_getAllocator(GContext *context) {
+inline const Allocator *GContext_getAllocator(const GContext *context) {
   return context->allocator;
-}
-
-inline Array *GContext_getOutputBuffer(GContext *context, uint32_t index) {
-  if (!context->outputs[index]) {
-    context->outputs[index] = Array_new(sizeof(char_t), INT32_MAX, context->allocator);
-  }
-  return context->outputs[index];
-}
-
-inline void GContext_setCodegen(GContext *context, codegen_t *(*getCodegen)(uint32_t token_type)) {
-  context->getCodegen = getCodegen;
-}
-
-inline codegen_t *GContext_getCodegen(GContext *context, uint32_t token_type) {
-  if (context->getCodegen) { return context->getCodegen(token_type); }
-  return nullptr;
 }
 
 inline void GContext_addOpcode(GContext *context, const Identifier *ident, Instruction *instr) {
@@ -113,7 +94,7 @@ inline void GContext_addRecord(GContext *context, const Identifier *ident, Recor
   Trie_set(context->objectMap, ident->ptr, ndx);
 }
 
-inline void *GContext_findRecord(GContext *context, const Identifier *ident) {
+inline void *GContext_findRecord(const GContext *context, const Identifier *ident) {
   uint32_t ndx = (uint64_t) Trie_get(context->objectMap, ident->ptr);
   if (!ndx) { return nullptr; }
   return Array_real_addr(context->recordArray, ndx - 1);
@@ -142,7 +123,7 @@ inline REFER(Instruction) GContext_addInstruction(GContext *context, const Instr
 }
 
 #define contextGetFromOffset_DEF(type, array)                                 \
-  inline const type *GContext_get##type(GContext *context, uint32_t offset) { \
+  inline const type *GContext_get##type(const GContext *context, uint32_t offset) { \
     return Array_real_addr(context->array, offset);                           \
   }
 
@@ -152,7 +133,7 @@ contextGetFromOffset_DEF(Memory, memArray);
 contextGetFromOffset_DEF(RegisterGroup, grpArray);
 contextGetFromOffset_DEF(Set, setArray);
 
-inline const Instruction *GContext_getInstruction(GContext *context, uint32_t index) {
+inline const Instruction *GContext_getInstruction(const GContext *context, uint32_t index) {
   return Array_real_addr(context->instrArray, index);
 }
 
@@ -194,7 +175,7 @@ uint64_t GContext_getLastWidth(GContext *context) {
 }
 
 inline void GContext_addMapItem(GContext *context, MappingItem *item) {
-  AVLTree_set(context->mappingTree, (uint64_t) item->field, item->evaluable);
+  AVLTree_set(context->mappingTree, (uint64_t) item->field, item);
 }
 
 inline MappingItem *GContext_getMapItem(GContext *context, BitField *bf) {
@@ -260,8 +241,11 @@ void GContext_dump_instruction(GContext *context, Instruction *instr) {
   Trie_destroy(args_trie);
 }
 
-void push_context_ident(GContext *context, void *token) {
-  Stack_push(context->identStack, &token, sizeof(uint64_t));
+inline void GContext_setErrorMessage(GContext *context, const char_t * msg) {
+  context->errorMessage = msg;
+}
+const char_t * GContext_getErrorMessage(GContext *context) {
+  return context->errorMessage;
 }
 
 void realloc_context_map_item_tree(GContext *context, void *) {
@@ -273,8 +257,13 @@ void destroy_context_map_item_tree(GContext *context, void *) {
   context->mappingTree = nullptr;
 }
 
+void push_context_ident(GContext *context, void *token) {
+  Identifier *ident = (Identifier *) token;
+  Stack_push(context->identStack, &ident, sizeof(Identifier *));
+}
+
 void pop_context_ident(GContext *context, void *) {
-  Stack_pop(context->identStack, nullptr, sizeof(void *));
+  Stack_pop(context->identStack, nullptr, sizeof(Identifier *));
 }
 
 void push_context_width(GContext *context, void *token) {
@@ -285,14 +274,14 @@ void pop_context_width(GContext *context, void *) {
   Stack_pop(context->widthStack, nullptr, sizeof(uint64_t));
 }
 
-void pop_context_width_and_ident(GContext *context, void *token) {
-  pop_context_width(context, token);
-  pop_context_ident(context, token);
+void pop_context_width_and_ident(GContext *context, void *) {
+  pop_context_width(context, nullptr);
+  pop_context_ident(context, nullptr);
 }
 
-void destroy_map_item_tree_and_pop_width(GContext *context, void *token) {
-  pop_context_width(context, token);
-  destroy_context_map_item_tree(context, token);
+void destroy_map_item_tree_and_pop_width(GContext *context, void *) {
+  pop_context_width(context, nullptr);
+  destroy_context_map_item_tree(context, nullptr);
 }
 
 #include "action-table.gen.h"

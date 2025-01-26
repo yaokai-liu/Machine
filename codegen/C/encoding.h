@@ -12,35 +12,32 @@
 
 #include "array.h"
 #include "char_t.h"
-#include "codegen.h"
+#include "generate.h"
 #include "target.h"
 #include "terminal.h"
 #include <stdint.h>
 
 int32_t online_gen_instr_encoding_dec(
-    GContext *context, Array *buffer, const char_t *instr_op, const InstrForm forms[],
+    const GContext *, Array *buffer, const char_t *instr_op, const InstrForm forms[],
     uint32_t n_forms
 );
 int32_t online_gen_instr_encoding_def(
-    GContext *context, Array *buffer, const char_t *instr_op, const InstrForm forms[],
+    const GContext *context, Array *buffer, const char_t *instr_op, const InstrForm forms[],
     uint32_t n_forms
 );
-int32_t online_gen_instr_encoding_op(
-    GContext *context, Array *buffer, char_t *name, const InstrForm *forms, uint32_t n_forms
-);
-void gen_instr_exec_and_encoding(GContext *context);
+void gen_instr_exec_and_encoding(Generator *generator, const Machine *machine);
 
-void gen_jump_table_dec(GContext *context, const Machine *);
-void gen_jump_table_def(GContext *context, const Machine *, Array *key_buffer, Array *state_buffer);
+void gen_jump_table_dec(Generator *generator, const Machine *machine);
+void gen_jump_table_def(Generator *generator, const Machine *machine, Array *key_buffer, Array *state_buffer);
 
-int32_t codegen_instr_form(GContext *context, Array *buffer, const InstrForm *form);
+int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrForm *form);
 
-int32_t codegen_layout(GContext *context, Array *buffer, const Layout *layout, uint32_t width);
+int32_t codegen_layout(const GContext *context, Array *buffer, const Layout *layout, uint32_t width);
 
 int32_t codegen_items_bf(
-    GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field
+    const GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field
 );
 
-int32_t eval_to_val(GContext *context, Evaluable *evaluable, char_t *buffer);
+int32_t eval_to_val(const GContext *context, Evaluable *evaluable, char_t *buffer);
 
 #endif  // MACHINE_ENCODING_H

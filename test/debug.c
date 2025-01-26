@@ -14,6 +14,7 @@
 #include "target.h"
 #include "terminal.h"
 #include "tokenize.h"
+#include "tokens.gen.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -24,16 +25,17 @@
 #define show(ndx)                                                                          \
   do {                                                                                     \
     char_t c = '\0';                                                                       \
-    Array_append(GContext_getOutputBuffer(machine->context, ndx), &c, 1);                  \
-    char_t *outputs = Array_real_addr(GContext_getOutputBuffer(machine->context, ndx), 0); \
-    printf("%s\n", outputs);                                                               \
+    Array_append(Generator_getOutputBuffer(generator, ndx), &c, 1);                        \
+    char_t *outputs = Array_real_addr(Generator_getOutputBuffer(generator, ndx), 0);       \
+    fprintf(pFile, "%s\n", outputs);                                                       \
   } while (0)
 
 int main() {
   char_t testString[MAX_CHAR] = {};
   uint32_t cost = 0, n_tokens = 0;
   uint32_t lineno = 0, column = 0;
-  FILE *pFile = fopen("/mnt/d/Codelib/machine/liu-machine/demo.mm", "r");
+  const char_t *filepath = "/mnt/d/Codelib/machine/liu-machine/demo.mm";
+  FILE *pFile = fopen(filepath, "r");
   if (!pFile) { return -1; }
   uint32_t length = fread(testString, sizeof(char_t), MAX_CHAR, pFile);
   printf("read %u characters from file.\n\n", length);
@@ -46,8 +48,9 @@ int main() {
   //    const char_t * str = string_t("[23-12]");
   const Terminal *terminals =
       tokenize(testString, &cost, &n_tokens, &lineno, &column, &STDAllocator);
-  if (!n_tokens) {
-    printf("failed to lex at <%d>.\n", cost);
+  if (terminals[n_tokens - 1].type != enum_TERMINATOR) {
+    printf("falied to lex %s:%u:%u\n", filepath, lineno, column);
+    printf("unknown character '%c'\n", testString[cost]);
     STDAllocator.free((void *) terminals);
     return -3;
   }
@@ -60,45 +63,32 @@ int main() {
   //        get_name(terminals[i].type), terminals[i].value
   //    );
   //  }
-  //  const Machine *machine = parse(terminals, &cost, get_online_codegen, &STDAllocator);
-  const Machine *machine = parse(terminals, &cost, get_codegen, &STDAllocator);
+  const char_t *err_msg = nullptr;
+  const Machine *machine = parse(terminals, &cost, &err_msg, &STDAllocator);
   if (!machine) {
-    printf("failed to parse.\n");
+    printf("failed to parse. %s\n", err_msg);
     for (uint32_t i = cost; i < n_tokens; i++) {
       releaseToken(terminals[i].value, terminals[i].type, &STDAllocator);
     }
     STDAllocator.free((void *) terminals);
     return -4;
   }
+  Generator *generator = Generator_new(&STDAllocator);
+  codegen(generator, machine);
   int end = clock();
 
   //  char_t string[512] = {};
   //  memcpy(string, machine->name->ptr, machine->name->len);
   //  string[machine->name->len] = '\0';
   //  printf("machine %s\n", string);
-  //  show(CtxBuf_encoding_dec);
-  //  show(CtxBuf_encoding_def);
-  //  show(CtxBuf_memory_dec);
-  //  show(CtxBuf_memory_def);
-  //  show(CtxBuf_immediate_dec);
-  //  show(CtxBuf_immediate_def);
-  //  show(CtxBuf_register_dec);
-  //  show(CtxBuf_register_def);
 
-  //  show(CtxBuf_declare);
-  //  show(CtxBuf_driver_dec);
-  //  show(CtxBuf_enum_record);
-  //  show(CtxBuf_definition);
-  //  show(CtxBuf_encoding_dec);
-  //  show(CtxBuf_encoding_def);
-  //  show(CtxBuf_encoding_jump_table_key);
-  //  show(CtxBuf_encoding_jump_table_state);
-  //  show(CtxBuf_set_grp_val);
-  //  show(CtxBuf_set_grp_state);
-  //  show(CtxBuf_driver_def);
-  //  show(CtxBuf_declare);
+  pFile = fopen("machine-x64.h", "w");
+  if (!pFile) { return -1; }
   show(CtxBuf_exports);
+  fclose(pFile);
 
+  pFile = fopen("machine-x64.c", "w");
+  if (!pFile) { return -1; }
   show(CtxBuf_includes);
   show(CtxBuf_macros);
   show(CtxBuf_enums);
@@ -106,11 +96,13 @@ int main() {
   show(CtxBuf_declares);
   show(CtxBuf_definitions);
   show(CtxBuf_tables);
+  fclose(pFile);
 
   printf("time cost: %fms\n", (double) (end - start) / CLOCKS_PER_SEC * 1000);
 
   releaseMachine((Machine *) machine, &STDAllocator);
   STDAllocator.free((void *) machine);
   STDAllocator.free((void *) terminals);
+  Generator_destroy(generator);
   return 0;
 }

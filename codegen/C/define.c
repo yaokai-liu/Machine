@@ -9,6 +9,7 @@
 
 #include "char_t.h"
 #include "context.h"
+#include "generate.h"
 #include "tokens.gen.h"
 #include "trie-dump.h"
 #include <stdint.h>
@@ -16,7 +17,7 @@
 #include <string.h>
 
 #define ctx_push_string(type, s) \
-  do { Array_append(GContext_getOutputBuffer(context, CtxBuf_##type), s, strlen(s)); } while (false)
+  do { Array_append(Generator_getOutputBuffer(generator, CtxBuf_##type), s, strlen(s)); } while (false)
 
 #define _push_string(buffer, s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
@@ -25,27 +26,8 @@
   do { Array_append(buffer, s, strlen(s)); } while (false)
 
 constexpr char_t MEM_DEC_FMT[] = "const Entry *MEM_%s(uint64_t base, uint64_t offset);\n";
-void online_gen_memory_dec(GContext *, Array *buffer, const Memory *mem) {
-  char_t temp_buffer[512] = {};
-  sprintf(temp_buffer, MEM_DEC_FMT, mem->name->ptr);
-  push_string(temp_buffer);
-}
-
 constexpr char_t IMM_DEC_FMT[] = "const Entry *IMM_%s(uint64_t val);\n";
-void online_gen_immediate_dec(GContext *, Array *buffer, const Immediate *imm) {
-  char_t temp_buffer[512] = {};
-  sprintf(temp_buffer, IMM_DEC_FMT, imm->name->ptr);
-  push_string(temp_buffer);
-}
-
 constexpr char_t REG_DEC_FMT[] = "const Entry *const REG_%s;\n";
-void online_gen_register_dec(GContext *, Array *buffer, const Register *reg) {
-  char_t temp_buffer[256] = {};
-  const char_t *name = reg->name->ptr;
-  sprintf(temp_buffer, REG_DEC_FMT, name);
-  push_string(temp_buffer);
-}
-
 constexpr char_t MEM_DEF_FMT[] =
     "const Entry *MEM_%s(uint64_t base, uint64_t offset) {\n"
     "  Entry * entry = &CURRENT_MACHINE->entries[CURRENT_MACHINE->argCount];\n"
@@ -57,15 +39,6 @@ constexpr char_t MEM_DEF_FMT[] =
     "  CURRENT_MACHINE->argCount++;\n"
     "  return entry;\n"
     "}\n";
-void online_gen_memory_def(GContext *, Array *buffer, const Memory *mem) {
-  char_t temp_buffer[512] = {};
-  sprintf(
-      temp_buffer, MEM_DEF_FMT, mem->name->ptr, mem->name->ptr, mem->base->lower, mem->base->upper,
-      mem->offset->lower, mem->offset->upper
-  );
-  push_string(temp_buffer);
-}
-
 constexpr char_t IMM_DEF_FMT[] =
     "const Entry *IMM_%s(uint64_t val) {\n"
     "  Entry * entry = &CURRENT_MACHINE->entries[CURRENT_MACHINE->argCount];\n"
@@ -74,25 +47,11 @@ constexpr char_t IMM_DEF_FMT[] =
     "  CURRENT_MACHINE->argCount++;\n"
     "  return entry;\n"
     "}\n";
-void online_gen_immediate_def(GContext *, Array *buffer, const Immediate *imm) {
-  char_t temp_buffer[512] = {};
-  sprintf(temp_buffer, IMM_DEF_FMT, imm->name->ptr, imm->name->ptr);
-  push_string(temp_buffer);
-}
-
 constexpr char_t REG_ENTRY_DEF_FMT[] = "const static Entry Entry_REG_%s = {\n"
                                        "  .type = enum_REG_%s,\n"
                                        "  .value = 0x%lx,\n"
                                        "};\n";
 constexpr char_t REG_DEF_FMT[] = "const Entry * const REG_%s = &Entry_REG_%s;\n";
-void online_gen_register_def(GContext *, Array *buffer, const Register *reg) {
-  char_t temp_buffer[256] = {};
-  const char_t *name = reg->name->ptr;
-  sprintf(temp_buffer, REG_ENTRY_DEF_FMT, name, name, reg->code);
-  push_string(temp_buffer);
-  sprintf(temp_buffer, REG_DEF_FMT, name, name);
-  push_string(temp_buffer);
-}
 
 #define gen_type_sprintf(Type, var, ...)                           \
   do {                                                             \
@@ -107,9 +66,10 @@ void online_gen_register_def(GContext *, Array *buffer, const Register *reg) {
 #define gen_type_enum_item(Type, FMT, var) \
   gen_type_sprintf(Type, var, "  enum_" #FMT "_%s,\n", entries[i].name->ptr)
 
-void gen_enum_item(GContext *context, const Machine *) {
+void gen_enum_item(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256] = {};
-  Array *buffer = GContext_getOutputBuffer(context, CtxBuf_enums);
+  const GContext *context = machine->context;
+  Array *buffer = Generator_getOutputBuffer(generator, CtxBuf_enums);
   push_string("enum ENTRY_TYPE_ENUM {\n");
   gen_type_enum_item(Memory, MEM, mem);
   gen_type_enum_item(Immediate, IMM, imm);
@@ -126,9 +86,10 @@ constexpr char_t SET_GRP_STATE_TABLE_DEC_FMT[] = "const static struct set_grp_ju
 #define gen_mem_sprintf(...) gen_type_sprintf(Memory, mem, __VA_ARGS__)
 #define gen_imm_sprintf(...) gen_type_sprintf(Immediate, imm, __VA_ARGS__)
 #define gen_reg_sprintf(...) gen_type_sprintf(Register, reg, __VA_ARGS__)
-void gen_context_dec(GContext *context) {
+void gen_context_dec(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
-  Array *buffer = GContext_getOutputBuffer(context, CtxBuf_exports);
+  const GContext *context = machine->context;
+  Array *buffer = Generator_getOutputBuffer(generator, CtxBuf_exports);
   gen_mem_sprintf(MEM_DEC_FMT, entries[i].name->ptr);
   gen_imm_sprintf(IMM_DEC_FMT, entries[i].name->ptr);
   gen_reg_sprintf(REG_DEC_FMT, entries[i].name->ptr);
@@ -137,9 +98,10 @@ void gen_context_dec(GContext *context) {
   ctx_push_string(declares, SET_GRP_STATE_TABLE_DEC_FMT);
 }
 
-void gen_context_def(GContext *context) {
+void gen_context_def(Generator *generator, const Machine *machine) {
   char_t temp_buffer[1024] = {};
-  Array *buffer = GContext_getOutputBuffer(context, CtxBuf_definitions);
+  const GContext *context = machine->context;
+  Array *buffer = Generator_getOutputBuffer(generator, CtxBuf_definitions);
 
   gen_reg_sprintf(REG_ENTRY_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr, entries[i].code);
   gen_mem_sprintf(
@@ -163,8 +125,9 @@ constexpr char_t SET_GRP_STATE_TABLE_HEAD_FMT[] = "const static struct set_grp_j
   }
 #define gen_grp_sprintf(...) gen_type_sprintf(RegisterGroup, grp, __VA_ARGS__)
 #define gen_set_sprintf(...) gen_type_sprintf(Set, set, __VA_ARGS__)
-void gen_set_grp_jump_table(GContext *context, Machine *) {
+void gen_set_grp_jump_table(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
+  const GContext *context = machine->context;
   Array *val_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
   Array *sta_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
 
@@ -211,7 +174,7 @@ void gen_set_grp_jump_table(GContext *context, Machine *) {
   _push_string(val_buffer, "};\n");
   _push_string(sta_buffer, "};\n");
 
-  Array *buffer = GContext_getOutputBuffer(context, CtxBuf_definitions);
+  Array *buffer = Generator_getOutputBuffer(generator, CtxBuf_definitions);
   Array_concat(buffer, val_buffer);
   Array_concat(buffer, sta_buffer);
   releasePrimeArray(val_buffer);

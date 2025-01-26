@@ -27,7 +27,7 @@ Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocat
 
 #define MAX_ARGC 0x10
 Machine *
-    parse(const Terminal *tokens, uint32_t *cost, void *getCodegen, const Allocator *allocator) {
+    parse(const Terminal *tokens, uint32_t *cost, const char_t **err_msg, const Allocator *allocator) {
   void *result;
   int32_t state = 0;
   const Terminal *tp = tokens;
@@ -37,12 +37,12 @@ Machine *
   Stack *token_stack = Stack_new(allocator);
   Stack_push(state_stack, &state, sizeof(int32_t));
   GContext *context = GContext_new(allocator);
-  GContext_setCodegen(context, getCodegen);
 
   while (true) {
     const struct grammar_action *act = getAction(state, tp->type);
     if (!act) {
       *cost = (uint32_t) (uint64_t) (tp - tokens);
+      *err_msg = "unexpected token.";
       GContext_destroy(context);
       return clean_parse_stack(state_stack, token_stack, allocator);
     }
@@ -62,12 +62,14 @@ Machine *
       if (!result) {
         *cost = (uint32_t) (uint64_t) (tp - tokens);
         GContext_destroy(context);
+        *err_msg = GContext_getErrorMessage(context);
         return failed_to_produce(state_stack, token_stack, args, states, act->count, allocator);
       }
       state = jump(state, act->type);
       if (state < 0) {
         *cost = (uint32_t) (uint64_t) (tp - tokens);
         GContext_destroy(context);
+        *err_msg = "unexpected token.";
         return failed_to_get_next_state(state_stack, token_stack, result, act->type, allocator);
       }
       Stack_push(token_stack, &result, sizeof(void *));
@@ -85,6 +87,5 @@ Machine *
   allocator->free(state_stack);
   *cost = (uint32_t) (uint64_t) (tp - tokens);
   Machine *machine = result;
-  machine->context = context;
   return machine;
 }

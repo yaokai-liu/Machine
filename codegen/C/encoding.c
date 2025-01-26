@@ -35,7 +35,7 @@ constexpr char_t ENCODING_NAME_FMT[] = "encoding_%s_%u";
 constexpr char_t ENUM_OPCODE_FMT[] = "enum_OP_%s";
 
 #define ctx_push_string(type, s) \
-  do { Array_append(GContext_getOutputBuffer(context, CtxBuf_##type), s, strlen(s)); } while (false)
+  do { Array_append(Generator_getOutputBuffer(generator, CtxBuf_##type), s, strlen(s)); } while (false)
 
 #define _push_string(buffer, s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
@@ -44,7 +44,7 @@ constexpr char_t ENUM_OPCODE_FMT[] = "enum_OP_%s";
   do { Array_append(buffer, s, strlen(s)); } while (false)
 
 int32_t online_gen_instr_encoding_dec(
-    GContext *, Array *buffer, const char_t *instr_op, const InstrForm[], uint32_t n_forms
+    const GContext *, Array *buffer, const char_t *instr_op, const InstrForm [], uint32_t n_forms
 ) {
   char_t head_buffer[sizeof(ENCODING_DEF_FMT_HEAD) + 256];
   for (uint32_t i = 0; i < n_forms; ++i) {
@@ -56,7 +56,7 @@ int32_t online_gen_instr_encoding_dec(
 }
 
 int32_t online_gen_instr_encoding_def(
-    GContext *context, Array *buffer, const char_t *instr_op, const InstrForm forms[],
+    const GContext *context, Array *buffer, const char_t *instr_op, const InstrForm forms[],
     uint32_t n_forms
 ) {
   char_t head_buffer[sizeof(ENCODING_DEF_FMT_HEAD) + 256];
@@ -82,16 +82,6 @@ int32_t online_gen_instr_encoding_def(
   return 0;
 }
 
-int32_t online_gen_instr_encoding_op(
-    GContext * /*unused*/, Array *buffer, char_t *name, const InstrForm * /*unused*/, const uint32_t
-    /*unused*/
-) {
-  char_t temp_buffer[256] = {};
-  sprintf(temp_buffer, ENUM_OPCODE_FMT, name);
-  push_string(temp_buffer);
-  return 0;
-}
-
 const char_t INSTR_EXEC_DEC_FMT[] = "uint32_t %s(Array *buffer, ...);\n";
 const char_t INSTR_EXEC_DEF_HEAD_FMT[] = "uint32_t %s(Array *buffer, ...) {\n"
                                          "  constexpr uint32_t entry_offset = %u;\n";
@@ -112,10 +102,11 @@ const char_t INSTR_EXEC_DEF_BODY[] = "  enum ENTRY_TYPE_ENUM types[MAX_ARGS] = {
                                      "        entry_offset, buffer, types, values, n_args\n"
                                      "  );\n"
                                      "}\n";
-void gen_instr_exec_and_encoding(GContext *context) {
+void gen_instr_exec_and_encoding(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
-  Array *dec_buffer = GContext_getOutputBuffer(context, CtxBuf_declares);
-  Array *def_buffer = GContext_getOutputBuffer(context, CtxBuf_definitions);
+  const GContext *context = machine->context;
+  Array *dec_buffer = Generator_getOutputBuffer(generator, CtxBuf_declares);
+  Array *def_buffer = Generator_getOutputBuffer(generator, CtxBuf_definitions);
   Array *encoding_dec_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
   Array *encoding_def_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
 
@@ -131,7 +122,7 @@ void gen_instr_exec_and_encoding(GContext *context) {
         context, encoding_def_buffer, instructions[i].name->ptr, forms, n_forms
     );
     sprintf(temp_buffer, INSTR_EXEC_DEC_FMT, instructions[i].name->ptr);
-    _push_string(dec_buffer, temp_buffer);
+    ctx_push_string(exports, temp_buffer);
     sprintf(
         temp_buffer, INSTR_EXEC_DEF_HEAD_FMT, instructions[i].name->ptr,
         instructions[i].entry_offset
@@ -149,7 +140,7 @@ constexpr char_t JUMP_KEY_DEC_FMT[] = "const static struct jump_item\n"
                                       "JUMP_KEY_TABLE[];\n";
 constexpr char_t JUMP_STATE_DEC_FMT[] = "const static struct jump_state\n"
                                         "JUMP_STATE_TABLE[];\n";
-void gen_jump_table_dec(GContext *context, const Machine *) {
+void gen_jump_table_dec(Generator *generator, const Machine *) {
   ctx_push_string(declares, JUMP_KEY_DEC_FMT);
   ctx_push_string(declares, JUMP_STATE_DEC_FMT);
 }
@@ -167,10 +158,12 @@ constexpr char_t STATE_ITEM_FMT[] = "  { .count = %u, .index = %u, .fn_encoding 
     break;                                                                              \
   }
 void gen_jump_table_def(
-    GContext *context, const Machine *, Array *key_buffer, Array *state_buffer
+    Generator *, const Machine *machine, Array *key_buffer, Array *state_buffer
 ) {
   char_t temp_buffer[512] = {};
   char_t temp2_buffer[256] = {};
+
+  const GContext *context = machine->context;
 
   _push_string(key_buffer, JUMP_KEY_HEADER_FMT);
   _push_string(state_buffer, JUMP_STATE_HEADER_FMT);
@@ -262,7 +255,7 @@ void gen_jump_table_def(
 static thread_local char_t FMT_BUFFER[1024] = {};
 
 #define MAX_IDENT_LEN 64
-int32_t eval_to_val(GContext *context, Evaluable *evaluable, char_t *buffer) {
+int32_t eval_to_val(const GContext *context, Evaluable *evaluable, char_t *buffer) {
   if (enum_NUMBER == evaluable->type) {
     uint64_t number = (uint64_t) evaluable->lhs;
     return sprintf(buffer, "0x%lX", number);
@@ -292,7 +285,7 @@ int32_t eval_to_val(GContext *context, Evaluable *evaluable, char_t *buffer) {
 }
 
 int32_t codegen_items_bf(
-    GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field
+    const GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field
 ) {
   const uint32_t pre_len = Array_length(buffer);
   MappingItem *item = getMappingItem(items, bit_field);
@@ -333,7 +326,7 @@ int32_t codegen_items_bf(
   return Array_length(buffer) - pre_len;
 }
 
-int32_t codegen_layout(GContext *context, Array *buffer, const Layout *layout, uint32_t width) {
+int32_t codegen_layout(const GContext *context, Array *buffer, const Layout *layout, uint32_t width) {
   const uint32_t pre_len = Array_length(buffer);
   switch (layout->type) {
     case enum_Evaluable: {
@@ -367,7 +360,7 @@ int32_t codegen_layout(GContext *context, Array *buffer, const Layout *layout, u
       codegen_layout(context, buffer, layout, width); \
     }                                                 \
   } while (false)
-int32_t codegen_instr_form(GContext *context, Array *buffer, const InstrForm *form) {
+int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrForm *form) {
   const uint32_t pre_len = Array_length(buffer);
   codegen_form_part(PART_PREFIX);
   codegen_form_part(PART_PRINCIPAL);

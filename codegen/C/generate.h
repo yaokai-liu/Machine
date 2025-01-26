@@ -15,13 +15,21 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef struct Generator {
-  const Allocator *allocator;
-  GContext *context;
-  Array *buffer;
-} Generator;
+enum Ctx_ByteBuffer {
+  CtxBuf_exports,
+  CtxBuf_includes,
+  CtxBuf_macros,
+  CtxBuf_enums,
+  CtxBuf_types,
+  CtxBuf_declares,
+  CtxBuf_definitions,
+  CtxBuf_tables
+};
 
-codegen_t *get_online_codegen(uint32_t type);
-codegen_t *get_codegen(uint32_t type);
+typedef struct Generator Generator;
+Generator *Generator_new(const Allocator *allocator);
+Array *Generator_getOutputBuffer(Generator *generator, uint32_t index);
+void Generator_destroy(Generator *generator);
+int32_t codegen(Generator *generator, const Machine *machine);
 
 #endif  // MACHINE_GENERATE_H

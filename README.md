@@ -4,20 +4,25 @@ This project tries to provide a method to generate C lib to describe a backend's
 
 ## Functions
 
-With this program, users can:
+With this project, users can:
 
-1. call a function `Array<uint32_t> * listRegisters(Machine *)` to get register-ids of a machine;
-2. call a function `Array<uint32_t> * listMemoryModel(Machine *)` to get memory-models of a machine;
-3. call a function `Register * getRegisterInfo(Machine *, uint32_t)` to get information of a register in a machine by id;
-4. call a function `Memory * getMemModelInfo(Machine *, uint32_t)` to get information of a memory-model in a machine by id;
+1. call a function `Array<uint32_t> *listRegisters(void)` to get register-ids of the current machine;
+2. call a function `Array<uint32_t> *listMemoryModel(void)` to get memory-models of the current machine;
+3. call a function `Register *getRegisterInfo(uint32_t id)` to get information of a register in the current machine by id;
+4. call a function `Memory *getMemModelInfo(uint32_t id)` to get information of a memory-model in the current machine by id;
 5. call a function `uint32_t ${instr}(Array<uint8_t> *, ...)` to encode an instruction and write into an array;
 6. call a function `uint32_t emit_${instr}(Array<uint8_t> *, ...)` to emit an instruction and record registers' allocation;
 7. call a function `uint32_t getCycles()` to get cycles count of instructions emitted till now;
 8. call a function `void setCycles(uint32_t)` to set initial cycles count from now;
-9. call a function `uint32_t dumpRegAllocation(void *)` to dump the registers' allocation;
-10. call a function `uint32_t loadRegAllocation(void *)` to load a registers' allocation;
-11. call a function `bool isAllocated(Machine *, uint32_t)` to query if the register is used.
-12. call a function `bool popNotAllocated(Machine *, uint32_t)` to populate a number of not allocated registers.
+9. call a function `void usedRegister(uint32_t)` to mark a register as used;
+10. call a function `void unusedRegister(uint32_t)` to mark a register as unused;
+11. call a function `bool isUsed(uint32_t)` to query if the register is used.
+12. call a function `Array<uint32_t> *getUnused(uint32_t)` to get a list of not allocated
+    registers in the set.
+13. call a function `uint32_t dumpRegAllocation(void *)` to dump the registers' allocation;
+14. call a function `uint32_t loadRegAllocation(void *)` to load a registers' allocation;
+15. call a function `void* getCurrentMachine(void)` to get the address of the current context machine;
+16. call a function `void setCurrentMachine(void*)` to set the current context machine;
 
 ## Grammar of machine file
 
@@ -25,10 +30,10 @@ The machine (or backend) is supposed to be defined with a special text grammar.
 
 The generator read text inputs and analysis by the grammar and then generate a C lib if no error.
 
-If there's a machine are going defined, denotes as `M`. It is supposed to specify three kinds of things: **register groups**, **memories** and **instructions**.
-To define the machine `M`, there's a keyword should be presented: `machine`.
-Then an identifier should be provided as `M`'s name.
-The definitions of these three properties should be placed in a `{` and `}` pair and follow the machine's name.
+If there's a machine are going defined, it is supposed to specify three kinds of things: **register groups**, **memories** and **instructions**.
+To define the machine, there's a keyword should be presented: `machine`.
+Then an identifier should be provided the machine's name.
+The definitions of these three properties should be placed in a `{` and `}` pair follow the machine's name.
 Every kind of properties should contain one or more definition items.
 Those properties definition items should also be led by keywords: `register`, `memory` or `instruction`.
 Every definition item's contents should be bracketed with `{` and `}` and ended with `;`.
@@ -49,7 +54,7 @@ machine abc {
     ...
 };
 ```
-Here `...` means some texts.
+(Here `...` means some texts.)
 
 For every kind of properties, the grammar and contents are different.
 
@@ -280,28 +285,11 @@ and
 <evaluable>       ->        <number>
 ```
 
-## Source Code Generate
+## TODO:
 
-The C/C++ source files (i.e. this project's output) would provide a data structure which
-contains those properties of the given machine in form of below:
-### registers
+Codegen/C:
 
-Every register item in all Register Groups will generate a struct in this form:
-```C
-struct Register {
-    uint32_t        reg_name;
-    struct Bits     reg_bits;
-    uint16_t        reg_code;
-};
-```
-
-The higher 16 bits of `reg_name` presented the RegisterGroup that it in's identity and lower 16 bits means it identity in the group.
-
-The `reg_bits` stores the register's lowest bit offset and highest bit offset. And there has
-```C
-struct Bits {
-    uint8_t     lowest;
-    uint8_t     highest;
-};
-```
-The `reg_code` is the encoding of the register in Instructions. 
+1. error messages;
+2. machine model;
+3. query functions;
+4. test work.

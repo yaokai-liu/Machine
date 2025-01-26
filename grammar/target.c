@@ -23,9 +23,7 @@ void releaseEntry(Entry *, const Allocator *) {}
 void releaseMachine(Machine *machine, const Allocator *allocator) {
   releaseIdentifier(machine->name, allocator);
   allocator->free(machine->name);
-  Array_reset(machine->entries, (destruct_t *) releaseEntry);
-  Array_destroy(machine->entries);
-  GContext_destroy(machine->context);
+  if (machine->context) { GContext_destroy(machine->context); }
   // TODO: release other arrays.
 }
 

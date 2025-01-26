@@ -11,6 +11,7 @@
 #define MACHINE_PATTERN_MATCH_H
 
 #include "context.h"
-void gen_pattern_match(GContext *context, const Machine *machine);
+#include "generate.h"
+void gen_pattern_match(Generator *generator, const Machine *machine);
 
 #endif  // MACHINE_PATTERN_MATCH_H

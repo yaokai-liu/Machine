@@ -11,7 +11,6 @@
 #define MACHINE_CONTEXT_H
 
 #include "allocator.h"
-#include "codegen.h"
 #include "stack.h"
 #include "target.h"
 #include "terminal.h"
@@ -21,17 +20,6 @@ typedef struct Record {
   uint32_t typeid;
   uint32_t offset;
 } Record;
-
-enum Ctx_ByteBuffer {
-  CtxBuf_exports,
-  CtxBuf_includes,
-  CtxBuf_macros,
-  CtxBuf_enums,
-  CtxBuf_types,
-  CtxBuf_declares,
-  CtxBuf_definitions,
-  CtxBuf_tables
-};
 
 typedef struct GContext {
   const Allocator *allocator;
@@ -44,31 +32,23 @@ typedef struct GContext {
   Array /*<Record>*/ *recordArray;
   Array /*<TrieKeyItem>*/ *keyArray;
   Array /*<TrieNodeItem>*/ *stateArray;
-  Trie /*<uint32_t>*/ *objectMap;
-  Trie /*<uint32_t>*/ *opcodeMap;
-  codegen_t *(*getCodegen)(uint32_t token_type);
-
-  Array *outputs[16];
+  Trie /*<char_t, uint64_t>*/ *objectMap;
+  Trie /*<char_t, REFER(Instruction)>*/ *opcodeMap;
 
   // temporary variable
-  Array /*<Pattern *>*/ *patterns;
-  Stack *widthStack;
-  Stack *identStack;
-  AVLTree *mappingTree;
+  Array /*<Pattern*>*/ *patterns;
+  Stack /*<uint64_t>*/ *widthStack;
+  Stack /*<Identifier*>*/ *identStack;
+  AVLTree /*<BitField*, MappingItem*>*/ *mappingTree;
   uint32_t maxArgCount;
+  const char_t *errorMessage;
 } GContext;
 
 typedef struct GContext GContext;
 
 GContext *GContext_new(const Allocator *allocator);
 
-const Allocator *GContext_getAllocator(GContext *context);
-
-Array *GContext_getOutputBuffer(GContext *context, uint32_t index);
-
-void GContext_setCodegen(GContext *context, codegen_t *(*getCodegen)(uint32_t token_type));
-
-codegen_t *GContext_getCodegen(GContext *context, uint32_t token_type);
+const Allocator *GContext_getAllocator(const GContext *context);
 
 void GContext_addOpcode(GContext *context, const Identifier *ident, Instruction *instr);
 
@@ -76,7 +56,7 @@ Instruction *GContext_findOpcode(GContext *context, const Identifier *ident);
 
 void GContext_addRecord(GContext *context, const Identifier *ident, Record *record);
 
-void *GContext_findRecord(GContext *context, const Identifier *ident);
+void *GContext_findRecord(const GContext *context, const Identifier *ident);
 
 REFER(Immediate) GContext_addImmediate(GContext *context, const Immediate *imm);
 REFER(Register) GContext_addRegister(GContext *context, const Register *reg);
@@ -85,12 +65,12 @@ REFER(RegisterGroup) GContext_addRegisterGroup(GContext *context, const Register
 REFER(Set) GContext_addSet(GContext *context, const Set *set);
 REFER(Instruction) GContext_addInstruction(GContext *context, const Instruction *instr);
 
-const Immediate *GContext_getImmediate(GContext *context, uint32_t offset);
-const Register *GContext_getRegister(GContext *context, uint32_t offset);
-const Memory *GContext_getMemory(GContext *context, uint32_t offset);
-const RegisterGroup *GContext_getRegisterGroup(GContext *context, uint32_t offset);
-const Instruction *GContext_getInstruction(GContext *context, uint32_t index);
-const Set *GContext_getSet(GContext *context, uint32_t offset);
+const Immediate *GContext_getImmediate(const GContext *context, uint32_t offset);
+const Register *GContext_getRegister(const GContext *context, uint32_t offset);
+const Memory *GContext_getMemory(const GContext *context, uint32_t offset);
+const RegisterGroup *GContext_getRegisterGroup(const GContext *context, uint32_t offset);
+const Instruction *GContext_getInstruction(const GContext *context, uint32_t index);
+const Set *GContext_getSet(const GContext *context, uint32_t offset);
 
 void *GContext_findIdentInStack(GContext *context, Identifier *ident);
 
@@ -109,6 +89,9 @@ Trie /*<REFER(Record), uint64_t>*/ *
 void GContext_dump_instruction(GContext *context, Instruction *instr);
 
 uint64_t GContext_getLastWidth(GContext *context);
+
+void GContext_setErrorMessage(GContext *context, const char_t * msg);
+const char_t *  GContext_getErrorMessage(GContext *context);
 
 void GContext_destroy(GContext *context);
 

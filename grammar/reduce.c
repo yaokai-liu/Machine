@@ -10,7 +10,6 @@
 #include "action-table.h"
 #include "array.h"
 #include "avl-tree.h"
-#include "codegen.h"
 #include "context.h"
 #include "enum.h"
 #include "semantic.h"
@@ -24,7 +23,11 @@
 #define grammarAssertDefinedRecord(ident)                 \
   do {                                                    \
     Record *record = GContext_findRecord(context, ident); \
-    if (!record) { return nullptr; }                      \
+    if (!record) {                                        \
+      GContext_setErrorMessage(context,                   \
+          "undefined identifier.");                       \
+    return nullptr;                                       \
+    }                                                     \
   } while (false)
 
 #define grammarAssertHasArgument(ident)                                   \
@@ -35,73 +38,63 @@
 #define grammarAssertNotDeclaredRecord(ident)             \
   do {                                                    \
     Record *record = GContext_findRecord(context, ident); \
-    if (record) { return nullptr; }                       \
+    if (record) {                                         \
+      GContext_setErrorMessage(context,                   \
+          "redefined identifier.");                       \
+    return nullptr;                                       \
+    }                                                     \
     void *id = GContext_findIdentInStack(context, ident); \
-    if (id) { return nullptr; }                           \
+    if (id) {                                             \
+      GContext_setErrorMessage(context,                   \
+          "redefined identifier.");                       \
+    return nullptr;                                       \
+    }                                                     \
   } while (false)
 
 #define grammarAssertNotDeclaredOpcode(ident)                 \
   do {                                                        \
     Instruction *instr = GContext_findOpcode(context, ident); \
-    if (instr) { return nullptr; }                            \
-    void *id = GContext_findIdentInStack(context, ident);     \
-    if (id) { return nullptr; }                               \
+    if (instr) {                                              \
+      GContext_setErrorMessage(context,                       \
+          "redefined identifier.");                           \
+    return nullptr;                                           \
+    }                                                         \
   } while (false)
 
-#define grammarAssert(bool_expr)          \
-  do {                                    \
-    if (!(bool_expr)) { return nullptr; } \
+#define grammarAssert(bool_expr, msg)           \
+  do {                                          \
+    if (!(bool_expr)) {                         \
+      GContext_setErrorMessage(context, msg);   \
+    return nullptr;                             \
+    }                                           \
   } while (false)
 
-Entries *p_Entries_0(void *argv[], GContext *, const Allocator *allocator) {
-  Entries *entries = (Entries *) argv[0];
-  Entry *entry = (Entry *) argv[1];
-  Array_append(entries, entry, 1);
-  allocator->free(entry);
-  return entries;
+Entries *p_Entries_0(void *[], GContext *, const Allocator *) {
+  return (REFER(Entries)) (uint64_t) (enum_Entries);
 }
 
-Entries *p_Entries_1(void *argv[], GContext *, const Allocator *allocator) {
-  Entry *entry = (Entry *) argv[0];
-  Entries *entries = Array_new(sizeof(Entry), enum_Entry, allocator);
-  Array_append(entries, entry, 1);
-  allocator->free(entry);
-  return entries;
+Entries *p_Entries_1(void *[], GContext *, const Allocator *) {
+  return (REFER(Entries)) (uint64_t) (enum_Entries);
 }
 
-Entry *p_Entry_0(void *argv[], GContext *, const Allocator *allocator) {
-  Entry *entry = allocator->calloc(1, sizeof(Entry));
-  entry->type = enum_RegisterGroup;
-  entry->target = (RegisterGroup *) argv[0];
-  return entry;
+Entry *p_Entry_0(void *[], GContext *, const Allocator *) {
+  return (REFER(Entry)) (uint64_t) (enum_Entry);
 }
 
-Entry *p_Entry_1(void *argv[], GContext *, const Allocator *allocator) {
-  Entry *entry = allocator->calloc(1, sizeof(Entry));
-  entry->type = enum_Instruction;
-  entry->target = (Instruction *) argv[0];
-  return entry;
+Entry *p_Entry_1(void *[], GContext *, const Allocator *) {
+  return (REFER(Entry)) (uint64_t) (enum_Entry);
 }
 
-Entry *p_Entry_2(void *argv[], GContext *, const Allocator *allocator) {
-  Entry *entry = allocator->calloc(1, sizeof(Entry));
-  entry->type = enum_Memory;
-  entry->target = (Memory *) argv[0];
-  return entry;
+Entry *p_Entry_2(void *[], GContext *, const Allocator *) {
+  return (REFER(Entry)) (uint64_t) (enum_Entry);
 }
 
-Entry *p_Entry_3(void *argv[], GContext *, const Allocator *allocator) {
-  Entry *entry = allocator->calloc(1, sizeof(Entry));
-  entry->type = enum_Immediate;
-  entry->target = (Immediate *) argv[0];
-  return entry;
+Entry *p_Entry_3(void *[], GContext *, const Allocator *) {
+  return (REFER(Entry)) (uint64_t) (enum_Entry);
 }
 
-Entry *p_Entry_4(void *argv[], GContext *, const Allocator *allocator) {
-  Entry *entry = allocator->calloc(1, sizeof(Entry));
-  entry->type = enum_Set;
-  entry->target = (Set *) argv[0];
-  return entry;
+Entry *p_Entry_4(void *[], GContext *, const Allocator *) {
+  return (REFER(Entry)) (uint64_t) (enum_Entry);
 }
 
 Evaluable *p_Evaluable_0(void *argv[], GContext *context, const Allocator *allocator) {
@@ -165,19 +158,19 @@ Immediate *p_Immediate_0(void *argv[], GContext *context, const Allocator *) {
 
   Immediate *result = GContext_addImmediate(context, &imm);
 
-  codegen_t *fn_codegen = GContext_getCodegen(context, enum_Immediate);
-  if (fn_codegen) { fn_codegen(context, result); }
-
   return result;
 }
 
-InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
+InstrForm *p_InstrForm_0(void *argv[], GContext * context, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   InstrParts *part_array = (InstrParts *) argv[4];
 
   uint32_t n_parts = Array_length(part_array);
-  if (Array_length(part_array) > 3) { return nullptr; }
+  if (Array_length(part_array) > 3) {
+    GContext_setErrorMessage(context, "too many parts.");
+    return nullptr;
+  }
 
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
@@ -189,6 +182,7 @@ InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
     const InstrPart *part = &parts[i];
     if (form->parts[part->type - 1].layout) {
       allocator->free(form);
+      GContext_setErrorMessage(context, "duplicated part.");
       return nullptr;
     }
     form->parts[part->type - 1].width = part->width;
@@ -198,14 +192,17 @@ InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
   return form;
 }
 
-InstrForm *p_InstrForm_1(void *argv[], GContext *, const Allocator *allocator) {
+InstrForm *p_InstrForm_1(void *argv[], GContext * context, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   uint32_t tick = (uint32_t) (uint64_t) argv[3];
   InstrParts *part_array = (InstrParts *) argv[5];
 
   uint32_t n_parts = Array_length(part_array);
-  if (Array_length(part_array) > 3) { return nullptr; }
+  if (Array_length(part_array) > 3) {
+    GContext_setErrorMessage(context, "too many parts.");
+    return nullptr;
+  }
 
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
@@ -217,6 +214,7 @@ InstrForm *p_InstrForm_1(void *argv[], GContext *, const Allocator *allocator) {
     const InstrPart *part = &parts[i];
     if (form->parts[part->type - 1].layout) {
       allocator->free(form);
+      GContext_setErrorMessage(context, "duplicated part.");
       return nullptr;
     }
     form->parts[part->type - 1].width = part->width;
@@ -242,12 +240,15 @@ InstrForms *p_InstrForms_1(void *argv[], GContext *, const Allocator *allocator)
   return forms;
 }
 
-InstrPart *p_InstrPart_0(void *argv[], GContext *, const Allocator *allocator) {
+InstrPart *p_InstrPart_0(void *argv[], GContext * context, const Allocator *allocator) {
   enum PART_KEY key = (uint32_t) (uint64_t) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   Layout *layout = (Layout *) argv[4];
 
-  if (0 == width) { return nullptr; }
+  if (0 == width) {
+    GContext_setErrorMessage(context, "empty part.");
+    return nullptr;
+  }
 
   InstrPart *part = allocator->calloc(1, sizeof(InstrPart));
   part->type = key;
@@ -284,8 +285,6 @@ Instruction *p_Instruction_0(void *argv[], GContext *context, const Allocator *)
 
   GContext_dump_instruction(context, instr);
 
-  codegen_t *fn_codegen = GContext_getCodegen(context, enum_Instruction);
-  if (fn_codegen) { fn_codegen(context, instr); }
   return instr;
 }
 
@@ -307,13 +306,9 @@ Layout *p_Layout_1(void *argv[], GContext *, const Allocator *allocator) {
 
 Machine *p_Machine_0(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *identifier = (Identifier *) argv[1];
-  Entries *entries = argv[3];
   Machine *machine = allocator->calloc(1, sizeof(Machine));
   machine->name = identifier;
-  machine->entries = entries;
-
-  codegen_t *fn_codegen = GContext_getCodegen(context, enum_Machine);
-  if (fn_codegen) { fn_codegen(context, machine); }
+  machine->context = context;
 
   return machine;
 }
@@ -328,10 +323,19 @@ MappingItem *p_MappingItem_0(void *argv[], GContext *context, const Allocator *a
 
   if (bit_field) {
     uint64_t width = GContext_getLastWidth(context);
-    if (bit_field->upper > width) { return nullptr; }
+    if (bit_field->upper > width) {
+      GContext_setErrorMessage(context, "overflow bits.");
+      return nullptr;
+    }
   }
-  if (GContext_getMapItem(context, bit_field)) { return nullptr; }
-  if (0 != check_mapping_item(context, bit_field, evaluable)) { return nullptr; }
+  if (GContext_getMapItem(context, bit_field)) {
+    GContext_setErrorMessage(context, "rewrite bits.");
+    return nullptr;
+  }
+  if (0 != check_mapping_item(context, bit_field, evaluable)) {
+    GContext_setErrorMessage(context, "bit filed width mismatch.");
+    return nullptr;
+  }
 
   MappingItem *item = allocator->calloc(1, sizeof(MappingItem));
   item->field = bit_field;
@@ -342,12 +346,15 @@ MappingItem *p_MappingItem_0(void *argv[], GContext *context, const Allocator *a
   return item;
 }
 
-MappingItems *p_MappingItems_0(void *argv[], GContext *, const Allocator *allocator) {
+MappingItems *p_MappingItems_0(void *argv[], GContext *context, const Allocator *allocator) {
   MappingItems *items = (MappingItems *) argv[0];
   MappingItem *item = (MappingItem *) argv[2];
 
   if (!item->field) {
-    if (items->default_eval) { return nullptr; }
+    if (items->default_eval) {
+      GContext_setErrorMessage(context, "redefine default bits.");
+      return nullptr;
+    }
     items->default_eval = item->evaluable;
   } else {
     items->lowest = min(item->field->lower, items->lowest);
@@ -377,9 +384,12 @@ MappingItems *p_MappingItems_1(void *argv[], GContext *, const Allocator *alloca
   return items;
 }
 
-MemItem *p_MemItem_0(void *argv[], GContext *, const Allocator *allocator) {
+MemItem *p_MemItem_0(void *argv[], GContext *context, const Allocator *allocator) {
   enum MEM_KEY key = (uint32_t) (uint64_t) argv[0];
-  if (key != MEM_BASE && key != MEM_OFFSET) { return nullptr; }
+  if (key != MEM_BASE && key != MEM_OFFSET) {
+    GContext_setErrorMessage(context, "unknown part key of memory mdoel.");
+    return nullptr;
+  }
   BitField *bit_field = (BitField *) argv[2];
   MemItem *item = allocator->calloc(1, sizeof(MemItem));
   item->type = key;
@@ -395,7 +405,10 @@ Memory *p_Memory_0(void *argv[], GContext *context, const Allocator *allocator) 
 
   grammarAssertNotDeclaredRecord(ident);
 
-  if (item1->type == item2->type) { return nullptr; }
+  if (item1->type == item2->type) {
+    GContext_setErrorMessage(context, "duplicated part key of memory mdoel.");
+    return nullptr;
+  }
   Memory mem = {.name = ident, .width = width};
   if (item1->type == MEM_BASE) {
     mem.base = item1->field;
@@ -409,16 +422,16 @@ Memory *p_Memory_0(void *argv[], GContext *context, const Allocator *allocator) 
 
   Memory *result = GContext_addMemory(context, &mem);
 
-  codegen_t *fn_codegen = GContext_getCodegen(context, enum_Memory);
-  if (fn_codegen) { fn_codegen(context, result); }
-
   return result;
 }
 
 Pattern *p_Pattern_0(void *argv[], GContext *context, const Allocator *allocator) {
   PatternArgs *args = (PatternArgs *) argv[1];
 
-  if (GContext_testPattern(context, args)) { return nullptr; }
+  if (GContext_testPattern(context, args)) {
+    GContext_setErrorMessage(context, "duplicated instruction pattern.");
+    return nullptr;
+  }
 
   Pattern *pattern = allocator->calloc(1, sizeof(Pattern));
   pattern->args = args;
@@ -479,7 +492,7 @@ RegisterGroup *p_RegisterGroup_0(void *argv[], GContext *context, const Allocato
   grammarAssertNotDeclaredRecord(ident);
 
   const uint32_t len = Array_length(registers);
-  grammarAssert(len > 0);
+  grammarAssert(len > 0, "no register defined.");
 
   RegisterGroup grp = {.name = ident, .width = width, .registers = registers};
   REFER(RegisterGroup) result = GContext_addRegisterGroup(context, &grp);
@@ -488,9 +501,6 @@ RegisterGroup *p_RegisterGroup_0(void *argv[], GContext *context, const Allocato
     Register *reg = Array_vert2real(context->regArray, regs[i]);
     reg->group = result;
   }
-
-  codegen_t *fn_codegen = GContext_getCodegen(context, enum_RegisterGroup);
-  if (fn_codegen) { fn_codegen(context, result); }
 
   return result;
 }

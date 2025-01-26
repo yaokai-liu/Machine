@@ -49,13 +49,13 @@ constexpr char_t HEADER_FMT[] =
     " **/";
 
 constexpr char_t INCLUDES[] = "#include \"machine-%s.h\"\n"
-                              "#include <stdarg.h>\n"
-                              "#include \"array.h\"\n";
+                              "#include <stdarg.h>\n";
 
-constexpr char_t EXPORT_INCLUDES[] = "#include <stdint.h>\n";
+constexpr char_t EXPORT_INCLUDES[] = "#include <stdint.h>\n"
+                                     "#include \"array.h\"\n";
 
 constexpr char_t MACROS[] =
-    "#define min(a, b)         ((a) < (b)) ? (a) : (b)\n"
+    "#define min(a, b)             ((a) < (b)) ? (a) : (b)\n"
     "#define UINT_N_MAX(n_bits)    (n_bits == 64 ? -1 : ((1LLU << (n_bits)) - 1))\n"
     "#define LOW_BITS(val, n_bits) ((val) & UINT_N_MAX(n_bits))\n"
     "#define MASK_BITS(bl, bu)     (UINT_N_MAX(bu) - UINT_N_MAX(bl))\n"
@@ -115,7 +115,7 @@ constexpr char_t ENTRY_TYPE_CHECK_DEC[] =
     "bool entry_type_check(enum ENTRY_TYPE_ENUM type1, enum ENTRY_TYPE_ENUM type2);\n";
 constexpr char_t ENTRY_TYPE_CHECK_DEF[] =
     "bool entry_type_check(enum ENTRY_TYPE_ENUM type1, enum ENTRY_TYPE_ENUM type2) {\n"
-    "  if (type1 == type2) { return true; }\n"
+    "  if (type1 == type2) { return type1 < enum_BEGIN_SET_GRP; }\n"
     "  else if (enum_BEGIN_SET_GRP < type1 && type1 < enum_TYPE_ENUM_UPPER_BOUND) {\n"
     "    auto state = &SET_GRP_STATE_TABLE[type1 - enum_BEGIN_SET_GRP + 1];\n"
     "    for (uint32_t i = 0 ; i < state->count; i ++) {\n"
@@ -173,18 +173,18 @@ void gen_header(
 }
 
 #define ctx_push_string(type, s) \
-  do { Array_append(GContext_getOutputBuffer(context, CtxBuf_##type), s, strlen(s)); } while (false)
+  do { Array_append(Generator_getOutputBuffer(generator, CtxBuf_##type), s, strlen(s)); } while (false)
 
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
 
-void gen_static_definitions(GContext *context, Machine *machine) {
+void gen_static_definitions(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
   sprintf(temp_buffer, INCLUDES, machine->name->ptr);
   ctx_push_string(includes, temp_buffer);
   ctx_push_string(macros, MACROS);
   ctx_push_string(types, TYPEDEF_ENTRY);
-  sprintf(temp_buffer, TYPEDEF_MACHINE_FMT, context->maxArgCount);
+  sprintf(temp_buffer, TYPEDEF_MACHINE_FMT, machine->context->maxArgCount);
   ctx_push_string(types, temp_buffer);
   ctx_push_string(types, STRUCT_JUMP_ITEM);
   ctx_push_string(types, STRUCT_JUMP_STATE);
@@ -194,15 +194,15 @@ void gen_static_definitions(GContext *context, Machine *machine) {
   ctx_push_string(declares, ENTRY_TYPE_CHECK_DEC);
   ctx_push_string(declares, CONVERT_INSTR_TO_BYTES_DEC);
 }
-void gen_driver(GContext *context, Machine *) {
+void gen_driver(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
-  sprintf(temp_buffer, MAX_ARGS_FMT, context->maxArgCount);
+  sprintf(temp_buffer, MAX_ARGS_FMT, machine->context->maxArgCount);
   ctx_push_string(definitions, temp_buffer);
   ctx_push_string(definitions, ENTRY_TYPE_CHECK_DEF);
   ctx_push_string(definitions, CONVERT_INSTR_TO_BYTES_DEF);
 }
 
-void gen_export_header(GContext *context, Machine *machine) {
+void gen_export_header(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
   const char_t * const name = machine->name->ptr;
   sprintf(temp_buffer, EXPORT_HEADER_FMT, name, name);
@@ -211,7 +211,7 @@ void gen_export_header(GContext *context, Machine *machine) {
   ctx_push_string(exports, EXPORT_DECLARE);
 }
 
-void gen_export_tail(GContext *context, Machine *machine) {
+void gen_export_tail(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
   const char_t * const name = machine->name->ptr;
   sprintf(temp_buffer, EXPORT_TAIL_FMT, name);

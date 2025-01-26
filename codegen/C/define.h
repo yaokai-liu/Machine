@@ -12,19 +12,10 @@
 
 #include "context.h"
 
-void online_gen_memory_dec(GContext *context, Array *buffer, const Memory *mem);
-void online_gen_memory_def(GContext *context, Array *buffer, const Memory *mem);
+void gen_enum_item(Generator *generator, const Machine *machine);
+void gen_set_grp_jump_table(Generator *generator, const Machine *machine);
 
-void online_gen_immediate_dec(GContext *context, Array *buffer, const Immediate *imm);
-void online_gen_immediate_def(GContext *context, Array *buffer, const Immediate *imm);
-
-void online_gen_register_dec(GContext *context, Array *buffer, const Register *reg);
-void online_gen_register_def(GContext *context, Array *buffer, const Register *reg);
-
-void gen_enum_item(GContext *context, const Machine *machine);
-void gen_set_grp_jump_table(GContext *context, Machine *machine);
-
-void gen_context_dec(GContext *context);
-void gen_context_def(GContext *context);
+void gen_context_dec(Generator *generator, const Machine *machine);
+void gen_context_def(Generator *generator, const Machine *machine);
 
 #endif  // MACHINE_DEFINE_H
