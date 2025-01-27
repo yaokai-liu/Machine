@@ -20,14 +20,13 @@
 
 #define min(a, b) ((a) < (b)) ? (a) : (b)
 
-#define grammarAssertDefinedRecord(ident)                 \
-  do {                                                    \
-    Record *record = GContext_findRecord(context, ident); \
-    if (!record) {                                        \
-      GContext_setErrorMessage(context,                   \
-          "undefined identifier.");                       \
-    return nullptr;                                       \
-    }                                                     \
+#define grammarAssertDefinedRecord(ident)                         \
+  do {                                                            \
+    Record *record = GContext_findRecord(context, ident);         \
+    if (!record) {                                                \
+      GContext_setErrorMessage(context, "undefined identifier."); \
+      return nullptr;                                             \
+    }                                                             \
   } while (false)
 
 #define grammarAssertHasArgument(ident)                                   \
@@ -35,66 +34,63 @@
     if (!GContext_testEvalIdentLegal(context, ident)) { return nullptr; } \
   } while (false)
 
-#define grammarAssertNotDeclaredRecord(ident)             \
-  do {                                                    \
-    Record *record = GContext_findRecord(context, ident); \
-    if (record) {                                         \
-      GContext_setErrorMessage(context,                   \
-          "redefined identifier.");                       \
-    return nullptr;                                       \
-    }                                                     \
-    void *id = GContext_findIdentInStack(context, ident); \
-    if (id) {                                             \
-      GContext_setErrorMessage(context,                   \
-          "redefined identifier.");                       \
-    return nullptr;                                       \
-    }                                                     \
+#define grammarAssertNotDeclaredRecord(ident)                     \
+  do {                                                            \
+    Record *record = GContext_findRecord(context, ident);         \
+    if (record) {                                                 \
+      GContext_setErrorMessage(context, "redefined identifier."); \
+      return nullptr;                                             \
+    }                                                             \
+    void *id = GContext_findIdentInStack(context, ident);         \
+    if (id) {                                                     \
+      GContext_setErrorMessage(context, "redefined identifier."); \
+      return nullptr;                                             \
+    }                                                             \
   } while (false)
 
-#define grammarAssertNotDeclaredOpcode(ident)                 \
-  do {                                                        \
-    Instruction *instr = GContext_findOpcode(context, ident); \
-    if (instr) {                                              \
-      GContext_setErrorMessage(context,                       \
-          "redefined identifier.");                           \
-    return nullptr;                                           \
-    }                                                         \
+#define grammarAssertNotDeclaredOpcode(ident)                     \
+  do {                                                            \
+    Instruction *instr = GContext_findOpcode(context, ident);     \
+    if (instr) {                                                  \
+      GContext_setErrorMessage(context, "redefined identifier."); \
+      return nullptr;                                             \
+    }                                                             \
   } while (false)
 
-#define grammarAssert(bool_expr, msg)           \
-  do {                                          \
-    if (!(bool_expr)) {                         \
-      GContext_setErrorMessage(context, msg);   \
-    return nullptr;                             \
-    }                                           \
+#define grammarAssert(bool_expr, msg)         \
+  do {                                        \
+    if (!(bool_expr)) {                       \
+      GContext_setErrorMessage(context, msg); \
+      return nullptr;                         \
+    }                                         \
   } while (false)
 
 Entries *p_Entries_0(void *[], GContext *, const Allocator *) {
-  return (REFER(Entries)) (uint64_t) (enum_Entries);
+  return (REFER(Entries))(uint64_t) (enum_Entries);
 }
 
 Entries *p_Entries_1(void *[], GContext *, const Allocator *) {
-  return (REFER(Entries)) (uint64_t) (enum_Entries);
+  return (REFER(Entries))(uint64_t) (enum_Entries);
 }
 
 Entry *p_Entry_0(void *[], GContext *, const Allocator *) {
-  return (REFER(Entry)) (uint64_t) (enum_Entry);
+  return (REFER(Entry))(uint64_t) (enum_Entry);
 }
 
 Entry *p_Entry_1(void *[], GContext *, const Allocator *) {
-  return (REFER(Entry)) (uint64_t) (enum_Entry);
+  return (REFER(Entry))(uint64_t) (enum_Entry);
 }
 
 Entry *p_Entry_2(void *[], GContext *, const Allocator *) {
-  return (REFER(Entry)) (uint64_t) (enum_Entry);
+  return (REFER(Entry))(uint64_t) (enum_Entry);
 }
 
 Entry *p_Entry_3(void *[], GContext *, const Allocator *) {
-  return (REFER(Entry)) (uint64_t) (enum_Entry);
+  return (REFER(Entry))(uint64_t) (enum_Entry);
 }
 
 Entry *p_Entry_4(void *[], GContext *, const Allocator *) {
-  return (REFER(Entry)) (uint64_t) (enum_Entry);
+  return (REFER(Entry))(uint64_t) (enum_Entry);
 }
 
 Evaluable *p_Evaluable_0(void *argv[], GContext *context, const Allocator *allocator) {
@@ -161,7 +157,7 @@ Immediate *p_Immediate_0(void *argv[], GContext *context, const Allocator *) {
   return result;
 }
 
-InstrForm *p_InstrForm_0(void *argv[], GContext * context, const Allocator *allocator) {
+InstrForm *p_InstrForm_0(void *argv[], GContext *context, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   InstrParts *part_array = (InstrParts *) argv[4];
@@ -192,7 +188,7 @@ InstrForm *p_InstrForm_0(void *argv[], GContext * context, const Allocator *allo
   return form;
 }
 
-InstrForm *p_InstrForm_1(void *argv[], GContext * context, const Allocator *allocator) {
+InstrForm *p_InstrForm_1(void *argv[], GContext *context, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   uint32_t tick = (uint32_t) (uint64_t) argv[3];
@@ -240,7 +236,7 @@ InstrForms *p_InstrForms_1(void *argv[], GContext *, const Allocator *allocator)
   return forms;
 }
 
-InstrPart *p_InstrPart_0(void *argv[], GContext * context, const Allocator *allocator) {
+InstrPart *p_InstrPart_0(void *argv[], GContext *context, const Allocator *allocator) {
   enum PART_KEY key = (uint32_t) (uint64_t) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   Layout *layout = (Layout *) argv[4];

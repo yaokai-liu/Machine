@@ -25,14 +25,17 @@ int32_t online_gen_instr_encoding_def(
     const GContext *context, Array *buffer, const char_t *instr_op, const InstrForm forms[],
     uint32_t n_forms
 );
-void gen_instr_exec_and_encoding(Generator *generator, const Machine *machine);
+void gen_instr_exec(Generator *generator, const Machine *machine);
 
 void gen_jump_table_dec(Generator *generator, const Machine *machine);
-void gen_jump_table_def(Generator *generator, const Machine *machine, Array *key_buffer, Array *state_buffer);
+void gen_jump_table_def(
+    Generator *generator, const Machine *machine, Array *key_buffer, Array *state_buffer
+);
 
 int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrForm *form);
 
-int32_t codegen_layout(const GContext *context, Array *buffer, const Layout *layout, uint32_t width);
+int32_t
+    codegen_layout(const GContext *context, Array *buffer, const Layout *layout, uint32_t width);
 
 int32_t codegen_items_bf(
     const GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field

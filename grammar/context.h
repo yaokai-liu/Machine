@@ -90,8 +90,8 @@ void GContext_dump_instruction(GContext *context, Instruction *instr);
 
 uint64_t GContext_getLastWidth(GContext *context);
 
-void GContext_setErrorMessage(GContext *context, const char_t * msg);
-const char_t *  GContext_getErrorMessage(GContext *context);
+void GContext_setErrorMessage(GContext *context, const char_t *msg);
+const char_t *GContext_getErrorMessage(GContext *context);
 
 void GContext_destroy(GContext *context);
 

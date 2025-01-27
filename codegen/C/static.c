@@ -160,7 +160,7 @@ constexpr char_t EXPORT_HEADER_FMT[] = "#ifndef MACHINE_%s_H\n"
 
 constexpr char_t EXPORT_TAIL_FMT[] = "\n#endif  // MACHINE_%s_H\n";
 
-void gen_header(
+void gen_license(
     GContext *context, Array *buffer, char_t *filename, int32_t year, char_t *cr_holder
 ) {
   uint32_t fn_len = strlen(filename);
@@ -172,8 +172,10 @@ void gen_header(
   context->allocator->free(temp_buffer);
 }
 
-#define ctx_push_string(type, s) \
-  do { Array_append(Generator_getOutputBuffer(generator, CtxBuf_##type), s, strlen(s)); } while (false)
+#define ctx_push_string(type, s)                                                     \
+  do {                                                                               \
+    Array_append(Generator_getOutputBuffer(generator, CtxBuf_##type), s, strlen(s)); \
+  } while (false)
 
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)

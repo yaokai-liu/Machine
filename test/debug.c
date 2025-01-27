@@ -22,12 +22,12 @@
 
 #define MAX_CHAR 4096
 
-#define show(ndx)                                                                          \
-  do {                                                                                     \
-    char_t c = '\0';                                                                       \
-    Array_append(Generator_getOutputBuffer(generator, ndx), &c, 1);                        \
-    char_t *outputs = Array_real_addr(Generator_getOutputBuffer(generator, ndx), 0);       \
-    fprintf(pFile, "%s\n", outputs);                                                       \
+#define show(ndx)                                                                    \
+  do {                                                                               \
+    char_t c = '\0';                                                                 \
+    Array_append(Generator_getOutputBuffer(generator, ndx), &c, 1);                  \
+    char_t *outputs = Array_real_addr(Generator_getOutputBuffer(generator, ndx), 0); \
+    fprintf(pFile, "%s\n", outputs);                                                 \
   } while (0)
 
 int main() {

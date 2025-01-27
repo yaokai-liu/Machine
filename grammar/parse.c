@@ -26,8 +26,9 @@ Machine *failed_to_produce(
 Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocator *allocator);
 
 #define MAX_ARGC 0x10
-Machine *
-    parse(const Terminal *tokens, uint32_t *cost, const char_t **err_msg, const Allocator *allocator) {
+Machine *parse(
+    const Terminal *tokens, uint32_t *cost, const char_t **err_msg, const Allocator *allocator
+) {
   void *result;
   int32_t state = 0;
   const Terminal *tp = tokens;

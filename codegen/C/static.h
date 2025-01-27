@@ -12,7 +12,7 @@
 
 #include "generate.h"
 
-void gen_header(
+void gen_license(
     GContext *context, Array *buffer, char_t *filename, int32_t year, char_t *cr_holder
 );
 void gen_export_header(Generator *generator, const Machine *machine);

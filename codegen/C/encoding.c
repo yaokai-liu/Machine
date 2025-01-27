@@ -32,10 +32,11 @@ constexpr char_t ENCODING_DEF_FMT_TAIL[] = "  Array_append(buffer, bytes, size);
 constexpr char_t ENCODING_DEC_FMT[] = "uint32_t encoding_%s_%u(Array *buffer, uint64_t args[])";
 constexpr char_t ENCODING_DEC_NO_ARGS_FMT[] = "uint32_t encoding_%s_%u(Array *buffer, uint64_t [])";
 constexpr char_t ENCODING_NAME_FMT[] = "encoding_%s_%u";
-constexpr char_t ENUM_OPCODE_FMT[] = "enum_OP_%s";
 
-#define ctx_push_string(type, s) \
-  do { Array_append(Generator_getOutputBuffer(generator, CtxBuf_##type), s, strlen(s)); } while (false)
+#define ctx_push_string(type, s)                                                     \
+  do {                                                                               \
+    Array_append(Generator_getOutputBuffer(generator, CtxBuf_##type), s, strlen(s)); \
+  } while (false)
 
 #define _push_string(buffer, s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
@@ -44,7 +45,7 @@ constexpr char_t ENUM_OPCODE_FMT[] = "enum_OP_%s";
   do { Array_append(buffer, s, strlen(s)); } while (false)
 
 int32_t online_gen_instr_encoding_dec(
-    const GContext *, Array *buffer, const char_t *instr_op, const InstrForm [], uint32_t n_forms
+    const GContext *, Array *buffer, const char_t *instr_op, const InstrForm[], uint32_t n_forms
 ) {
   char_t head_buffer[sizeof(ENCODING_DEF_FMT_HEAD) + 256];
   for (uint32_t i = 0; i < n_forms; ++i) {
@@ -102,7 +103,7 @@ const char_t INSTR_EXEC_DEF_BODY[] = "  enum ENTRY_TYPE_ENUM types[MAX_ARGS] = {
                                      "        entry_offset, buffer, types, values, n_args\n"
                                      "  );\n"
                                      "}\n";
-void gen_instr_exec_and_encoding(Generator *generator, const Machine *machine) {
+void gen_instr_exec(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
   const GContext *context = machine->context;
   Array *dec_buffer = Generator_getOutputBuffer(generator, CtxBuf_declares);
@@ -326,7 +327,8 @@ int32_t codegen_items_bf(
   return Array_length(buffer) - pre_len;
 }
 
-int32_t codegen_layout(const GContext *context, Array *buffer, const Layout *layout, uint32_t width) {
+int32_t
+    codegen_layout(const GContext *context, Array *buffer, const Layout *layout, uint32_t width) {
   const uint32_t pre_len = Array_length(buffer);
   switch (layout->type) {
     case enum_Evaluable: {

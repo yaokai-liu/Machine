@@ -16,8 +16,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#define ctx_push_string(type, s) \
-  do { Array_append(Generator_getOutputBuffer(generator, CtxBuf_##type), s, strlen(s)); } while (false)
+#define ctx_push_string(type, s)                                                     \
+  do {                                                                               \
+    Array_append(Generator_getOutputBuffer(generator, CtxBuf_##type), s, strlen(s)); \
+  } while (false)
 
 #define _push_string(buffer, s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)

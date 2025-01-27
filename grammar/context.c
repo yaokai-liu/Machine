@@ -122,9 +122,9 @@ inline REFER(Instruction) GContext_addInstruction(GContext *context, const Instr
   return v_instr;
 }
 
-#define contextGetFromOffset_DEF(type, array)                                 \
+#define contextGetFromOffset_DEF(type, array)                                       \
   inline const type *GContext_get##type(const GContext *context, uint32_t offset) { \
-    return Array_real_addr(context->array, offset);                           \
+    return Array_real_addr(context->array, offset);                                 \
   }
 
 contextGetFromOffset_DEF(Immediate, immArray);
@@ -241,10 +241,10 @@ void GContext_dump_instruction(GContext *context, Instruction *instr) {
   Trie_destroy(args_trie);
 }
 
-inline void GContext_setErrorMessage(GContext *context, const char_t * msg) {
+inline void GContext_setErrorMessage(GContext *context, const char_t *msg) {
   context->errorMessage = msg;
 }
-const char_t * GContext_getErrorMessage(GContext *context) {
+const char_t *GContext_getErrorMessage(GContext *context) {
   return context->errorMessage;
 }
 

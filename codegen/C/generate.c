@@ -38,10 +38,8 @@ inline Array *Generator_getOutputBuffer(Generator *generator, uint32_t index) {
 }
 
 void Generator_destroy(Generator *generator) {
-  for (uint32_t i = 0; i < 16; i ++) {
-    if (generator->buffers[i]) {
-      releasePrimeArray(generator->buffers[i]);
-    }
+  for (uint32_t i = 0; i < 16; i++) {
+    if (generator->buffers[i]) { releasePrimeArray(generator->buffers[i]); }
   }
   generator->allocator->free(generator);
 }
@@ -53,7 +51,7 @@ int32_t codegen(Generator *generator, const Machine *machine) {
   gen_context_def(generator, machine);
   gen_pattern_match(generator, machine);
   gen_enum_item(generator, machine);
-  gen_instr_exec_and_encoding(generator, machine);
+  gen_instr_exec(generator, machine);
   gen_set_grp_jump_table(generator, machine);
   gen_driver(generator, machine);
   gen_export_tail(generator, machine);
