@@ -9,24 +9,31 @@
 
 #include "generate.h"
 #include "array.h"
+#include "char_t.h"
 #include "context.h"
 #include "define.h"
 #include "encoding.h"
+#include "generator.h"
 #include "pattern_match.h"
 #include "static.h"
 #include "target.h"
 #include "tokens.gen.h"
 #include <stdint.h>
 
-typedef struct Generator {
-  const Allocator *allocator;
-  Array /*<char_t>*/ *buffers[16];
-} Generator;
-
 Generator *Generator_new(const Allocator *allocator) {
   Generator *generator = allocator->calloc(1, sizeof(Generator));
   generator->allocator = allocator;
   return generator;
+}
+void Generator_setCopyright(
+    Generator *generator, const char_t *outname, const char_t *headpath, const char_t *libpath,
+    const char_t *cr_holder, const char_t *year
+) {
+  generator->outname = outname;
+  generator->headpath = headpath;
+  generator->libpath = libpath;
+  generator->cr_holder = cr_holder;
+  generator->year = year;
 }
 
 inline Array *Generator_getOutputBuffer(Generator *generator, uint32_t index) {

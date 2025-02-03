@@ -84,18 +84,18 @@ int main() {
 
   pFile = fopen("machine-x64.h", "w");
   if (!pFile) { return -1; }
-  show(CtxBuf_exports);
+  show(GenBuf_exports);
   fclose(pFile);
 
   pFile = fopen("machine-x64.c", "w");
   if (!pFile) { return -1; }
-  show(CtxBuf_includes);
-  show(CtxBuf_macros);
-  show(CtxBuf_enums);
-  show(CtxBuf_types);
-  show(CtxBuf_declares);
-  show(CtxBuf_definitions);
-  show(CtxBuf_tables);
+  show(GenBuf_includes);
+  show(GenBuf_macros);
+  show(GenBuf_enums);
+  show(GenBuf_types);
+  show(GenBuf_declares);
+  show(GenBuf_definitions);
+  show(GenBuf_tables);
   fclose(pFile);
 
   printf("time cost: %fms\n", (double) (end - start) / CLOCKS_PER_SEC * 1000);

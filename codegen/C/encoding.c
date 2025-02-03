@@ -35,7 +35,7 @@ constexpr char_t ENCODING_NAME_FMT[] = "encoding_%s_%u";
 
 #define ctx_push_string(type, s)                                                     \
   do {                                                                               \
-    Array_append(Generator_getOutputBuffer(generator, CtxBuf_##type), s, strlen(s)); \
+    Array_append(Generator_getOutputBuffer(generator, GenBuf_##type), s, strlen(s)); \
   } while (false)
 
 #define _push_string(buffer, s) \
@@ -106,8 +106,8 @@ const char_t INSTR_EXEC_DEF_BODY[] = "  enum ENTRY_TYPE_ENUM types[MAX_ARGS] = {
 void gen_instr_exec(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
   const GContext *context = machine->context;
-  Array *dec_buffer = Generator_getOutputBuffer(generator, CtxBuf_declares);
-  Array *def_buffer = Generator_getOutputBuffer(generator, CtxBuf_definitions);
+  Array *dec_buffer = Generator_getOutputBuffer(generator, GenBuf_declares);
+  Array *def_buffer = Generator_getOutputBuffer(generator, GenBuf_definitions);
   Array *encoding_dec_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
   Array *encoding_def_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
 

@@ -552,12 +552,14 @@ const Terminal *tokenize(
     uint32_t * const column, const Allocator * const allocator
 ) {  // NOLINT(*-easily-swappable-parameters)
   const char_t *pText = input;
+  const uint32_t max_cost = (*cost) > 0 ? *cost : UINT32_MAX;
+  *cost = 0;
   uint32_t l = lineno ? *lineno : 0;
   uint32_t c = column ? *column : 0;
   Array *terminals = Array_new(sizeof(Terminal), enum_TERMINATOR, allocator);
   Terminal terminal = {};
   pText += pass_space(pText, &l, &c);
-  while (*pText) {
+  while (*pText && pText - input < max_cost) {
     terminal.lineno = l;
     terminal.column = c;
     *cost = single_tokenize(pText, &terminal, allocator);

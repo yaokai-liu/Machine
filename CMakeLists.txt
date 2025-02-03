@@ -32,6 +32,10 @@ aux_source_directory(codegen/C CODEGEN_C_SRC)
 add_library(codegen_C ${CODEGEN_C_SRC})
 target_include_directories(codegen_C PRIVATE codegen codegen/C)
 
+add_executable(machine compiler/compile.c)
+target_link_libraries(machine PRIVATE grammar codegen_C)
+target_include_directories(machine PRIVATE codegen/C)
+
 add_executable(debug test/debug.c)
 target_link_libraries(debug PRIVATE grammar codegen_C)
 target_include_directories(debug PRIVATE codegen/C)

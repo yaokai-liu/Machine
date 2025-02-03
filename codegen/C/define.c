@@ -18,7 +18,7 @@
 
 #define ctx_push_string(type, s)                                                     \
   do {                                                                               \
-    Array_append(Generator_getOutputBuffer(generator, CtxBuf_##type), s, strlen(s)); \
+    Array_append(Generator_getOutputBuffer(generator, GenBuf_##type), s, strlen(s)); \
   } while (false)
 
 #define _push_string(buffer, s) \
@@ -71,7 +71,7 @@ constexpr char_t REG_DEF_FMT[] = "const Entry * const REG_%s = &Entry_REG_%s;\n"
 void gen_enum_item(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256] = {};
   const GContext *context = machine->context;
-  Array *buffer = Generator_getOutputBuffer(generator, CtxBuf_enums);
+  Array *buffer = Generator_getOutputBuffer(generator, GenBuf_enums);
   push_string("enum ENTRY_TYPE_ENUM {\n");
   gen_type_enum_item(Memory, MEM, mem);
   gen_type_enum_item(Immediate, IMM, imm);
@@ -91,7 +91,7 @@ constexpr char_t SET_GRP_STATE_TABLE_DEC_FMT[] = "const static struct set_grp_ju
 void gen_context_dec(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
   const GContext *context = machine->context;
-  Array *buffer = Generator_getOutputBuffer(generator, CtxBuf_exports);
+  Array *buffer = Generator_getOutputBuffer(generator, GenBuf_exports);
   gen_mem_sprintf(MEM_DEC_FMT, entries[i].name->ptr);
   gen_imm_sprintf(IMM_DEC_FMT, entries[i].name->ptr);
   gen_reg_sprintf(REG_DEC_FMT, entries[i].name->ptr);
@@ -103,7 +103,7 @@ void gen_context_dec(Generator *generator, const Machine *machine) {
 void gen_context_def(Generator *generator, const Machine *machine) {
   char_t temp_buffer[1024] = {};
   const GContext *context = machine->context;
-  Array *buffer = Generator_getOutputBuffer(generator, CtxBuf_definitions);
+  Array *buffer = Generator_getOutputBuffer(generator, GenBuf_definitions);
 
   gen_reg_sprintf(REG_ENTRY_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr, entries[i].code);
   gen_mem_sprintf(
@@ -176,7 +176,7 @@ void gen_set_grp_jump_table(Generator *generator, const Machine *machine) {
   _push_string(val_buffer, "};\n");
   _push_string(sta_buffer, "};\n");
 
-  Array *buffer = Generator_getOutputBuffer(generator, CtxBuf_definitions);
+  Array *buffer = Generator_getOutputBuffer(generator, GenBuf_definitions);
   Array_concat(buffer, val_buffer);
   Array_concat(buffer, sta_buffer);
   releasePrimeArray(val_buffer);

@@ -18,7 +18,7 @@ void gen_pattern_match(Generator *generator, const Machine *machine) {
   Array *key_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
   Array *state_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
   gen_jump_table_def(generator, machine, key_buffer, state_buffer);
-  Array *buffer = Generator_getOutputBuffer(generator, CtxBuf_definitions);
+  Array *buffer = Generator_getOutputBuffer(generator, GenBuf_definitions);
   Array_concat(buffer, key_buffer);
   Array_concat(buffer, state_buffer);
   releasePrimeArray(key_buffer);
