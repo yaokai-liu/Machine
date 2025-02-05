@@ -22,7 +22,7 @@
 
 #define MAX_CHAR 4096
 
-#define show(ndx)                                                                    \
+#define print(ndx)                                                                    \
   do {                                                                               \
     char_t c = '\0';                                                                 \
     Array_append(Generator_getOutputBuffer(generator, ndx), &c, 1);                  \
@@ -84,18 +84,18 @@ int main() {
 
   pFile = fopen("machine-x64.h", "w");
   if (!pFile) { return -1; }
-  show(GenBuf_exports);
+  print(GenBuf_exports);
   fclose(pFile);
 
   pFile = fopen("machine-x64.c", "w");
   if (!pFile) { return -1; }
-  show(GenBuf_includes);
-  show(GenBuf_macros);
-  show(GenBuf_enums);
-  show(GenBuf_types);
-  show(GenBuf_declares);
-  show(GenBuf_definitions);
-  show(GenBuf_tables);
+  print(GenBuf_includes);
+  print(GenBuf_macros);
+  print(GenBuf_enums);
+  print(GenBuf_types);
+  print(GenBuf_declares);
+  print(GenBuf_definitions);
+  print(GenBuf_tables);
   fclose(pFile);
 
   printf("time cost: %fms\n", (double) (end - start) / CLOCKS_PER_SEC * 1000);

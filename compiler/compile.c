@@ -21,7 +21,7 @@
 #include <string.h>
 #include <time.h>
 
-#define show(ndx)                                                                    \
+#define print(ndx)                                                                   \
   do {                                                                               \
     char_t c = '\0';                                                                 \
     Array_append(Generator_getOutputBuffer(generator, ndx), &c, 1);                  \
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
   if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
     fprintf(stdout, "%s <file> [<output>] [options]\n", argv[0]);
     fprintf(stdout, "\t convert machine <file> to '<output>.h' and '<output>.c'\n");
-    fprintf(stdout, "\t if '<output>' not set,output would be the machine's name\n");
+    fprintf(stdout, "\t if '<output>' not set, output would be the machine's name\n");
     fprintf(stdout, "\t [options]\n");
     fprintf(stdout, "\t \t -y | --year <year>\tset copyright year\n");
     fprintf(stdout, "\t \t -a | --author <author>\tset copyright holder\n");
@@ -135,18 +135,18 @@ int main(int argc, char *argv[]) {
 
   file = fopen(headpath, "w");
   if (!file) { return -1; }
-  show(GenBuf_exports);
+  print(GenBuf_exports);
   fclose(file);
 
   file = fopen(libpath, "w");
   if (!file) { return -1; }
-  show(GenBuf_includes);
-  show(GenBuf_macros);
-  show(GenBuf_enums);
-  show(GenBuf_types);
-  show(GenBuf_declares);
-  show(GenBuf_definitions);
-  show(GenBuf_tables);
+  print(GenBuf_includes);
+  print(GenBuf_macros);
+  print(GenBuf_enums);
+  print(GenBuf_types);
+  print(GenBuf_declares);
+  print(GenBuf_definitions);
+  print(GenBuf_tables);
   fclose(file);
 
   fprintf(stdout, "time cost: %fms\n", (double) (end - start) / CLOCKS_PER_SEC * 1000);
