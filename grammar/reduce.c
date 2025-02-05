@@ -649,5 +649,7 @@ void releaseToken(void *token, uint32_t type, const Allocator *allocator) {
       allocator->free(token);
       break;
     }
+    default: {
+    }
   }
 }

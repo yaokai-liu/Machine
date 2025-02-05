@@ -187,7 +187,9 @@ void gen_static_definitions(Generator *generator, const Machine *machine) {
   const char_t *name = generator->outname ? generator->outname : machine->name->ptr;
   sprintf(temp_buffer, INCLUDES, name);
   Array * const out_buffer = Generator_getOutputBuffer(generator, GenBuf_includes);
-  gen_license(generator, out_buffer, generator->libpath);
+  const char_t *filename = strrchr(generator->libpath, '/');
+  filename = filename ? filename + 1 : generator->libpath;
+  gen_license(generator, out_buffer, filename);
   ctx_push_string(includes, temp_buffer);
   ctx_push_string(macros, MACROS);
   ctx_push_string(types, TYPEDEF_ENTRY);
@@ -212,7 +214,9 @@ void gen_driver(Generator *generator, const Machine *machine) {
 void gen_export_header(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
   Array * const out_buffer = Generator_getOutputBuffer(generator, GenBuf_exports);
-  gen_license(generator, out_buffer, generator->headpath);
+  const char_t *filename = strrchr(generator->headpath, '/');
+  filename = filename ? filename + 1 : generator->headpath;
+  gen_license(generator, out_buffer, filename);
   const char_t * const name = machine->name->ptr;
   sprintf(temp_buffer, EXPORT_HEADER_FMT, name, name);
   ctx_push_string(exports, temp_buffer);
