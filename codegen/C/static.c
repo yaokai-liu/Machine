@@ -80,14 +80,15 @@ constexpr char_t MACROS[] =
     "    pushInstrBytes(count);             \\\n"
     "  } while (false)\n";
 
-constexpr char_t EXPORT_DECLARE[] = "typedef struct Entry Entry;\n";
+constexpr char_t EXPORT_DECLARE[] = "typedef struct Machine Machine;\n"
+                                    "typedef struct Entry Entry;\n";
 
 constexpr char_t TYPEDEF_ENTRY[] = "typedef struct Entry {\n"
                                    "  enum ENTRY_TYPE_ENUM type;\n"
                                    "  uint64_t value;\n"
                                    "} Entry;\n";
 
-constexpr char_t TYPEDEF_MACHINE_FMT[] = "typedef struct {\n"
+constexpr char_t TYPEDEF_MACHINE_FMT[] = "typedef struct Machine {\n"
                                          "  uint32_t argCount;\n"
                                          "  Entry entries[%u];\n"
                                          "} Machine;\n";
@@ -113,6 +114,7 @@ constexpr char_t STRUCT_SET_GRP_JUMP_STATE[] = "struct set_grp_jump_state {\n"
                                                "  uint32_t index;\n"
                                                "};\n";
 
+constexpr char_t MACHINE_NEW_DEC[] = "Machine *Machine_new(const Allocator *allocator);\n";
 constexpr char_t ENTRY_TYPE_CHECK_DEC[] =
     "bool entry_type_check(enum ENTRY_TYPE_ENUM type1, enum ENTRY_TYPE_ENUM type2);\n";
 constexpr char_t ENTRY_TYPE_CHECK_DEF[] =
@@ -127,6 +129,10 @@ constexpr char_t ENTRY_TYPE_CHECK_DEF[] =
     "  }\n"
     "  return false;\n"
     "}\n";
+constexpr char_t MACHINE_NEW_DEF[] = "Machine *Machine_new(const Allocator *allocator) {\n"
+                                     "  Machine *machine = allocator->calloc(1, sizeof(Machine));\n"
+                                     "  return machine;\n"
+                                     "}\n";
 
 constexpr char_t CONVERT_INSTR_TO_BYTES_DEC[] =
     "uint32_t convert_instr_to_bytes(\n"
@@ -187,8 +193,13 @@ void gen_static_definitions(Generator *generator, const Machine *machine) {
   const char_t *name = generator->outname ? generator->outname : machine->name->ptr;
   sprintf(temp_buffer, INCLUDES, name);
   Array * const out_buffer = Generator_getOutputBuffer(generator, GenBuf_includes);
-  const char_t *filename = strrchr(generator->libpath, '/');
-  filename = filename ? filename + 1 : generator->libpath;
+  const char_t *filename;
+  if (generator->headpath) {
+    filename = strrchr(generator->headpath, '/');
+    filename = filename ? filename + 1 : generator->headpath;
+  } else {
+    filename = "";
+  }
   gen_license(generator, out_buffer, filename);
   ctx_push_string(includes, temp_buffer);
   ctx_push_string(macros, MACROS);
@@ -207,6 +218,7 @@ void gen_driver(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
   sprintf(temp_buffer, MAX_ARGS_FMT, machine->context->maxArgCount);
   ctx_push_string(definitions, temp_buffer);
+  ctx_push_string(definitions, MACHINE_NEW_DEF);
   ctx_push_string(definitions, ENTRY_TYPE_CHECK_DEF);
   ctx_push_string(definitions, CONVERT_INSTR_TO_BYTES_DEF);
 }
@@ -214,14 +226,20 @@ void gen_driver(Generator *generator, const Machine *machine) {
 void gen_export_header(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
   Array * const out_buffer = Generator_getOutputBuffer(generator, GenBuf_exports);
-  const char_t *filename = strrchr(generator->headpath, '/');
-  filename = filename ? filename + 1 : generator->headpath;
-  gen_license(generator, out_buffer, filename);
   const char_t * const name = machine->name->ptr;
+  const char_t *filename;
+  if (generator->headpath) {
+    filename = strrchr(generator->headpath, '/');
+    filename = filename ? filename + 1 : generator->headpath;
+  } else {
+    filename = "";
+  }
+  gen_license(generator, out_buffer, filename);
   sprintf(temp_buffer, EXPORT_HEADER_FMT, name, name);
   ctx_push_string(exports, temp_buffer);
   ctx_push_string(exports, EXPORT_INCLUDES);
   ctx_push_string(exports, EXPORT_DECLARE);
+  ctx_push_string(exports, MACHINE_NEW_DEC);
 }
 
 void gen_export_tail(Generator *generator, const Machine *machine) {

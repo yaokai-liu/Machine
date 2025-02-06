@@ -18,7 +18,8 @@ int32_t check_mapping_item(GContext *context, BitField *bit_field, Evaluable *ev
   uint32_t width = 0;
   switch (evaluable->type) {
     case enum_IDENTIFIER: {
-      Record *record = GContext_findRecord(context, evaluable->lhs);
+      const Parameter *param = GContext_findParameter(context, evaluable->lhs);
+      const Record *record = GContext_findRecord(context, param->type);
       if (record->typeid == enum_Memory) {
         width = GContext_getMemory(context, record->offset)->width;
       } else if (record->typeid == enum_Immediate) {
@@ -35,7 +36,8 @@ int32_t check_mapping_item(GContext *context, BitField *bit_field, Evaluable *ev
       break;
     }
     case enum_MEM_KEY: {
-      Record *record = GContext_findRecord(context, evaluable->lhs);
+      const Parameter *param = GContext_findParameter(context, evaluable->lhs);
+      const Record *record = GContext_findRecord(context, param->type);
       const Memory *memory = GContext_getMemory(context, record->offset);
       BitField *bf = (MEM_BASE == (uint64_t) evaluable->lhs) ? memory->base : memory->offset;
       width = bf->upper - bf->lower + 1;

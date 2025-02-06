@@ -36,7 +36,12 @@ typedef struct Immediate {
   uint32_t type;
 } Immediate;
 
-typedef Array PatternArgs;  // Array<Identifier>
+typedef struct Parameter {
+  Identifier *type;
+  Identifier *name;
+} Parameter;
+
+typedef Array PatternArgs;  // Array<Parameter>
 
 typedef struct Pattern {
   PatternArgs *args;
@@ -138,6 +143,7 @@ void releaseToken(void *token, uint32_t type, const Allocator *allocator);
 void releaseEntry(Entry *entry, const Allocator *allocator);
 void releaseMachine(Machine *machine, const Allocator *allocator);
 void releaseImmediate(Immediate *immediate, const Allocator *allocator);
+void releaseParameter(Parameter *parameter, const Allocator *allocator);
 void releasePattern(Pattern *pattern, const Allocator *allocator);
 void releaseEvaluable(Evaluable *evaluable, const Allocator *allocator);
 void releaseMappingItem(MappingItem *item, const Allocator *allocator);

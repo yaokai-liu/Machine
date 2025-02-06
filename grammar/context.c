@@ -94,7 +94,7 @@ inline void GContext_addRecord(GContext *context, const Identifier *ident, Recor
   Trie_set(context->objectMap, ident->ptr, ndx);
 }
 
-inline void *GContext_findRecord(const GContext *context, const Identifier *ident) {
+inline const Record *GContext_findRecord(const GContext *context, const Identifier *ident) {
   uint32_t ndx = (uint64_t) Trie_get(context->objectMap, ident->ptr);
   if (!ndx) { return nullptr; }
   return Array_real_addr(context->recordArray, ndx - 1);
@@ -182,17 +182,17 @@ inline MappingItem *GContext_getMapItem(GContext *context, BitField *bf) {
   return AVLTree_get(context->mappingTree, (uint64_t) bf);
 }
 
-inline bool GContext_testEvalIdentLegal(GContext *context, Identifier *ident) {
-  if (!context->patterns) { return false; }
+inline const Parameter *GContext_findParameter(GContext *context, Identifier *ident) {
+  if (!context->patterns) { return nullptr; }
   uint32_t n_patterns = Array_length(context->patterns);
-  if (n_patterns == 0) { return false; }
+  if (n_patterns == 0) { return nullptr; }
   Pattern *pattern = *(Pattern **) Array_real_addr(context->patterns, n_patterns - 1);
   const uint32_t n_args = Array_length(pattern->args);
-  const Identifier *args = Array_real_addr(pattern->args, 0);
+  const Parameter *args = Array_real_addr(pattern->args, 0);
   for (uint32_t i = 0; i < n_args; i++) {
-    if (Identifier_cmp(ident, &args[i]) == 0) { return true; }
+    if (Identifier_cmp(ident, args[i].name) == 0) { return &args[i]; }
   }
-  return false;
+  return nullptr;
 }
 
 #define instrFormNdx(instr, i) ((void *) (((uint64_t) (instr_ndx)) << 32) + ((i) + 1))
@@ -219,9 +219,9 @@ Trie /*<REFER(Record), uint64_t>*/ *
         Trie_destroy(args_trie);
         return nullptr;
       }
-      const Identifier *idents = Array_real_addr(pattern->args, 0);
+      const Parameter *idents = Array_real_addr(pattern->args, 0);
       for (uint32_t j = 0; j < length; j++) {
-        uint64_t ndx = (uint64_t) Trie_get(context->objectMap, idents[j].ptr);
+        uint64_t ndx = (uint64_t) Trie_get(context->objectMap, idents[j].type->ptr);
         ndx_array[j] = Array_virt_addr(context->recordArray, ndx - 1);
       }
       ndx_array[length] = nullptr;

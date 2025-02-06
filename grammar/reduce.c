@@ -22,21 +22,21 @@
 
 #define grammarAssertDefinedRecord(ident)                         \
   do {                                                            \
-    Record *record = GContext_findRecord(context, ident);         \
+    const Record *record = GContext_findRecord(context, ident);   \
     if (!record) {                                                \
       GContext_setErrorMessage(context, "undefined identifier."); \
       return nullptr;                                             \
     }                                                             \
   } while (false)
 
-#define grammarAssertHasArgument(ident)                                   \
-  do {                                                                    \
-    if (!GContext_testEvalIdentLegal(context, ident)) { return nullptr; } \
+#define grammarAssertHasArgument(ident)                              \
+  do {                                                               \
+    if (!GContext_findParameter(context, ident)) { return nullptr; } \
   } while (false)
 
 #define grammarAssertNotDeclaredRecord(ident)                     \
   do {                                                            \
-    Record *record = GContext_findRecord(context, ident);         \
+    const Record *record = GContext_findRecord(context, ident);   \
     if (record) {                                                 \
       GContext_setErrorMessage(context, "redefined identifier."); \
       return nullptr;                                             \
@@ -97,7 +97,6 @@ Evaluable *p_Evaluable_0(void *argv[], GContext *context, const Allocator *alloc
   Identifier *lhs = (Identifier *) argv[0];
   void *rhs = argv[2];
 
-  grammarAssertDefinedRecord(lhs);
   grammarAssertHasArgument(lhs);
 
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
@@ -111,7 +110,6 @@ Evaluable *p_Evaluable_1(void *argv[], GContext *context, const Allocator *alloc
   Identifier *lhs = (Identifier *) argv[0];
   BitField *rhs = (BitField *) argv[1];
 
-  grammarAssertDefinedRecord(lhs);
   grammarAssertHasArgument(lhs);
 
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
@@ -124,7 +122,6 @@ Evaluable *p_Evaluable_1(void *argv[], GContext *context, const Allocator *alloc
 Evaluable *p_Evaluable_2(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[0];
 
-  grammarAssertDefinedRecord(ident);
   grammarAssertHasArgument(ident);
 
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
@@ -421,6 +418,20 @@ Memory *p_Memory_0(void *argv[], GContext *context, const Allocator *allocator) 
   return result;
 }
 
+Parameter *p_Parameter_0(void *argv[], GContext *context, const Allocator *allocator) {
+  Identifier *type = (Identifier *) argv[0];
+  Identifier *name = (Identifier *) argv[1];
+
+  grammarAssertDefinedRecord(type);
+  grammarAssertNotDeclaredRecord(name);
+
+  Parameter *param = allocator->calloc(1, sizeof(Parameter));
+  param->type = type;
+  param->name = name;
+
+  return param;
+}
+
 Pattern *p_Pattern_0(void *argv[], GContext *context, const Allocator *allocator) {
   PatternArgs *args = (PatternArgs *) argv[1];
 
@@ -446,25 +457,21 @@ Pattern *p_Pattern_1(void *[], GContext *context, const Allocator *allocator) {
   return pattern;
 }
 
-PatternArgs *p_PatternArgs_0(void *argv[], GContext *context, const Allocator *allocator) {
+PatternArgs *p_PatternArgs_0(void *argv[], GContext *, const Allocator *allocator) {
   PatternArgs *args = (PatternArgs *) argv[0];
-  Identifier *ident = (Identifier *) argv[2];
+  Parameter *param = (Parameter *) argv[2];
 
-  grammarAssertDefinedRecord(ident);
-
-  Array_append(args, ident, 1);
-  allocator->free(ident);
+  Array_append(args, param, 1);
+  allocator->free(param);
   return args;
 }
 
-PatternArgs *p_PatternArgs_1(void *argv[], GContext *context, const Allocator *allocator) {
-  Identifier *ident = (Identifier *) argv[0];
+PatternArgs *p_PatternArgs_1(void *argv[], GContext *, const Allocator *allocator) {
+  Parameter *param = (Parameter *) argv[0];
 
-  grammarAssertDefinedRecord(ident);
-
-  PatternArgs *args = Array_new(sizeof(Identifier), enum_PatternArgs, allocator);
-  Array_append(args, ident, 1);
-  allocator->free(ident);
+  PatternArgs *args = Array_new(sizeof(Parameter), enum_PatternArgs, allocator);
+  Array_append(args, param, 1);
+  allocator->free(param);
 
   return args;
 }

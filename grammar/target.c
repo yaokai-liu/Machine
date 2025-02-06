@@ -32,6 +32,11 @@ void releaseImmediate(Immediate *immediate, const Allocator *allocator) {
   allocator->free(immediate->name);
 }
 
+void releaseParameter(Parameter *parameter, const Allocator *allocator) {
+  releaseIdentifier(parameter->type, allocator);
+  releaseIdentifier(parameter->name, allocator);
+}
+
 void releasePattern(Pattern *pattern, const Allocator *) {
   if (!pattern->args) { return; }
   Array_reset(pattern->args, (destruct_t *) releaseIdentifier);

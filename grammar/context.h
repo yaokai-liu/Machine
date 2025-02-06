@@ -56,7 +56,8 @@ Instruction *GContext_findOpcode(GContext *context, const Identifier *ident);
 
 void GContext_addRecord(GContext *context, const Identifier *ident, Record *record);
 
-void *GContext_findRecord(const GContext *context, const Identifier *ident);
+const Record *GContext_findRecord(const GContext *context, const Identifier *ident);
+const Parameter *GContext_findParameter(GContext *context, Identifier *ident);
 
 REFER(Immediate) GContext_addImmediate(GContext *context, const Immediate *imm);
 REFER(Register) GContext_addRegister(GContext *context, const Register *reg);
@@ -81,8 +82,6 @@ bool GContext_testPattern(GContext *context, PatternArgs *patternArgs);
 void GContext_addMapItem(GContext *context, MappingItem *item);
 
 MappingItem *GContext_getMapItem(GContext *context, BitField *bf);
-
-bool GContext_testEvalIdentLegal(GContext *context, Identifier *ident);
 
 Trie /*<REFER(Record), uint64_t>*/ *
     GContext_build_args_trie(GContext *context, const Instruction *instr);

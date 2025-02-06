@@ -34,13 +34,18 @@ void gen_jump_table_def(
 
 int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrForm *form);
 
-int32_t
-    codegen_layout(const GContext *context, Array *buffer, const Layout *layout, uint32_t width);
-
-int32_t codegen_items_bf(
-    const GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field
+int32_t codegen_layout(
+    const GContext *context, Array *buffer, const Layout *layout, uint32_t width,
+    const Pattern *pattern
 );
 
-int32_t eval_to_val(const GContext *context, Evaluable *evaluable, char_t *buffer);
+int32_t codegen_items_bf(
+    const GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field,
+    const Pattern *pattern
+);
+
+int32_t eval_to_val(
+    const GContext *context, Evaluable *evaluable, char_t *buffer, const Pattern *pattern
+);
 
 #endif  // MACHINE_ENCODING_H

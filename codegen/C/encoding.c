@@ -71,9 +71,9 @@ int32_t online_gen_instr_encoding_def(
     push_string(head_buffer);
     if (forms[i].pattern->args) {
       const uint32_t n_args = Array_length(forms[i].pattern->args);
-      const Identifier *args = Array_real_addr(forms[i].pattern->args, 0);
+      const Parameter *args = Array_real_addr(forms[i].pattern->args, 0);
       for (uint32_t j = 0; j < n_args; j++) {
-        sprintf(head_buffer, "  uint64_t %s = args[%u];\n", args[j].ptr, j);
+        sprintf(head_buffer, "  uint64_t %s = args[%u];\n", args[j].name->ptr, j);
         push_string(head_buffer);
       }
     }
@@ -256,14 +256,26 @@ void gen_jump_table_def(
 static thread_local char_t FMT_BUFFER[1024] = {};
 
 #define MAX_IDENT_LEN 64
-int32_t eval_to_val(const GContext *context, Evaluable *evaluable, char_t *buffer) {
+int32_t eval_to_val(
+    const GContext *context, Evaluable *evaluable, char_t *buffer, const Pattern *pattern
+) {
   if (enum_NUMBER == evaluable->type) {
     uint64_t number = (uint64_t) evaluable->lhs;
     return sprintf(buffer, "0x%lX", number);
   }
+  const Record *record = nullptr;
   Identifier *ident = (Identifier *) evaluable->lhs;
+  if (pattern && pattern->args) {
+    const uint32_t n_args = Array_length(pattern->args);
+    const Parameter *args = Array_real_addr(pattern->args, 0);
+    for (uint32_t i = 0; i < n_args; i++) {
+      if (Identifier_cmp(ident, args[i].name) == 0) {
+        record = GContext_findRecord(context, args->type);
+      }
+    }
+  }
+
   if (ident->len > MAX_IDENT_LEN) { return -1; }
-  Record *record = GContext_findRecord(context, ident);
   switch (evaluable->type) {
     case enum_NUMBER:
     case enum_IDENTIFIER: {
@@ -286,7 +298,8 @@ int32_t eval_to_val(const GContext *context, Evaluable *evaluable, char_t *buffe
 }
 
 int32_t codegen_items_bf(
-    const GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field
+    const GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field,
+    const Pattern *pattern
 ) {
   const uint32_t pre_len = Array_length(buffer);
   MappingItem *item = getMappingItem(items, bit_field);
@@ -298,7 +311,7 @@ int32_t codegen_items_bf(
         bit_field->upper + 1, (int64_t) default_bit
     );
     if (len > 0) { push_string(FMT_BUFFER); }
-    return Array_length(buffer) - pre_len;
+    return (int32_t) (Array_length(buffer) - pre_len);
   }
 
   uint32_t bu = item->field->upper;
@@ -306,7 +319,7 @@ int32_t codegen_items_bf(
 
   if (bl > bit_field->lower) {
     BitField lower_bf = {.lower = bit_field->lower, .upper = bl - 1};
-    codegen_items_bf(context, buffer, items, &lower_bf);
+    codegen_items_bf(context, buffer, items, &lower_bf, pattern);
   }
   char_t *temp_buffer = nullptr;
   if (item->evaluable->type != enum_NUMBER) {
@@ -315,25 +328,27 @@ int32_t codegen_items_bf(
   } else {
     temp_buffer = GContext_getAllocator(context)->malloc(128 * sizeof(char_t));
   }
-  eval_to_val(context, item->evaluable, temp_buffer);
+  eval_to_val(context, item->evaluable, temp_buffer, pattern);
   sprintf(FMT_BUFFER, "  number = numSetBits(number, %d, %d, %s);\n", bl, bu + 1, temp_buffer);
   push_string(FMT_BUFFER);
   GContext_getAllocator(context)->free(temp_buffer);
 
   if (bu < bit_field->upper) {
     BitField upper_bf = {.lower = bu + 1, .upper = bit_field->upper};
-    codegen_items_bf(context, buffer, items, &upper_bf);
+    codegen_items_bf(context, buffer, items, &upper_bf, nullptr);
   }
-  return Array_length(buffer) - pre_len;
+  return (int32_t) (Array_length(buffer) - pre_len);
 }
 
-int32_t
-    codegen_layout(const GContext *context, Array *buffer, const Layout *layout, uint32_t width) {
+int32_t codegen_layout(
+    const GContext *context, Array *buffer, const Layout *layout, uint32_t width,
+    const Pattern *pattern
+) {
   const uint32_t pre_len = Array_length(buffer);
   switch (layout->type) {
     case enum_Evaluable: {
       Evaluable *evaluable = layout->target;
-      int32_t size = eval_to_val(context, evaluable, FMT_BUFFER);
+      int32_t size = eval_to_val(context, evaluable, FMT_BUFFER, pattern);
       if (size < 0) { return size; }
       pushEncodingNumberN(FMT_BUFFER, width / 8);
       break;
@@ -342,30 +357,30 @@ int32_t
       MappingItems *items = layout->target;
       for (uint32_t i = 0; i < width; i += 64) {
         BitField bf = {.lower = i, .upper = min(i + 63, width - 1)};
-        codegen_items_bf(context, buffer, items, &bf);
+        codegen_items_bf(context, buffer, items, &bf, pattern);
         sprintf(FMT_BUFFER, "  pushInstrBytes(%d);\n", min(64, width - i) / 8);
         push_string(FMT_BUFFER);
         push_string("  number = 0;\n");
       }
     }
   }
-  return Array_length(buffer) - pre_len;
+  return (int32_t) (Array_length(buffer) - pre_len);
 }
 
-#define codegen_form_part(part)                       \
-  do {                                                \
-    uint32_t width;                                   \
-    const Layout *layout;                             \
-    width = form->parts[(part) - 1].width;            \
-    if (width > 0) {                                  \
-      layout = form->parts[(part) - 1].layout;        \
-      codegen_layout(context, buffer, layout, width); \
-    }                                                 \
+#define codegen_form_part(part)                                      \
+  do {                                                               \
+    uint32_t width;                                                  \
+    const Layout *layout;                                            \
+    width = form->parts[(part) - 1].width;                           \
+    if (width > 0) {                                                 \
+      layout = form->parts[(part) - 1].layout;                       \
+      codegen_layout(context, buffer, layout, width, form->pattern); \
+    }                                                                \
   } while (false)
 int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrForm *form) {
   const uint32_t pre_len = Array_length(buffer);
   codegen_form_part(PART_PREFIX);
   codegen_form_part(PART_PRINCIPAL);
   codegen_form_part(PART_SUFFIX);
-  return Array_length(buffer) - pre_len;
+  return (int32_t) (Array_length(buffer) - pre_len);
 }
