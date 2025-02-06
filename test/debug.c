@@ -22,7 +22,7 @@
 
 #define MAX_CHAR 4096
 
-#define print(ndx)                                                                    \
+#define print(ndx)                                                                   \
   do {                                                                               \
     char_t c = '\0';                                                                 \
     Array_append(Generator_getOutputBuffer(generator, ndx), &c, 1);                  \

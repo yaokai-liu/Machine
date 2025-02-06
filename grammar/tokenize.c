@@ -56,6 +56,8 @@ inline uint32_t t_NUMBER_adic16(
                || ('_' == *pText)) {
       result->length = pText - input;
       return 0;
+    } else if (*pText == '\'') {
+      pText++;
     } else {
       break;
     }
@@ -81,7 +83,11 @@ inline uint32_t t_NUMBER_adic10(
       result->length = pText - input;
       return 0;
     }
-    break;
+    if (*pText == '\'') {
+      pText++;
+    } else {
+      break;
+    }
   }
   result->type = enum_NUMBER;
   result->value = (void *) value;
@@ -104,7 +110,11 @@ inline uint32_t t_NUMBER_adic8(
       result->length = pText - input;
       return 0;
     }
-    break;
+    if (*pText == '\'') {
+      pText++;
+    } else {
+      break;
+    }
   }
   result->type = enum_NUMBER;
   result->value = (void *) value;
@@ -127,7 +137,11 @@ inline uint32_t t_NUMBER_adic2(
       result->length = pText - input;
       return 0;
     }
-    break;
+    if (*pText == '\'') {
+      pText++;
+    } else {
+      break;
+    }
   }
   result->type = enum_NUMBER;
   result->value = (void *) value;
