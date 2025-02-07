@@ -356,31 +356,25 @@ int32_t codegen_layout(
     case enum_MappingItems: {
       MappingItems *items = layout->target;
       for (uint32_t i = 0; i < width; i += 64) {
+        push_string("  number = 0;\n");
         BitField bf = {.lower = i, .upper = min(i + 63, width - 1)};
         codegen_items_bf(context, buffer, items, &bf, pattern);
         sprintf(FMT_BUFFER, "  pushInstrBytes(%d);\n", min(64, width - i) / 8);
         push_string(FMT_BUFFER);
-        push_string("  number = 0;\n");
       }
     }
   }
   return (int32_t) (Array_length(buffer) - pre_len);
 }
 
-#define codegen_form_part(part)                                      \
-  do {                                                               \
-    uint32_t width;                                                  \
-    const Layout *layout;                                            \
-    width = form->parts[(part) - 1].width;                           \
-    if (width > 0) {                                                 \
-      layout = form->parts[(part) - 1].layout;                       \
-      codegen_layout(context, buffer, layout, width, form->pattern); \
-    }                                                                \
-  } while (false)
 int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrForm *form) {
   const uint32_t pre_len = Array_length(buffer);
-  codegen_form_part(PART_PREFIX);
-  codegen_form_part(PART_PRINCIPAL);
-  codegen_form_part(PART_SUFFIX);
+  const uint32_t n_parts = Array_length(form->parts);
+  const InstrPart * const parts = Array_real_addr(form->parts, 0);
+  for (uint32_t i = 0; i < n_parts; i++) {
+    const uint32_t width = parts[i].width;
+    const Layout *layout = parts[i].layout;
+    codegen_layout(context, buffer, layout, width, form->pattern);
+  }
   return (int32_t) (Array_length(buffer) - pre_len);
 }

@@ -20,8 +20,6 @@
 #include <string.h>
 #include <time.h>
 
-#define MAX_CHAR 4096
-
 #define print(ndx)                                                                   \
   do {                                                                               \
     char_t c = '\0';                                                                 \
@@ -31,13 +29,16 @@
   } while (0)
 
 int main() {
-  char_t testString[MAX_CHAR] = {};
   uint32_t cost = 0, n_tokens = 0;
   uint32_t lineno = 0, column = 0;
-  const char_t *filepath = "/mnt/d/Codelib/machine/liu-machine/demo.mm";
+  const char_t *filepath = "/mnt/d/Codelib/machine/preset/x64";
   FILE *pFile = fopen(filepath, "r");
   if (!pFile) { return -1; }
-  uint32_t length = fread(testString, sizeof(char_t), MAX_CHAR, pFile);
+  fseek(pFile, 0, SEEK_END);
+  uint32_t length = ftell(pFile);
+  fseek(pFile, 0, SEEK_SET);
+  char_t *testString = STDAllocator.malloc(sizeof(char_t) * (length + 1));
+  fread(testString, sizeof(char_t), length, pFile);
   printf("read %u characters from file.\n\n", length);
   if (fclose(pFile)) {
     printf("failed to close file.\n");

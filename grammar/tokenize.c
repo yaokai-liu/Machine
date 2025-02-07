@@ -485,24 +485,6 @@ inline uint32_t single_tokenize(
       result->length = 1;
       return 1;
     }
-    case '^': {
-      result->type = enum_PART_KEY;
-      result->value = (void *) (uint64_t) PART_PREFIX;
-      result->length = 1;
-      return 1;
-    }
-    case '&': {
-      result->type = enum_PART_KEY;
-      result->value = (void *) (uint64_t) PART_SUFFIX;
-      result->length = 1;
-      return 1;
-    }
-    case '~': {
-      result->type = enum_PART_KEY;
-      result->value = (void *) (uint64_t) PART_PRINCIPAL;
-      result->length = 1;
-      return 1;
-    }
     default: {
     }
   }

@@ -147,6 +147,20 @@ inline void *GContext_findIdentInStack(GContext *context, Identifier *ident) {
   return nullptr;
 }
 
+void Gcontext_setParts(GContext *context, InstrParts *parts) {
+  context->parts = parts;
+}
+
+const InstrPart *GContext_findInstrPart(GContext *context, Identifier *ident) {
+  if (!context->parts) { return nullptr; }
+  const uint32_t length = Array_length(context->parts);
+  const InstrPart * const parts = Array_real_addr(context->parts, 0);
+  for (uint32_t i = 0; i < length; i++) {
+    if (Identifier_cmp(parts[i].name, ident) == 0) { return Array_virt_addr(context->parts, i); }
+  }
+  return nullptr;
+}
+
 inline void GContext_addPattern(GContext *context, Pattern *pattern) {
   if (!context->patterns) {
     context->patterns = Array_new(sizeof(Pattern *), enum_Pattern, context->allocator);
@@ -278,7 +292,10 @@ void pop_context_width_and_ident(GContext *context, void *) {
   pop_context_width(context, nullptr);
   pop_context_ident(context, nullptr);
 }
-
+void pop_context_width_and_set_parts_null(GContext *context, void *) {
+  pop_context_width(context, nullptr);
+  Gcontext_setParts(context, nullptr);
+}
 void destroy_map_item_tree_and_pop_width(GContext *context, void *) {
   pop_context_width(context, nullptr);
   destroy_context_map_item_tree(context, nullptr);
@@ -291,7 +308,7 @@ void destroy_map_item_tree_and_pop_width(GContext *context, void *) {
 #define IN_INSTR_FORM(s) \
   __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_EQUAL_WIDTH_LEFT_BRACKET_##s
 #define IN_INSTR_PART(s) \
-  __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_EQUAL_WIDTH_LEFT_BRACKET_PART_KEY_COLON_WIDTH_EQUAL_LEFT_BRACKET_##s
+  __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_EQUAL_WIDTH_LEFT_BRACKET_IDENTIFIER_COLON_WIDTH_EQUAL_LEFT_BRACKET_##s
 
 fn_ctx_act *get_after_stack_actions(int32_t state) {
   switch (state) {
@@ -302,10 +319,10 @@ fn_ctx_act *get_after_stack_actions(int32_t state) {
     case IN_MACHINE(REGISTER_IDENTIFIER_WIDTH):
     case IN_MACHINE(MEMORY_IDENTIFIER_WIDTH):
     case IN_INSTRUCTION(Pattern_EQUAL_WIDTH):
-    case IN_INSTR_FORM(PART_KEY_COLON_WIDTH): {
+    case IN_INSTR_FORM(IDENTIFIER_COLON_WIDTH): {
       return push_context_width;
     }
-    case IN_INSTR_FORM(PART_KEY_COLON_WIDTH_EQUAL_LEFT_BRACKET): {
+    case IN_INSTR_FORM(IDENTIFIER_COLON_WIDTH_EQUAL_LEFT_BRACKET): {
       return realloc_context_map_item_tree;
     }
     case IN_REGISTER(Registers_RIGHT_BRACKET): {
@@ -324,9 +341,11 @@ fn_ctx_act *get_after_reduce_actions(int32_t state) {
     }
     case IN_MACHINE(Memory):
     case IN_INSTR_FORM(InstrPart):
-    case IN_INSTRUCTION(InstrForm):
     case IN_INSTRUCTION(InstrForms_InstrForm): {
       return pop_context_width;
+    }
+    case IN_INSTRUCTION(InstrForm): {
+      return pop_context_width_and_set_parts_null;
     }
   }
   return nullptr;

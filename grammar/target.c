@@ -35,11 +35,13 @@ void releaseImmediate(Immediate *immediate, const Allocator *allocator) {
 void releaseParameter(Parameter *parameter, const Allocator *allocator) {
   releaseIdentifier(parameter->type, allocator);
   releaseIdentifier(parameter->name, allocator);
+  allocator->free(parameter->type);
+  allocator->free(parameter->name);
 }
 
 void releasePattern(Pattern *pattern, const Allocator *) {
   if (!pattern->args) { return; }
-  Array_reset(pattern->args, (destruct_t *) releaseIdentifier);
+  Array_reset(pattern->args, (destruct_t *) releaseParameter);
   Array_destroy(pattern->args);
 }
 
@@ -88,16 +90,15 @@ void releaseLayout(Layout *layout, const Allocator *allocator) {
 void releaseInstrPart(InstrPart *part, const Allocator *allocator) {
   releaseLayout(part->layout, allocator);
   allocator->free(part->layout);
+  releaseIdentifier(part->name, allocator);
+  allocator->free(part->name);
 }
 
 void releaseInstrForm(InstrForm *form, const Allocator *allocator) {
   releasePattern(form->pattern, allocator);
   allocator->free(form->pattern);
-  for (int i = 0; i < 3; i++) {
-    Layout *layout = form->parts[i].layout;
-    if (layout) { releaseLayout(layout, allocator); }
-    allocator->free(layout);
-  }
+  Array_reset(form->parts, (destruct_t *) releaseInstrPart);
+  Array_destroy(form->parts);
 }
 
 void releaseInstruction(Instruction *instr, const Allocator *allocator) {

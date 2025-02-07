@@ -71,7 +71,7 @@ typedef struct Layout {
 } Layout;
 
 typedef struct InstrPart {
-  uint32_t type;
+  Identifier *name;
   uint32_t width;
   Layout *layout;
 } InstrPart;
@@ -82,10 +82,7 @@ typedef struct InstrForm {
   uint32_t width;
   uint32_t tick;
   Pattern *pattern;
-  struct {
-    uint32_t width;
-    Layout *layout;
-  } parts[3];
+  InstrParts *parts;
 } InstrForm;
 
 typedef Array InstrForms;  // Array<InstrForm>

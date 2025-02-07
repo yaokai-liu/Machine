@@ -121,7 +121,7 @@ constexpr char_t SET_GRP_STATE_TABLE_HEAD_FMT[] = "const static struct set_grp_j
 #define val_case_item(Type, var, FMT)                                       \
   case enum_##Type: {                                                       \
     const Type *var = Array_real_addr(context->var##Array, record->offset); \
-    sprintf(temp_buffer, "  enum_" #FMT "_%s,\n", var[i].name->ptr);        \
+    sprintf(temp_buffer, "  enum_" #FMT "_%s,\n", var->name->ptr);          \
     _push_string(val_buffer, temp_buffer);                                  \
     break;                                                                  \
   }

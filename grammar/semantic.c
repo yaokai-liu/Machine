@@ -43,6 +43,9 @@ int32_t check_mapping_item(GContext *context, BitField *bit_field, Evaluable *ev
       width = bf->upper - bf->lower + 1;
       break;
     }
+    case enum_NUMBER: {
+      return 0;
+    }
   }
 
   if (l_width != width) { return -2; }

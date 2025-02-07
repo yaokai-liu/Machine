@@ -48,6 +48,14 @@
     }                                                             \
   } while (false)
 
+#define grammarAssertNotDeclaredInstrPart(ident)                 \
+  do {                                                           \
+    if (GContext_findInstrPart(context, ident)) {                \
+      GContext_setErrorMessage(context, "redefined InstrPart."); \
+      return nullptr;                                            \
+    }                                                            \
+  } while (false)
+
 #define grammarAssertNotDeclaredOpcode(ident)                     \
   do {                                                            \
     Instruction *instr = GContext_findOpcode(context, ident);     \
@@ -154,66 +162,31 @@ Immediate *p_Immediate_0(void *argv[], GContext *context, const Allocator *) {
   return result;
 }
 
-InstrForm *p_InstrForm_0(void *argv[], GContext *context, const Allocator *allocator) {
+InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   InstrParts *part_array = (InstrParts *) argv[4];
-
-  uint32_t n_parts = Array_length(part_array);
-  if (Array_length(part_array) > 3) {
-    GContext_setErrorMessage(context, "too many parts.");
-    return nullptr;
-  }
 
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
   form->tick = 1;
   form->pattern = pattern;
+  form->parts = part_array;
 
-  const InstrPart * const parts = Array_real_addr(part_array, 0);
-  for (uint32_t i = 0; i < n_parts; i++) {
-    const InstrPart *part = &parts[i];
-    if (form->parts[part->type - 1].layout) {
-      allocator->free(form);
-      GContext_setErrorMessage(context, "duplicated part.");
-      return nullptr;
-    }
-    form->parts[part->type - 1].width = part->width;
-    form->parts[part->type - 1].layout = part->layout;
-  }
-  releasePrimeArray(part_array);
   return form;
 }
 
-InstrForm *p_InstrForm_1(void *argv[], GContext *context, const Allocator *allocator) {
+InstrForm *p_InstrForm_1(void *argv[], GContext *, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   uint32_t tick = (uint32_t) (uint64_t) argv[3];
   InstrParts *part_array = (InstrParts *) argv[5];
 
-  uint32_t n_parts = Array_length(part_array);
-  if (Array_length(part_array) > 3) {
-    GContext_setErrorMessage(context, "too many parts.");
-    return nullptr;
-  }
-
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
   form->tick = tick;
   form->pattern = pattern;
-
-  const InstrPart * const parts = Array_real_addr(part_array, 0);
-  for (uint32_t i = 0; i < n_parts; i++) {
-    const InstrPart *part = &parts[i];
-    if (form->parts[part->type - 1].layout) {
-      allocator->free(form);
-      GContext_setErrorMessage(context, "duplicated part.");
-      return nullptr;
-    }
-    form->parts[part->type - 1].width = part->width;
-    form->parts[part->type - 1].layout = part->layout;
-  }
-  releasePrimeArray(part_array);
+  form->parts = part_array;
   return form;
 }
 
@@ -234,7 +207,7 @@ InstrForms *p_InstrForms_1(void *argv[], GContext *, const Allocator *allocator)
 }
 
 InstrPart *p_InstrPart_0(void *argv[], GContext *context, const Allocator *allocator) {
-  enum PART_KEY key = (uint32_t) (uint64_t) argv[0];
+  Identifier *name = (Identifier *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   Layout *layout = (Layout *) argv[4];
 
@@ -243,8 +216,10 @@ InstrPart *p_InstrPart_0(void *argv[], GContext *context, const Allocator *alloc
     return nullptr;
   }
 
+  grammarAssertNotDeclaredInstrPart(name);
+
   InstrPart *part = allocator->calloc(1, sizeof(InstrPart));
-  part->type = key;
+  part->name = name;
   part->width = width;
   part->layout = layout;
   return part;
@@ -258,11 +233,14 @@ InstrParts *p_InstrParts_0(void *argv[], GContext *, const Allocator *allocator)
   return parts;
 }
 
-InstrParts *p_InstrParts_1(void *argv[], GContext *, const Allocator *allocator) {
+InstrParts *p_InstrParts_1(void *argv[], GContext *context, const Allocator *allocator) {
   InstrPart *part = (InstrPart *) argv[0];
   InstrParts *parts = Array_new(sizeof(InstrPart), enum_InstrPart, allocator);
   Array_append(parts, part, 1);
   allocator->free(part);
+
+  Gcontext_setParts(context, parts);
+
   return parts;
 }
 
@@ -623,7 +601,7 @@ Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocat
 
 void releaseToken(void *token, uint32_t type, const Allocator *allocator) {
   switch (type) {
-    releaseArrayCase(Entries, Entry)
+    //    releaseArrayCase(Entries, Entry)
     releaseArrayCase(InstrForms, InstrForm)
     releaseArrayCase(InstrParts, InstrPart)
     releaseArrayCase(PatternArgs, Identifier)
