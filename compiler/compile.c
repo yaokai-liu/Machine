@@ -122,8 +122,8 @@ int main(int argc, char *argv[]) {
   const Machine *machine = parse(terminals, &cost, &err_msg, &STDAllocator);
   if (!machine) {
     fprintf(
-        stderr, "failed to parse %s:%d:%d:%d. %s\n", srcpath, terminals[cost].lineno + 1,
-        terminals[cost].column, terminals[cost].length, err_msg
+        stderr, "failed to parse %s:%d:%d:%d. %s\n", srcpath, terminals[cost - 1].lineno + 1,
+        terminals[cost - 1].column + 1, terminals[cost - 1].length, err_msg
     );
     for (uint32_t j = cost; j < n_tokens; j++) {
       releaseToken(terminals[j].value, terminals[j].type, &STDAllocator);

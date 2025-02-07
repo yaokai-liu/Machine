@@ -340,10 +340,10 @@ fn_ctx_act *get_after_reduce_actions(int32_t state) {
       return pop_context_ident;
     }
     case IN_MACHINE(Memory):
-    case IN_INSTR_FORM(InstrPart):
-    case IN_INSTRUCTION(InstrForms_InstrForm): {
+    case IN_INSTR_FORM(InstrPart): {
       return pop_context_width;
     }
+    case IN_INSTRUCTION(InstrForms_InstrForm):
     case IN_INSTRUCTION(InstrForm): {
       return pop_context_width_and_set_parts_null;
     }

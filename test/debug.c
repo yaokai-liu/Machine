@@ -44,13 +44,13 @@ int main() {
     printf("failed to close file.\n");
     return -2;
   }
-  int start = clock();
+  clock_t start = clock();
 
   //    const char_t * str = string_t("[23-12]");
   const Terminal *terminals =
       tokenize(testString, &cost, &n_tokens, &lineno, &column, &STDAllocator);
   if (terminals[n_tokens - 1].type != enum_TERMINATOR) {
-    printf("falied to lex %s:%u:%u\n", filepath, lineno, column);
+    printf("failed to lex %s:%u:%u\n", filepath, lineno, column);
     printf("unknown character '%c'\n", testString[cost]);
     STDAllocator.free((void *) terminals);
     return -3;
@@ -76,7 +76,7 @@ int main() {
   }
   Generator *generator = Generator_new(&STDAllocator);
   codegen(generator, machine);
-  int end = clock();
+  clock_t end = clock();
 
   //  char_t string[512] = {};
   //  memcpy(string, machine->name->ptr, machine->name->len);
