@@ -44,6 +44,7 @@ inline GContext *GContext_new(const Allocator *allocator) {
   context->identStack = Stack_new(allocator);
   context->mappingTree = nullptr;
   context->errorMessage = nullptr;
+  context->maxArgCount = 0x10;
   return context;
 }
 
@@ -151,6 +152,10 @@ void Gcontext_setParts(GContext *context, InstrParts *parts) {
   context->parts = parts;
 }
 
+void Gcontext_setItems(GContext *context, MemItems *items) {
+  context->items = items;
+}
+
 const InstrPart *GContext_findInstrPart(GContext *context, Identifier *ident) {
   if (!context->parts) { return nullptr; }
   const uint32_t length = Array_length(context->parts);
@@ -161,12 +166,19 @@ const InstrPart *GContext_findInstrPart(GContext *context, Identifier *ident) {
   return nullptr;
 }
 
+const MemItem *GContext_findMemItem(GContext *context, Identifier *ident) {
+  if (!context->items) { return nullptr; }
+  const uint32_t length = Array_length(context->items);
+  const MemItem * const items = Array_real_addr(context->items, 0);
+  for (uint32_t i = 0; i < length; i++) {
+    if (Identifier_cmp(items[i].name, ident) == 0) { return Array_virt_addr(context->items, i); }
+  }
+  return nullptr;
+}
+
 inline void GContext_addPattern(GContext *context, Pattern *pattern) {
   if (!context->patterns) {
     context->patterns = Array_new(sizeof(Pattern *), enum_Pattern, context->allocator);
-  }
-  if (pattern->args) {
-    context->maxArgCount = max(Array_length(pattern->args), context->maxArgCount);
   }
   Array_append(context->patterns, &pattern, 1);
 }
@@ -296,6 +308,11 @@ void pop_context_width_and_set_parts_null(GContext *context, void *) {
   pop_context_width(context, nullptr);
   Gcontext_setParts(context, nullptr);
 }
+void pop_context_width_and_set_items_null(GContext *context, void *) {
+  pop_context_width(context, nullptr);
+  Gcontext_setItems(context, nullptr);
+}
+
 void destroy_map_item_tree_and_pop_width(GContext *context, void *) {
   pop_context_width(context, nullptr);
   destroy_context_map_item_tree(context, nullptr);
@@ -331,15 +348,19 @@ fn_ctx_act *get_after_stack_actions(int32_t state) {
     case IN_INSTR_PART(MappingItems_RIGHT_BRACKET): {
       return destroy_context_map_item_tree;
     }
+    default: {
+      return nullptr;
+    }
   }
-  return nullptr;
 }
 fn_ctx_act *get_after_reduce_actions(int32_t state) {
   switch (state) {
     case __Machine: {
       return pop_context_ident;
     }
-    case IN_MACHINE(Memory):
+    case IN_MACHINE(Memory): {
+      return pop_context_width_and_set_items_null;
+    }
     case IN_INSTR_FORM(InstrPart): {
       return pop_context_width;
     }
@@ -347,6 +368,8 @@ fn_ctx_act *get_after_reduce_actions(int32_t state) {
     case IN_INSTRUCTION(InstrForm): {
       return pop_context_width_and_set_parts_null;
     }
+    default: {
+      return nullptr;
+    }
   }
-  return nullptr;
 }

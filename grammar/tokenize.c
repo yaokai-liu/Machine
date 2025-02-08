@@ -473,18 +473,6 @@ inline uint32_t single_tokenize(
     case '(': {
       return tokenize_symbol_LPAREN(input + 1, result, allocator);
     }
-    case '$': {
-      result->type = enum_MEM_KEY;
-      result->value = (void *) (uint64_t) MEM_BASE;
-      result->length = 1;
-      return 1;
-    }
-    case '>': {
-      result->type = enum_MEM_KEY;
-      result->value = (void *) (uint64_t) MEM_OFFSET;
-      result->length = 1;
-      return 1;
-    }
     default: {
     }
   }

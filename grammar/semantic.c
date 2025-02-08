@@ -17,29 +17,25 @@ int32_t check_mapping_item(GContext *context, BitField *bit_field, Evaluable *ev
 
   uint32_t width = 0;
   switch (evaluable->type) {
-    case enum_IDENTIFIER: {
-      const Parameter *param = GContext_findParameter(context, evaluable->lhs);
-      const Record *record = GContext_findRecord(context, param->type);
-      if (record->typeid == enum_Memory) {
-        width = GContext_getMemory(context, record->offset)->width;
-      } else if (record->typeid == enum_Immediate) {
-        width = GContext_getImmediate(context, record->offset)->width;
-      } else {
-        // means it's a register
-        return 0;
+    case enum_Variable: {
+      const Variable *var = evaluable->lhs;
+      if (var->type == enum_IDENTIFIER) {
+        const Parameter *param = GContext_findParameter(context, var->lhs);
+        const Record *record = GContext_findRecord(context, param->type);
+        if (record->typeid == enum_Immediate) {
+          width = GContext_getImmediate(context, record->offset)->width;
+        } else {
+          // means it's a register
+          return 0;
+        }
+      } else if (var->type == enum_MemItem) {
+        const MemItem *item = var->rhs;
+        width = item->width;
       }
       break;
     }
     case enum_BIT_FIELD: {
       BitField *bf = evaluable->rhs;
-      width = bf->upper - bf->lower + 1;
-      break;
-    }
-    case enum_MEM_KEY: {
-      const Parameter *param = GContext_findParameter(context, evaluable->lhs);
-      const Record *record = GContext_findRecord(context, param->type);
-      const Memory *memory = GContext_getMemory(context, record->offset);
-      BitField *bf = (MEM_BASE == (uint64_t) evaluable->lhs) ? memory->base : memory->offset;
       width = bf->upper - bf->lower + 1;
       break;
     }

@@ -45,15 +45,19 @@ void releasePattern(Pattern *pattern, const Allocator *) {
   Array_destroy(pattern->args);
 }
 
+void releaseVariable(Variable *variable, const Allocator *allocator) {
+  releaseIdentifier(variable->lhs, allocator);
+  allocator->free(variable->lhs);
+}
+
 void releaseEvaluable(Evaluable *evaluable, const Allocator *allocator) {
   if (enum_NUMBER == evaluable->type) { return; }
   if (enum_BIT_FIELD == evaluable->type) {
     releaseBitField(evaluable->rhs, allocator);
     allocator->free(evaluable->rhs);
   }
-  releaseIdentifier(evaluable->lhs, allocator);
+  releaseVariable(evaluable->lhs, allocator);
   allocator->free(evaluable->lhs);
-  return;
 }
 
 void releaseMappingItem(MappingItem *item, const Allocator *allocator) {
@@ -109,17 +113,19 @@ void releaseInstruction(Instruction *instr, const Allocator *allocator) {
 }
 
 void releaseMemItem(MemItem *item, const Allocator *allocator) {
-  releaseBitField(item->field, allocator);
-  allocator->free(item->field);
+  releaseIdentifier(item->name, allocator);
+  allocator->free(item->name);
+  if (item->type) {
+    releaseIdentifier(item->type, allocator);
+    allocator->free(item->type);
+  }
 }
 
 void releaseMemory(Memory *memory, const Allocator *allocator) {
   releaseIdentifier(memory->name, allocator);
-  releaseBitField(memory->base, allocator);
-  releaseBitField(memory->offset, allocator);
   allocator->free(memory->name);
-  allocator->free(memory->base);
-  allocator->free(memory->offset);
+  Array_reset(memory->items, (destruct_t *) releaseMemItem);
+  Array_destroy(memory->items);
 }
 
 void releaseRegister(Register *reg, const Allocator *allocator) {
@@ -135,15 +141,10 @@ void releaseRegisterGroup(RegisterGroup *rg, const Allocator *allocator) {
   releasePrimeArray(rg->registers);
 }
 
-void releaseSetItem(SetItem *item, const Allocator *allocator) {
-  releaseIdentifier(item->name, allocator);
-  allocator->free(item->name);
-}
-
 void releaseSet(Set *set, const Allocator *allocator) {
   releaseIdentifier(set->name, allocator);
   allocator->free(set->name);
-  Array_reset(set->items, (destruct_t *) releaseSetItem);
+  Array_reset(set->items, (destruct_t *) releaseIdentifier);
   Array_destroy(set->items);
 }
 

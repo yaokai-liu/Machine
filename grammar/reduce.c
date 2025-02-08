@@ -11,7 +11,6 @@
 #include "array.h"
 #include "avl-tree.h"
 #include "context.h"
-#include "enum.h"
 #include "semantic.h"
 #include "target.h"
 #include "terminal.h"
@@ -54,6 +53,14 @@
       GContext_setErrorMessage(context, "redefined InstrPart."); \
       return nullptr;                                            \
     }                                                            \
+  } while (false)
+
+#define grammarAssertNotDeclaredMemItem(ident)                 \
+  do {                                                         \
+    if (GContext_findMemItem(context, ident)) {                \
+      GContext_setErrorMessage(context, "redefined MemItem."); \
+      return nullptr;                                          \
+    }                                                          \
   } while (false)
 
 #define grammarAssertNotDeclaredOpcode(ident)                     \
@@ -101,24 +108,65 @@ Entry *p_Entry_4(void *[], GContext *, const Allocator *) {
   return (REFER(Entry))(uint64_t) (enum_Entry);
 }
 
-Evaluable *p_Evaluable_0(void *argv[], GContext *context, const Allocator *allocator) {
+Variable *p_Variable_0(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *lhs = (Identifier *) argv[0];
-  void *rhs = argv[2];
+  Identifier *rhs = (Identifier *) argv[2];
 
   grammarAssertHasArgument(lhs);
+  const Record *record = GContext_findRecord(context, lhs);
+  grammarAssert(record->typeid == enum_Memory, "Identifier is not accessible.");
+  const Memory *memory = GContext_getMemory(context, record->offset);
+  Gcontext_setItems(context, memory->items);
+  const REFER(MemItem) item = GContext_findMemItem(context, rhs);
+  grammarAssert(item, "no such field.");
+  Gcontext_setItems(context, nullptr);
 
-  Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
-  evaluable->type = enum_MEM_KEY;
-  evaluable->lhs = lhs;
-  evaluable->rhs = rhs;
-  return evaluable;
+  Variable *var = allocator->calloc(1, sizeof(Variable));
+  var->type = enum_MemItem;
+  var->lhs = lhs;
+  var->rhs = Array_vert2real(memory->items, item);
+  return var;
 }
 
-Evaluable *p_Evaluable_1(void *argv[], GContext *context, const Allocator *allocator) {
-  Identifier *lhs = (Identifier *) argv[0];
+Variable *p_Variable_1(void *argv[], GContext *context, const Allocator *allocator) {
+  Identifier *ident = (Identifier *) argv[0];
+
+  grammarAssertHasArgument(ident);
+
+  Variable *var = allocator->calloc(1, sizeof(Variable));
+  var->type = enum_IDENTIFIER;
+  var->lhs = ident;
+  var->rhs = nullptr;
+  return var;
+}
+
+Evaluable *p_Evaluable_0(void *argv[], GContext *context, const Allocator *allocator) {
+  Variable *lhs = (Variable *) argv[0];
   BitField *rhs = (BitField *) argv[1];
 
-  grammarAssertHasArgument(lhs);
+  const Record *record = nullptr;
+  Pattern *pattern = *(Pattern **) Array_last_real(context->patterns);
+  Parameter *first = Array_first_real(pattern->args);
+  Parameter *last = Array_last_real(pattern->args);
+  for (Parameter *param = first; param <= last; param++) {
+    if (Identifier_cmp(param->name, lhs->lhs) == 0) {
+      record = GContext_findRecord(context, param->type);
+    }
+  }
+  grammarAssert(record, "undeclared identifier.");
+  switch (lhs->type) {
+    case enum_MemItem: {
+      const MemItem *item = lhs->rhs;
+      grammarAssert(rhs->upper < (uint64_t) item->width, "field out of range.");
+      break;
+    }
+    case enum_IDENTIFIER: {
+      if (record->typeid == enum_Immediate) {
+        const Immediate *imm = GContext_getImmediate(context, record->offset);
+        grammarAssert(rhs->upper < imm->width, "field out of range.");
+      }
+    }
+  }
 
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_BIT_FIELD;
@@ -127,19 +175,16 @@ Evaluable *p_Evaluable_1(void *argv[], GContext *context, const Allocator *alloc
   return evaluable;
 }
 
-Evaluable *p_Evaluable_2(void *argv[], GContext *context, const Allocator *allocator) {
-  Identifier *ident = (Identifier *) argv[0];
-
-  grammarAssertHasArgument(ident);
-
+Evaluable *p_Evaluable_1(void *argv[], GContext *, const Allocator *allocator) {
+  Variable *var = (Variable *) argv[0];
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
-  evaluable->type = enum_IDENTIFIER;
-  evaluable->lhs = ident;
+  evaluable->type = enum_Variable;
+  evaluable->lhs = var;
   evaluable->rhs = nullptr;
   return evaluable;
 }
 
-Evaluable *p_Evaluable_3(void *argv[], GContext *, const Allocator *allocator) {
+Evaluable *p_Evaluable_2(void *argv[], GContext *, const Allocator *allocator) {
   uint64_t number = (uint64_t) argv[0];
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_NUMBER;
@@ -150,11 +195,12 @@ Evaluable *p_Evaluable_3(void *argv[], GContext *, const Allocator *allocator) {
 
 Immediate *p_Immediate_0(void *argv[], GContext *context, const Allocator *) {
   Identifier *ident = (Identifier *) argv[1];
-
-  grammarAssertNotDeclaredRecord(ident);
-
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   uint32_t type = (uint64_t) argv[3];
+
+  grammarAssertNotDeclaredRecord(ident);
+  grammarAssert(width <= 64, "too long to support this width.");
+
   Immediate imm = {.type = type, .width = width, .name = ident};
 
   Immediate *result = GContext_addImmediate(context, &imm);
@@ -356,42 +402,78 @@ MappingItems *p_MappingItems_1(void *argv[], GContext *, const Allocator *alloca
 }
 
 MemItem *p_MemItem_0(void *argv[], GContext *context, const Allocator *allocator) {
-  enum MEM_KEY key = (uint32_t) (uint64_t) argv[0];
-  if (key != MEM_BASE && key != MEM_OFFSET) {
-    GContext_setErrorMessage(context, "unknown part key of memory mdoel.");
-    return nullptr;
-  }
-  BitField *bit_field = (BitField *) argv[2];
+  Identifier *name = (Identifier *) argv[0];
+  uint32_t width = (uint32_t) (uint64_t) argv[2];
+
+  grammarAssertNotDeclaredMemItem(name);
+  grammarAssert(width <= 64, "too long to support this width.");
+
   MemItem *item = allocator->calloc(1, sizeof(MemItem));
-  item->type = key;
-  item->field = bit_field;
+  item->name = name;
+  item->width = width;
+  item->type = nullptr;
+
   return item;
 }
 
-Memory *p_Memory_0(void *argv[], GContext *context, const Allocator *allocator) {
+MemItem *p_MemItem_1(void *argv[], GContext *context, const Allocator *allocator) {
+  Identifier *name = (Identifier *) argv[0];
+  uint32_t width = (uint32_t) (uint64_t) argv[2];
+  Identifier *type = (Identifier *) argv[4];
+
+  grammarAssertNotDeclaredMemItem(name);
+  grammarAssertDefinedRecord(type);
+  grammarAssert(width <= 64, "too long to support this width.");
+  const Record *record = GContext_findRecord(context, type);
+  if (record->typeid == enum_Immediate) {
+    const Immediate *imm = GContext_getImmediate(context, record->offset);
+    grammarAssert(imm->width == width, "incompatible width.");
+  }
+
+  MemItem *item = allocator->calloc(1, sizeof(MemItem));
+  item->name = name;
+  item->width = width;
+  item->type = type;
+
+  return item;
+}
+
+MemItems *p_MemItems_0(void *argv[], GContext *, const Allocator *allocator) {
+  MemItems *items = (MemItems *) argv[0];
+  MemItem *item = (MemItem *) argv[1];
+
+  MemItem *last_item = Array_last_real(items);
+  item->start = last_item->start + last_item->width;
+
+  Array_append(items, item, 1);
+  allocator->free(item);
+
+  return items;
+}
+
+MemItems *p_MemItems_1(void *argv[], GContext *context, const Allocator *allocator) {
+  MemItem *item = (MemItem *) argv[0];
+
+  item->start = 0;
+
+  MemItems *items = Array_new(sizeof(MemItem), enum_MemItem, allocator);
+  Array_append(items, item, 1);
+  allocator->free(item);
+
+  Gcontext_setItems(context, items);
+  return items;
+}
+
+Memory *p_Memory_0(void *argv[], GContext *context, const Allocator *) {
   Identifier *ident = (Identifier *) argv[1];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
-  MemItem *item1 = (MemItem *) argv[4];
-  MemItem *item2 = (MemItem *) argv[5];
+  MemItems *items = (MemItems *) argv[4];
 
-  grammarAssertNotDeclaredRecord(ident);
+  grammarAssert(width <= 64, "too long to support this width.");
 
-  if (item1->type == item2->type) {
-    GContext_setErrorMessage(context, "duplicated part key of memory mdoel.");
-    return nullptr;
-  }
-  Memory mem = {.name = ident, .width = width};
-  if (item1->type == MEM_BASE) {
-    mem.base = item1->field;
-    mem.offset = item2->field;
-  } else {
-    mem.base = item2->field;
-    mem.offset = item1->field;
-  }
-  allocator->free(item1);
-  allocator->free(item2);
+  Memory mem = {.name = ident, .width = width, .items = items};
 
-  Memory *result = GContext_addMemory(context, &mem);
+  REFER(Memory) result = GContext_addMemory(context, &mem);
 
   return result;
 }
@@ -517,8 +599,7 @@ SetItems *p_SetItems_0(void *argv[], GContext *context, const Allocator *) {
 
   grammarAssertDefinedRecord(ident);
 
-  SetItem item = {ident};
-  Array_append(items, &item, 1);
+  Array_append(items, ident, 1);
 
   return items;
 }
@@ -528,9 +609,8 @@ SetItems *p_SetItems_1(void *argv[], GContext *context, const Allocator *allocat
 
   grammarAssertDefinedRecord(ident);
 
-  SetItem item = {ident};
-  SetItems *items = Array_new(sizeof(SetItem), enum_SetItems, allocator);
-  Array_append(items, &item, 1);
+  SetItems *items = Array_new(sizeof(Identifier), enum_IDENTIFIER, allocator);
+  Array_append(items, ident, 1);
 
   return items;
 }
@@ -606,7 +686,7 @@ void releaseToken(void *token, uint32_t type, const Allocator *allocator) {
     releaseArrayCase(InstrParts, InstrPart)
     releaseArrayCase(PatternArgs, Identifier)
     releaseArrayCase(Registers, Register)
-    releaseArrayCase(SetItems, SetItem)
+    releaseArrayCase(SetItems, Identifier)
 
     releaseTokenCase(Entry, Entry)
     releaseTokenCase(Evaluable, Evaluable)

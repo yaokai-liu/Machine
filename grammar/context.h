@@ -36,8 +36,9 @@ typedef struct GContext {
   Trie /*<char_t, REFER(Instruction)>*/ *opcodeMap;
 
   // temporary variable
+  MemItems *items;
+  InstrParts *parts;
   Array /*<Pattern*>*/ *patterns;
-  Array /*<InstrPart>*/ *parts;
   Stack /*<uint64_t>*/ *widthStack;
   Stack /*<Identifier*>*/ *identStack;
   AVLTree /*<BitField*, MappingItem*>*/ *mappingTree;
@@ -78,7 +79,11 @@ void *GContext_findIdentInStack(GContext *context, Identifier *ident);
 
 void Gcontext_setParts(GContext *context, InstrParts *parts);
 
+void Gcontext_setItems(GContext *context, MemItems *items);
+
 const InstrPart *GContext_findInstrPart(GContext *context, Identifier *ident);
+
+const MemItem *GContext_findMemItem(GContext *context, Identifier *ident);
 
 void GContext_addPattern(GContext *context, Pattern *pattern);
 

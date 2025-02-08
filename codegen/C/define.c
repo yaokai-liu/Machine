@@ -27,20 +27,18 @@
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
 
-constexpr char_t MEM_DEC_FMT[] = "const Entry *MEM_%s(uint64_t base, uint64_t offset);\n";
+constexpr char_t MEM_DEC_NAME_FMT[] = "const Entry *MEM_%s";
 constexpr char_t IMM_DEC_FMT[] = "const Entry *IMM_%s(uint64_t val);\n";
 constexpr char_t REG_DEC_FMT[] = "const Entry *const REG_%s;\n";
-constexpr char_t MEM_DEF_FMT[] =
-    "const Entry *MEM_%s(uint64_t base, uint64_t offset) {\n"
+constexpr char_t MEM_DEF_HEAD_FMT[] =
+    " {\n"
     "  Entry * entry = &CURRENT_MACHINE->entries[CURRENT_MACHINE->argCount];\n"
     "  entry->type = enum_MEM_%s;\n"
-    "  uint64_t number = 0;\n"
-    "  number = numSetBits(number, %d, %d, base);\n"
-    "  number = numSetBits(number, %d, %d, offset);\n"
-    "  entry->value = number;\n"
-    "  CURRENT_MACHINE->argCount++;\n"
-    "  return entry;\n"
-    "}\n";
+    "  uint64_t number = 0;\n";
+constexpr char_t MEM_DEF_TAIL[] = "  entry->value = number;\n"
+                                  "  CURRENT_MACHINE->argCount++;\n"
+                                  "  return entry;\n"
+                                  "}\n";
 constexpr char_t IMM_DEF_FMT[] =
     "const Entry *IMM_%s(uint64_t val) {\n"
     "  Entry * entry = &CURRENT_MACHINE->entries[CURRENT_MACHINE->argCount];\n"
@@ -81,18 +79,112 @@ void gen_enum_item(Generator *generator, const Machine *machine) {
   gen_type_enum_item(Set, SET, set);
   push_string("  enum_TYPE_ENUM_UPPER_BOUND\n};\n");
 }
+
+void gen_mem_dec_sprintf(
+    const Memory *mem, const GContext *context, char_t *temp_buffer, Array *buffer
+) {
+  sprintf(temp_buffer, MEM_DEC_NAME_FMT, mem->name->ptr);
+  push_string(temp_buffer);
+  push_string("(");
+  const uint32_t n_items = Array_length(mem->items);
+  const MemItem *items = Array_real_addr(mem->items, 0);
+  for (uint32_t i = 0; i < n_items; i++) {
+    if (items[i].type) {
+      const Record *record = GContext_findRecord(context, items[i].type);
+      if (record->typeid == enum_Immediate) {
+        sprintf(temp_buffer, "uint64_t *%s", items[i].name->ptr);
+      } else {
+        sprintf(temp_buffer, "Entry *%s", items[i].name->ptr);
+      }
+    } else {
+      sprintf(temp_buffer, "uint64_t %s", items[i].name->ptr);
+    }
+    push_string(temp_buffer);
+    if (i < n_items - 1) {
+      push_string(", ");
+    } else {
+      push_string(")");
+    }
+  }
+}
+
+void gen_mem_dec(const GContext *context, Array *buffer) {
+  char_t temp_buffer[512] = {};
+  const uint32_t count = Array_length(context->memArray);
+  const Memory *memories = Array_real_addr(context->memArray, 0);
+  for (uint32_t i = 0; i < count; i++) {
+    const Memory *mem = &memories[i];
+    gen_mem_dec_sprintf(mem, context, temp_buffer, buffer);
+    push_string(";\n");
+  }
+}
+
+const char_t *type_string(uint32_t id) {
+  switch (id) {
+    case enum_Immediate: return "IMM";
+    case enum_Memory: return "MEM";
+    case enum_Register: return "REG";
+    case enum_RegisterGroup: return "GRP";
+    case enum_Set: return "SET";
+    default: return nullptr;
+  }
+}
+
+constexpr char_t ENTRY_TYPE_CHECK_FMT[] = "  entry_type_check(enum_%s_%s, %s->type);\n";
+constexpr char_t ENTRY_VALUE_SET_FMT[] = "  number = numSetBits(number, %d, %d, %s->value);\n";
+constexpr char_t VALUE_SET_FMT[] = "  number = numSetBits(number, %d, %d, %s);\n";
+void gen_mem_def_sprintf(
+    const Memory *mem, const GContext *context, char_t *temp_buffer, Array *buffer
+) {
+  gen_mem_dec_sprintf(mem, context, temp_buffer, buffer);
+  sprintf(temp_buffer, MEM_DEF_HEAD_FMT, mem->name->ptr);
+  push_string(temp_buffer);
+  const uint32_t n_items = Array_length(mem->items);
+  const MemItem *items = Array_real_addr(mem->items, 0);
+  for (uint32_t i = 0; i < n_items; i++) {
+    if (items[i].type) {
+      const Record *record = GContext_findRecord(context, items[i].type);
+      if (record->typeid != enum_Immediate) {
+        const char_t *t_kind = type_string(record->typeid);
+        const char_t *t_name = items[i].type->ptr;
+        sprintf(temp_buffer, ENTRY_TYPE_CHECK_FMT, t_kind, t_name, items[i].name->ptr);
+        push_string(temp_buffer);
+      }
+    }
+  }
+  uint32_t width = 0;
+  for (uint32_t i = 0; i < n_items; i++) {
+    if (items[i].type) {
+      sprintf(temp_buffer, ENTRY_VALUE_SET_FMT, width, width + items[i].width, items[i].name->ptr);
+    } else {
+      sprintf(temp_buffer, VALUE_SET_FMT, width, width + items[i].width, items[i].name->ptr);
+    }
+    push_string(temp_buffer);
+  }
+  push_string(MEM_DEF_TAIL);
+}
+void gen_mem_def(const GContext *context, Array *buffer) {
+  char_t temp_buffer[512] = {};
+  const uint32_t count = Array_length(context->memArray);
+  const Memory *memories = Array_real_addr(context->memArray, 0);
+  for (uint32_t i = 0; i < count; i++) {
+    const Memory *mem = &memories[i];
+    gen_mem_def_sprintf(mem, context, temp_buffer, buffer);
+  }
+}
+
 constexpr char_t SET_GRP_VAL_TABLE_DEC_FMT[] = "const static enum ENTRY_TYPE_ENUM\n"
                                                "SET_GRP_VAL_TABLE[];\n";
 constexpr char_t SET_GRP_STATE_TABLE_DEC_FMT[] = "const static struct set_grp_jump_state\n"
                                                  "SET_GRP_STATE_TABLE[];\n";
-#define gen_mem_sprintf(...) gen_type_sprintf(Memory, mem, __VA_ARGS__)
 #define gen_imm_sprintf(...) gen_type_sprintf(Immediate, imm, __VA_ARGS__)
 #define gen_reg_sprintf(...) gen_type_sprintf(Register, reg, __VA_ARGS__)
 void gen_context_dec(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
   const GContext *context = machine->context;
   Array *buffer = Generator_getOutputBuffer(generator, GenBuf_exports);
-  gen_mem_sprintf(MEM_DEC_FMT, entries[i].name->ptr);
+  gen_mem_dec(context, buffer);
+  push_string(";\n");
   gen_imm_sprintf(IMM_DEC_FMT, entries[i].name->ptr);
   gen_reg_sprintf(REG_DEC_FMT, entries[i].name->ptr);
 
@@ -106,10 +198,7 @@ void gen_context_def(Generator *generator, const Machine *machine) {
   Array *buffer = Generator_getOutputBuffer(generator, GenBuf_definitions);
 
   gen_reg_sprintf(REG_ENTRY_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr, entries[i].code);
-  gen_mem_sprintf(
-      MEM_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr, entries[i].base->lower,
-      entries[i].base->upper, entries[i].offset->lower, entries[i].offset->upper
-  );
+  gen_mem_def(context, buffer);
   gen_imm_sprintf(IMM_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr);
   gen_reg_sprintf(REG_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr);
 }
@@ -156,9 +245,9 @@ void gen_set_grp_jump_table(Generator *generator, const Machine *machine) {
   const Set *sets = Array_real_addr(context->setArray, 0);
   for (uint32_t i = 0; i < set_count; i++) {
     const uint32_t item_count = Array_length(sets[i].items);
-    const SetItem *items = Array_real_addr(sets[i].items, 0);
+    const Identifier *items = Array_real_addr(sets[i].items, 0);
     for (uint32_t j = 0; j < item_count; j++) {
-      const Record *record = GContext_findRecord(context, items[j].name);
+      const Record *record = GContext_findRecord(context, &items[j]);
       switch (record->typeid) {
         val_case_item(Memory, mem, MEM);
         val_case_item(Immediate, imm, IMM);

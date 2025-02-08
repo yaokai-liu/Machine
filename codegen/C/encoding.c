@@ -256,42 +256,32 @@ void gen_jump_table_def(
 static thread_local char_t FMT_BUFFER[1024] = {};
 
 #define MAX_IDENT_LEN 64
-int32_t eval_to_val(
-    const GContext *context, Evaluable *evaluable, char_t *buffer, const Pattern *pattern
-) {
+int32_t eval_to_val(const GContext *, Evaluable *evaluable, char_t *buffer, const Pattern *) {
   if (enum_NUMBER == evaluable->type) {
     uint64_t number = (uint64_t) evaluable->lhs;
     return sprintf(buffer, "0x%lX", number);
   }
-  const Record *record = nullptr;
-  Identifier *ident = (Identifier *) evaluable->lhs;
-  if (pattern && pattern->args) {
-    const uint32_t n_args = Array_length(pattern->args);
-    const Parameter *args = Array_real_addr(pattern->args, 0);
-    for (uint32_t i = 0; i < n_args; i++) {
-      if (Identifier_cmp(ident, args[i].name) == 0) {
-        record = GContext_findRecord(context, args->type);
-      }
-    }
-  }
+  Variable *variable = (Variable *) evaluable->lhs;
+  const Identifier *ident = variable->lhs;
 
-  if (ident->len > MAX_IDENT_LEN) { return -1; }
   switch (evaluable->type) {
-    case enum_NUMBER:
-    case enum_IDENTIFIER: {
-      return sprintf(buffer, "%s", ident->ptr);
-    }
     case enum_BIT_FIELD: {
       BitField *bf = evaluable->rhs;
       uint32_t width = bf->upper - bf->lower + 1;
       // TODO: if record refers to a set there may has different behaviors, please solve it.
       return sprintf(buffer, "(%s >> %d) & UINT_N_MAX(%d)", ident->ptr, bf->lower, width);
     }
-    case enum_MEM_KEY: {
-      const Memory *mem = GContext_getMemory(context, record->offset);
-      BitField *bf = (((uint64_t) evaluable->rhs) == MEM_BASE) ? mem->base : mem->offset;
-      uint32_t width = bf->upper - bf->lower + 1;
-      return sprintf(buffer, "(%s >> %d) & UINT_N_MAX(%d)", ident->ptr, bf->lower, width);
+    case enum_Variable: {
+      switch (variable->type) {
+        case enum_IDENTIFIER: {
+          return sprintf(buffer, "%s", ident->ptr);
+        }
+        case enum_MemItem: {
+          const MemItem *item = variable->rhs;
+          uint32_t width = item->width;
+          return sprintf(buffer, "(%s >> %d) & UINT_N_MAX(%d)", ident->ptr, item->start, width);
+        }
+      }
     }
   }
   return -1;

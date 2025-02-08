@@ -51,7 +51,7 @@ typedef struct Evaluable {
   uint32_t type;
   void *lhs;
   void *rhs;
-} Evaluable;
+} Evaluable, Variable;
 
 typedef struct MappingItem {
   BitField *field;
@@ -94,15 +94,18 @@ typedef struct Instruction {
 } Instruction;
 
 typedef struct MemItem {
-  uint32_t type;
-  BitField *field;
+  Identifier *name;
+  uint32_t start;
+  uint32_t width;
+  Identifier *type;
 } MemItem;
+
+typedef Array MemItems;  // Array<MemItem>
 
 typedef struct Memory {
   Identifier *name;
   uint32_t width;
-  BitField *base;
-  BitField *offset;
+  MemItems *items;
 } Memory;
 
 typedef struct RegisterGroup RegisterGroup;
@@ -122,11 +125,7 @@ typedef struct RegisterGroup {
   Registers *registers;
 } RegisterGroup;
 
-typedef Array SetItems;  // Array<SetItem>
-
-typedef struct SetItem {
-  Identifier *name;
-} SetItem;
+typedef Array SetItems;  // Array<Identifier>
 
 typedef struct Set {
   Identifier *name;
@@ -142,6 +141,7 @@ void releaseMachine(Machine *machine, const Allocator *allocator);
 void releaseImmediate(Immediate *immediate, const Allocator *allocator);
 void releaseParameter(Parameter *parameter, const Allocator *allocator);
 void releasePattern(Pattern *pattern, const Allocator *allocator);
+void releaseVariable(Variable *variable, const Allocator *allocator);
 void releaseEvaluable(Evaluable *evaluable, const Allocator *allocator);
 void releaseMappingItem(MappingItem *item, const Allocator *allocator);
 void releaseMappingItems(MappingItems *items, const Allocator *allocator);
@@ -153,7 +153,6 @@ void releaseMemItem(MemItem *item, const Allocator *allocator);
 void releaseMemory(Memory *memory, const Allocator *allocator);
 void releaseRegister(Register *reg, const Allocator *allocator);
 void releaseRegisterGroup(RegisterGroup *rg, const Allocator *allocator);
-void releaseSetItem(SetItem *item, const Allocator *allocator);
 void releaseSet(Set *set, const Allocator *allocator);
 
 int32_t Identifier_cmp(const Identifier *ident1, const Identifier *ident2);
