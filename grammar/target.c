@@ -169,13 +169,14 @@ inline int32_t PatternArgs_cmp(PatternArgs *args1, PatternArgs *args2) {
   if (len1 < len2) { return -1; }
   if (len1 > len2) { return 1; }
 
-  const Identifier * const idents1 = Array_real_addr(args1, 0);
-  const Identifier * const idents2 = Array_real_addr(args2, 0);
+  const Parameter * const params1 = Array_real_addr(args1, 0);
+  const Parameter * const params2 = Array_real_addr(args2, 0);
   for (uint32_t i = 0; i < len1; i++) {
-    const Identifier * const ident1 = &idents1[i];
-    const Identifier * const ident2 = &idents2[i];
-    int32_t b = Identifier_cmp(ident1, ident2);
-    if (b != 0) { return b; }
+    const Parameter * const param1 = &params1[i];
+    const Parameter * const param2 = &params2[i];
+    int32_t b = !Identifier_cmp(param1->type, param2->type)
+             && !Identifier_cmp(param1->name, param2->name);
+    if (!b) { return 1; }
   }
   return 0;
 }

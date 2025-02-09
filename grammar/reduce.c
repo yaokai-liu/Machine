@@ -28,9 +28,12 @@
     }                                                             \
   } while (false)
 
-#define grammarAssertHasArgument(ident)                              \
-  do {                                                               \
-    if (!GContext_findParameter(context, ident)) { return nullptr; } \
+#define grammarAssertHasArgument(ident)                       \
+  do {                                                        \
+    if (!GContext_findParameter(context, ident)) {            \
+      GContext_setErrorMessage(context, "no such variable."); \
+      return nullptr;                                         \
+    }                                                         \
   } while (false)
 
 #define grammarAssertNotDeclaredRecord(ident)                     \
@@ -112,8 +115,9 @@ Variable *p_Variable_0(void *argv[], GContext *context, const Allocator *allocat
   Identifier *lhs = (Identifier *) argv[0];
   Identifier *rhs = (Identifier *) argv[2];
 
-  grammarAssertHasArgument(lhs);
-  const Record *record = GContext_findRecord(context, lhs);
+  const Parameter *param = GContext_findParameter(context, lhs);
+  grammarAssert(param, "no such variable.");
+  const Record *record = GContext_findRecord(context, param->type);
   grammarAssert(record->typeid == enum_Memory, "Identifier is not accessible.");
   const Memory *memory = GContext_getMemory(context, record->offset);
   Gcontext_setItems(context, memory->items);

@@ -53,6 +53,24 @@ typedef struct Evaluable {
   void *rhs;
 } Evaluable, Variable;
 
+typedef struct SingleCondExpr {
+  uint32_t type;
+  uint32_t op;
+  Evaluable *lhs;
+  Evaluable *rhs;
+} SingleCondExpr;
+
+typedef struct CondExpr CondExpr;
+typedef struct Condition {
+  CondExpr *expr;
+} Condition;
+typedef struct CondExpr {
+  uint32_t type;
+  uint32_t op;
+  CondExpr *lhs;
+  SingleCondExpr *rhs;
+} CondExpr;
+
 typedef struct MappingItem {
   BitField *field;
   Evaluable *evaluable;

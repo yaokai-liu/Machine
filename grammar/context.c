@@ -313,6 +313,11 @@ void pop_context_width_and_set_items_null(GContext *context, void *) {
   Gcontext_setItems(context, nullptr);
 }
 
+void release_ctx_patterns(GContext *context, void *) {
+  releasePrimeArray(context->patterns);
+  context->patterns = nullptr;
+}
+
 void destroy_map_item_tree_and_pop_width(GContext *context, void *) {
   pop_context_width(context, nullptr);
   destroy_context_map_item_tree(context, nullptr);
@@ -367,6 +372,9 @@ fn_ctx_act *get_after_reduce_actions(int32_t state) {
     case IN_INSTRUCTION(InstrForms_InstrForm):
     case IN_INSTRUCTION(InstrForm): {
       return pop_context_width_and_set_parts_null;
+    }
+    case IN_MACHINE(Instruction): {
+      return release_ctx_patterns;
     }
     default: {
       return nullptr;

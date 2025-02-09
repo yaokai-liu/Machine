@@ -31,4 +31,29 @@ enum IMMEDIATE_TYPE {
   IT_SIGNED,
 };
 
+enum COND_SINGLE_OP {
+  CS_INV = 1,
+};
+
+enum COND_BIN_OP {
+  CB_LT = 1,
+  CB_LE,
+  CB_GT,
+  CB_GE,
+  CB_EQ,
+  CB_OR,
+  CB_AND,
+  CB_XOR,
+  CB_INV,
+};
+
+enum BOOL_SINGLE_OP {
+  BS_NOT = 1,
+};
+
+enum BOOL_BIN_OP {
+  BB_AND = 1,
+  BB_OR,
+};
+
 #endif  // MACHINE_ENUM_H

@@ -348,28 +348,28 @@ uint32_t tokenize_symbol_LPAREN(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
   const char_t *pText = input;
-  uint32_t length = t_NUMBER_adic10(pText, result, allocator);
-  if (length == 0) { return 0; }
+  const uint32_t length = t_NUMBER_adic10(pText, result, allocator);
+  if (length == 0) { goto __as_left_paren; }
   pText += length;
   pText += pass_whitespace(pText);
-  if (*pText++ != '-') {
-    result->length = pText - input;
-    return 0;
-  }
+  if (*pText++ != '-') { goto __as_left_paren; }
   pText += pass_whitespace(pText);
   if (strcmp_o(pText, "tick") != lenof("tick")) {
-    result->length = pText - input + 1;
-    return 0;
+    goto __as_left_paren;
   }
   pText += lenof("tick");
   pText += pass_whitespace(pText);
   if (*pText++ != ')') {
-    result->length = pText - input + 1;
-    return 0;
+    goto __as_left_paren;
   }
   result->type = enum_TIME_TICK;
   result->length = pText - input + 1;
   return result->length;
+  __as_left_paren:
+  result->value = nullptr;
+  result->type = enum_LEFT_PAREN;
+  result->length = 1;
+  return 1;
 }
 
 uint32_t tokenize_symbol_LSQUARE(
@@ -378,7 +378,7 @@ uint32_t tokenize_symbol_LSQUARE(
   const char_t *pText = input;
   pText += pass_whitespace(pText);
   if (startswithDigital(pText)) {
-    uint32_t length = tokenize_startswith_digital(pText, result, allocator);
+    const uint32_t length = tokenize_startswith_digital(pText, result, allocator);
     if (length > 0) {
       result->length += pText - input + 1;
       return result->length;
@@ -403,12 +403,101 @@ uint32_t tokenize_symbol_LSQUARE(
   result->length = 1;
   return 1;
 }
+uint32_t tokenize_symbol_LT(
+    const char_t * const input, Terminal * const result, const Allocator * const) {
+  const char_t *pText = input;
+  result->type = enum_COND_BIN_OP;
+  if (*pText == '=') {
+    result->value = (void *) (uint64_t) CB_LE;
+    result->length = 2;
+    return 2;
+  }
+  result->value = (void *) (uint64_t) CB_LT;
+  result->length = 1;
+  return 1;
+}
+uint32_t tokenize_symbol_GT(
+    const char_t * const input, Terminal * const result, const Allocator * const) {
+  const char_t *pText = input;
+  result->type = enum_COND_BIN_OP;
+  if (*pText == '=') {
+    result->value = (void *) (uint64_t) CB_GE;
+    result->length = 2;
+    return 2;
+  }
+  result->value = (void *) (uint64_t) CB_GT;
+  result->length = 1;
+  return 1;
+}
+uint32_t tokenize_symbol_EQ(
+    const char_t * const input, Terminal * const result, const Allocator * const) {
+  const char_t *pText = input;
+  if (*pText == '=') {
+    result->type = enum_COND_BIN_OP;
+    result->value = (void *) (uint64_t) CB_EQ;
+    result->length = 2;
+    return 2;
+  }
+  result->type = enum_EQUAL;
+  result->value = nullptr;
+  result->length = 1;
+  return 1;
+}
+uint32_t tokenize_symbol_OR(
+    const char_t * const input, Terminal * const result, const Allocator * const) {
+  const char_t *pText = input;
+  if (*pText == '|') {
+    result->type = enum_BOOL_BIN_OP;
+    result->value = (void *) (uint64_t) BB_OR;
+    result->length = 2;
+    return 2;
+  }
+  result->type = enum_COND_BIN_OP;
+  result->value = (void *) (uint64_t) CB_OR;
+  result->length = 1;
+  return 1;
+}
+uint32_t tokenize_symbol_AND(
+    const char_t * const input, Terminal * const result, const Allocator * const) {
+  const char_t *pText = input;
+  if (*pText == '&') {
+    result->type = enum_BOOL_BIN_OP;
+    result->value = (void *) (uint64_t) BB_AND;
+    result->length = 2;
+    return 2;
+  }
+  result->type = enum_COND_BIN_OP;
+  result->value = (void *) (uint64_t) CB_AND;
+  result->length = 1;
+  return 1;
+}
+uint32_t tokenize_symbol_XOR(
+    const char_t * const, Terminal * const result, const Allocator * const) {
+  result->type = enum_COND_BIN_OP;
+  result->value = (void *) (uint64_t) CB_XOR;
+  result->length = 1;
+  return 1;
+}
+uint32_t tokenize_symbol_INV(
+    const char_t * const, Terminal * const result, const Allocator * const) {
+  result->type = enum_COND_SINGLE_OP;
+  result->value = (void *) (uint64_t) CS_INV;
+  result->length = 1;
+  return 1;
+}
+uint32_t tokenize_symbol_NOT(
+    const char_t * const, Terminal * const result, const Allocator * const) {
+  result->type = enum_BOOL_SINGLE_OP;
+  result->value = (void *) (uint64_t) BS_NOT;
+  result->length = 1;
+  return 1;
+}
 
 uint32_t tokenize_number(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
-  uint32_t length = 0;
   if ('0' == *input) {
+    uint32_t length = 0;
     switch (input[1]) {
       case 'x':
       case 'X': {
@@ -435,16 +524,23 @@ uint32_t tokenize_number(
   return t_NUMBER_adic10(input, result, allocator);
 }
 
-const uint32_t TERMINAL_TYPE_LITERALS[] = {
-    enum_LEFT_BRACKET, enum_RIGHT_BRACKET,        enum_COLON, enum_SEMICOLON,
-    enum_EQUAL,        enum_RIGHT_SQUARE_BRACKET, enum_COMMA, enum_DOT,
+constexpr uint32_t TERMINAL_TYPE_LITERALS[] = {
+  enum_LEFT_BRACKET,
+  enum_RIGHT_BRACKET,
+  enum_COLON,
+  enum_SEMICOLON,
+  enum_RIGHT_SQUARE_BRACKET,
+  enum_RIGHT_PAREN,
+  enum_COMMA,
+  enum_DOT,
+  enum_AT,
 };
 inline uint32_t single_tokenize(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
   // single literal
-  uint32_t length = stridx_o(*input, "{}:;=],.");
-  if (length < lenof("{}:;=],.")) {
+  uint32_t length = stridx_o(*input, "{}:;]),.@");
+  if (length < lenof("{}:;]),.@")) {
     result->type = TERMINAL_TYPE_LITERALS[length];
     result->value = nullptr;
     result->length = 1;
@@ -472,6 +568,30 @@ inline uint32_t single_tokenize(
     }
     case '(': {
       return tokenize_symbol_LPAREN(input + 1, result, allocator);
+    }
+    case '=': {
+      return tokenize_symbol_EQ(input + 1, result, allocator);
+    }
+    case '<': {
+      return tokenize_symbol_LT(input + 1, result, allocator);
+    }
+    case '>': {
+      return tokenize_symbol_GT(input + 1, result, allocator);
+    }
+    case '|': {
+      return tokenize_symbol_OR(input + 1, result, allocator);
+    }
+    case '&': {
+      return tokenize_symbol_AND(input + 1, result, allocator);
+    }
+    case '^': {
+      return tokenize_symbol_XOR(input + 1, result, allocator);
+    }
+    case '~': {
+      return tokenize_symbol_INV(input + 1, result, allocator);
+    }
+    case '!': {
+      return tokenize_symbol_NOT(input + 1, result, allocator);
     }
     default: {
     }

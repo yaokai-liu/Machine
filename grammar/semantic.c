@@ -44,6 +44,6 @@ int32_t check_mapping_item(GContext *context, BitField *bit_field, Evaluable *ev
     }
   }
 
-  if (l_width != width) { return -2; }
+  if (l_width > width) { return -2; }
   return 0;
 }
