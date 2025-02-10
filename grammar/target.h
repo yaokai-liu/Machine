@@ -92,6 +92,7 @@ typedef struct InstrPart {
   Identifier *name;
   uint32_t width;
   Layout *layout;
+  Condition *condition;
 } InstrPart;
 
 typedef Array InstrParts;  // Array<InstrPart>

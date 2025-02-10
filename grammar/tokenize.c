@@ -354,18 +354,14 @@ uint32_t tokenize_symbol_LPAREN(
   pText += pass_whitespace(pText);
   if (*pText++ != '-') { goto __as_left_paren; }
   pText += pass_whitespace(pText);
-  if (strcmp_o(pText, "tick") != lenof("tick")) {
-    goto __as_left_paren;
-  }
+  if (strcmp_o(pText, "tick") != lenof("tick")) { goto __as_left_paren; }
   pText += lenof("tick");
   pText += pass_whitespace(pText);
-  if (*pText++ != ')') {
-    goto __as_left_paren;
-  }
+  if (*pText++ != ')') { goto __as_left_paren; }
   result->type = enum_TIME_TICK;
   result->length = pText - input + 1;
   return result->length;
-  __as_left_paren:
+__as_left_paren:
   result->value = nullptr;
   result->type = enum_LEFT_PAREN;
   result->length = 1;
@@ -393,10 +389,9 @@ uint32_t tokenize_symbol_LSQUARE(
       pText++;
       result->length = pText - input + 1;
       return result->length;
-    } else {
-      result->length = pText - input + 1;
-      return 0;
     }
+    result->length = pText - input + 1;
+    return 0;
   }
   result->type = enum_LEFT_SQUARE_BRACKET;
   result->value = nullptr;
@@ -404,7 +399,8 @@ uint32_t tokenize_symbol_LSQUARE(
   return 1;
 }
 uint32_t tokenize_symbol_LT(
-    const char_t * const input, Terminal * const result, const Allocator * const) {
+    const char_t * const input, Terminal * const result, const Allocator * const
+) {
   const char_t *pText = input;
   result->type = enum_COND_BIN_OP;
   if (*pText == '=') {
@@ -417,7 +413,8 @@ uint32_t tokenize_symbol_LT(
   return 1;
 }
 uint32_t tokenize_symbol_GT(
-    const char_t * const input, Terminal * const result, const Allocator * const) {
+    const char_t * const input, Terminal * const result, const Allocator * const
+) {
   const char_t *pText = input;
   result->type = enum_COND_BIN_OP;
   if (*pText == '=') {
@@ -430,7 +427,8 @@ uint32_t tokenize_symbol_GT(
   return 1;
 }
 uint32_t tokenize_symbol_EQ(
-    const char_t * const input, Terminal * const result, const Allocator * const) {
+    const char_t * const input, Terminal * const result, const Allocator * const
+) {
   const char_t *pText = input;
   if (*pText == '=') {
     result->type = enum_COND_BIN_OP;
@@ -444,7 +442,8 @@ uint32_t tokenize_symbol_EQ(
   return 1;
 }
 uint32_t tokenize_symbol_OR(
-    const char_t * const input, Terminal * const result, const Allocator * const) {
+    const char_t * const input, Terminal * const result, const Allocator * const
+) {
   const char_t *pText = input;
   if (*pText == '|') {
     result->type = enum_BOOL_BIN_OP;
@@ -458,7 +457,8 @@ uint32_t tokenize_symbol_OR(
   return 1;
 }
 uint32_t tokenize_symbol_AND(
-    const char_t * const input, Terminal * const result, const Allocator * const) {
+    const char_t * const input, Terminal * const result, const Allocator * const
+) {
   const char_t *pText = input;
   if (*pText == '&') {
     result->type = enum_BOOL_BIN_OP;
@@ -471,22 +471,22 @@ uint32_t tokenize_symbol_AND(
   result->length = 1;
   return 1;
 }
-uint32_t tokenize_symbol_XOR(
-    const char_t * const, Terminal * const result, const Allocator * const) {
+uint32_t
+    tokenize_symbol_XOR(const char_t * const, Terminal * const result, const Allocator * const) {
   result->type = enum_COND_BIN_OP;
   result->value = (void *) (uint64_t) CB_XOR;
   result->length = 1;
   return 1;
 }
-uint32_t tokenize_symbol_INV(
-    const char_t * const, Terminal * const result, const Allocator * const) {
+uint32_t
+    tokenize_symbol_INV(const char_t * const, Terminal * const result, const Allocator * const) {
   result->type = enum_COND_SINGLE_OP;
   result->value = (void *) (uint64_t) CS_INV;
   result->length = 1;
   return 1;
 }
-uint32_t tokenize_symbol_NOT(
-    const char_t * const, Terminal * const result, const Allocator * const) {
+uint32_t
+    tokenize_symbol_NOT(const char_t * const, Terminal * const result, const Allocator * const) {
   result->type = enum_BOOL_SINGLE_OP;
   result->value = (void *) (uint64_t) BS_NOT;
   result->length = 1;
@@ -525,15 +525,8 @@ uint32_t tokenize_number(
 }
 
 constexpr uint32_t TERMINAL_TYPE_LITERALS[] = {
-  enum_LEFT_BRACKET,
-  enum_RIGHT_BRACKET,
-  enum_COLON,
-  enum_SEMICOLON,
-  enum_RIGHT_SQUARE_BRACKET,
-  enum_RIGHT_PAREN,
-  enum_COMMA,
-  enum_DOT,
-  enum_AT,
+    enum_LEFT_BRACKET, enum_RIGHT_BRACKET, enum_COLON, enum_SEMICOLON, enum_RIGHT_SQUARE_BRACKET,
+    enum_RIGHT_PAREN,  enum_COMMA,         enum_DOT,   enum_AT,
 };
 inline uint32_t single_tokenize(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
@@ -606,11 +599,7 @@ inline uint32_t single_tokenize(
   }
   if (startswithLetter(input)) {
     length = t_IDENTIFIER(input, result, allocator);
-    if (length > 0) {
-      return length;
-    } else {
-      return 0;
-    }
+    if (length > 0) { return length; }
   }
   return 0;
 }

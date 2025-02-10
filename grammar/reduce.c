@@ -15,6 +15,7 @@
 #include "target.h"
 #include "terminal.h"
 #include "tokens.gen.h"
+#include <enum.h>
 #include <stdint.h>
 
 #define min(a, b) ((a) < (b)) ? (a) : (b)
@@ -82,6 +83,79 @@
       return nullptr;                         \
     }                                         \
   } while (false)
+
+Condition *p_Condition_0(void *argv[], GContext *, const Allocator *allocator) {
+  CondExpr *expr = (CondExpr *) argv[2];
+  Condition *cond = allocator->calloc(1, sizeof(Condition));
+  cond->expr = expr;
+  return cond;
+}
+CondExpr *p_CondExpr_0(void *argv[], GContext *, const Allocator *allocator) {
+  CondExpr *lhs = (CondExpr *) argv[0];
+  uint32_t type = (uint32_t) (uint64_t) ((Terminal *) argv[1])->value;
+  SingleCondExpr *rhs = (SingleCondExpr *) argv[2];
+
+  CondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
+  expr->type = enum_BOOL_BIN_OP;
+  expr->op = type;
+  expr->lhs = lhs;
+  expr->rhs = rhs;
+  return expr;
+}
+CondExpr *p_CondExpr_1(void *argv[], GContext *, const Allocator *allocator) {
+  uint32_t type = (uint32_t) (uint64_t) ((Terminal *) argv[0])->value;
+  SingleCondExpr *rhs = (SingleCondExpr *) argv[1];
+
+  CondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
+  expr->type = enum_BOOL_SINGLE_OP;
+  expr->op = type;
+  expr->lhs = nullptr;
+  expr->rhs = rhs;
+  return expr;
+}
+CondExpr *p_CondExpr_2(void *argv[], GContext *, const Allocator *allocator) {
+  SingleCondExpr *rhs = (SingleCondExpr *) argv[1];
+
+  CondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
+  expr->type = enum_BOOL_SINGLE_OP;
+  expr->op = BS_ID;
+  expr->lhs = nullptr;
+  expr->rhs = rhs;
+  return expr;
+}
+SingleCondExpr *p_SingleCondExpr_0(void *argv[], GContext *, const Allocator *allocator) {
+  CondExpr *rhs = (CondExpr *) argv[1];
+
+  SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
+  expr->type = enum_CondExpr;
+  expr->op = BS_ID;
+  expr->lhs = nullptr;
+  expr->rhs = (Evaluable *) rhs;
+  return expr;
+}
+SingleCondExpr *p_SingleCondExpr_1(void *argv[], GContext *, const Allocator *allocator) {
+  Evaluable *lhs = (Evaluable *) argv[0];
+  uint32_t type = (uint32_t) (uint64_t) ((Terminal *) argv[1])->value;
+  Evaluable *rhs = (Evaluable *) argv[2];
+
+  SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
+  expr->type = enum_COND_BIN_OP;
+  expr->op = type;
+  expr->lhs = lhs;
+  expr->rhs = rhs;
+  return expr;
+}
+SingleCondExpr *p_SingleCondExpr_2(void *argv[], GContext *, const Allocator *allocator) {
+  uint32_t type = (uint32_t) (uint64_t) ((Terminal *) argv[0])->value;
+  Evaluable *rhs = (Evaluable *) argv[1];
+
+  SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
+  expr->type = enum_COND_SINGLE_OP;
+  expr->op = type;
+  expr->lhs = nullptr;
+  expr->rhs = rhs;
+  return expr;
+}
 
 Entries *p_Entries_0(void *[], GContext *, const Allocator *) {
   return (REFER(Entries))(uint64_t) (enum_Entries);
@@ -272,6 +346,28 @@ InstrPart *p_InstrPart_0(void *argv[], GContext *context, const Allocator *alloc
   part->name = name;
   part->width = width;
   part->layout = layout;
+  part->condition = nullptr;
+  return part;
+}
+
+InstrPart *p_InstrPart_1(void *argv[], GContext *context, const Allocator *allocator) {
+  Identifier *name = (Identifier *) argv[0];
+  uint32_t width = (uint32_t) (uint64_t) argv[2];
+  Layout *layout = (Layout *) argv[4];
+  Condition *condition = (Condition *) argv[5];
+
+  if (0 == width) {
+    GContext_setErrorMessage(context, "empty part.");
+    return nullptr;
+  }
+
+  grammarAssertNotDeclaredInstrPart(name);
+
+  InstrPart *part = allocator->calloc(1, sizeof(InstrPart));
+  part->name = name;
+  part->width = width;
+  part->layout = layout;
+  part->condition = condition;
   return part;
 }
 

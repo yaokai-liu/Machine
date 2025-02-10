@@ -174,8 +174,8 @@ inline int32_t PatternArgs_cmp(PatternArgs *args1, PatternArgs *args2) {
   for (uint32_t i = 0; i < len1; i++) {
     const Parameter * const param1 = &params1[i];
     const Parameter * const param2 = &params2[i];
-    int32_t b = !Identifier_cmp(param1->type, param2->type)
-             && !Identifier_cmp(param1->name, param2->name);
+    int32_t b =
+        !Identifier_cmp(param1->type, param2->type) && !Identifier_cmp(param1->name, param2->name);
     if (!b) { return 1; }
   }
   return 0;

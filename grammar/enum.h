@@ -31,12 +31,9 @@ enum IMMEDIATE_TYPE {
   IT_SIGNED,
 };
 
-enum COND_SINGLE_OP {
+enum COND_OP {
   CS_INV = 1,
-};
-
-enum COND_BIN_OP {
-  CB_LT = 1,
+  CB_LT,
   CB_LE,
   CB_GT,
   CB_GE,
@@ -47,12 +44,10 @@ enum COND_BIN_OP {
   CB_INV,
 };
 
-enum BOOL_SINGLE_OP {
-  BS_NOT = 1,
-};
-
-enum BOOL_BIN_OP {
-  BB_AND = 1,
+enum BOOL_OP {
+  BS_ID = 1,
+  BS_NOT,
+  BB_AND,
   BB_OR,
 };
 
