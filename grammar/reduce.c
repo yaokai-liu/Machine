@@ -92,7 +92,7 @@ Condition *p_Condition_0(void *argv[], GContext *, const Allocator *allocator) {
 }
 CondExpr *p_CondExpr_0(void *argv[], GContext *, const Allocator *allocator) {
   CondExpr *lhs = (CondExpr *) argv[0];
-  uint32_t type = (uint32_t) (uint64_t) ((Terminal *) argv[1])->value;
+  uint32_t type = (uint32_t) (uint64_t) argv[1];
   SingleCondExpr *rhs = (SingleCondExpr *) argv[2];
 
   CondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
@@ -114,7 +114,7 @@ CondExpr *p_CondExpr_1(void *argv[], GContext *, const Allocator *allocator) {
   return expr;
 }
 CondExpr *p_CondExpr_2(void *argv[], GContext *, const Allocator *allocator) {
-  SingleCondExpr *rhs = (SingleCondExpr *) argv[1];
+  SingleCondExpr *rhs = (SingleCondExpr *) argv[0];
 
   CondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
   expr->type = enum_BOOL_SINGLE_OP;
@@ -146,6 +146,17 @@ SingleCondExpr *p_SingleCondExpr_1(void *argv[], GContext *, const Allocator *al
   return expr;
 }
 SingleCondExpr *p_SingleCondExpr_2(void *argv[], GContext *, const Allocator *allocator) {
+  Evaluable *lhs = (Evaluable *) argv[0];
+  Identifier *rhs = (Identifier *) argv[2];
+
+  SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
+  expr->type = enum_IN;
+  expr->op = CB_IN;
+  expr->lhs = lhs;
+  expr->rhs = rhs;
+  return expr;
+}
+SingleCondExpr *p_SingleCondExpr_3(void *argv[], GContext *, const Allocator *allocator) {
   uint32_t type = (uint32_t) (uint64_t) ((Terminal *) argv[0])->value;
   Evaluable *rhs = (Evaluable *) argv[1];
 

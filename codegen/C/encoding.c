@@ -207,16 +207,16 @@ void gen_jump_table_def(
 
 #define min(a, b) ((a) < (b)) ? (a) : (b)
 
-#define setEncodingNumber(val_str)       \
-  do {                                   \
-    push_string("  setEncodingNumber("); \
-    push_string(val_str);                \
-    push_string(");\n");                 \
+#define setEncodingNumber(val_str)         \
+  do {                                     \
+    push_string("    setEncodingNumber("); \
+    push_string(val_str);                  \
+    push_string(");\n");                   \
   } while (false)
 
 #define pushEncodingNumber(val_str, count_str) \
   do {                                         \
-    push_string("  pushEncodingNumber(");      \
+    push_string("    pushEncodingNumber(");    \
     push_string(val_str);                      \
     push_string(", ");                         \
     push_string(count_str);                    \
@@ -319,7 +319,7 @@ int32_t codegen_items_bf(
     temp_buffer = GContext_getAllocator(context)->malloc(128 * sizeof(char_t));
   }
   eval_to_val(context, item->evaluable, temp_buffer, pattern);
-  sprintf(FMT_BUFFER, "  number = numSetBits(number, %d, %d, %s);\n", bl, bu + 1, temp_buffer);
+  sprintf(FMT_BUFFER, "    number = numSetBits(number, %d, %d, %s);\n", bl, bu + 1, temp_buffer);
   push_string(FMT_BUFFER);
   GContext_getAllocator(context)->free(temp_buffer);
 
@@ -346,10 +346,10 @@ int32_t codegen_layout(
     case enum_MappingItems: {
       MappingItems *items = layout->target;
       for (uint32_t i = 0; i < width; i += 64) {
-        push_string("  number = 0;\n");
+        push_string("    number = 0;\n");
         BitField bf = {.lower = i, .upper = min(i + 63, width - 1)};
         codegen_items_bf(context, buffer, items, &bf, pattern);
-        sprintf(FMT_BUFFER, "  pushInstrBytes(%d);\n", min(64, width - i) / 8);
+        sprintf(FMT_BUFFER, "    pushInstrBytes(%d);\n", min(64, width - i) / 8);
         push_string(FMT_BUFFER);
       }
     }
@@ -358,13 +358,17 @@ int32_t codegen_layout(
 }
 
 int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrForm *form) {
+  char_t temp_buffer[512] = {};
   const uint32_t pre_len = Array_length(buffer);
   const uint32_t n_parts = Array_length(form->parts);
   const InstrPart * const parts = Array_real_addr(form->parts, 0);
   for (uint32_t i = 0; i < n_parts; i++) {
     const uint32_t width = parts[i].width;
     const Layout *layout = parts[i].layout;
+    sprintf(temp_buffer, "  /* %s */ {\n", parts[i].name->ptr);
+    push_string(temp_buffer);
     codegen_layout(context, buffer, layout, width, form->pattern);
+    push_string("  }\n");
   }
   return (int32_t) (Array_length(buffer) - pre_len);
 }

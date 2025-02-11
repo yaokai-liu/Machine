@@ -57,7 +57,7 @@ typedef struct SingleCondExpr {
   uint32_t type;
   uint32_t op;
   Evaluable *lhs;
-  Evaluable *rhs;
+  void *rhs;
 } SingleCondExpr;
 
 typedef struct CondExpr CondExpr;

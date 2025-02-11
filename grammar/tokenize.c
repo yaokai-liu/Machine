@@ -231,6 +231,19 @@ fn_try_keyword_val(signed, TYPE, IT_SIGNED)
     return length;                                                  \
   } while (0)
 
+uint32_t tokenize_prefix_in(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
+  const char_t *pText = input;
+  if (!startswithLetter(pText)) {
+    result->type = enum_IN;
+    result->value = nullptr;
+    result->length = 2;
+    return 2;
+  }
+  return try_keyword_instruction(input, result, allocator);
+}
+
 uint32_t tokenize_letter_i(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
@@ -239,7 +252,7 @@ uint32_t tokenize_letter_i(
       return try_keyword_immediate(input + 1, result, allocator);
     }
     case 'n': {
-      return try_keyword_instruction(input + 1, result, allocator);
+      return tokenize_prefix_in(input + 1, result, allocator);
     }
     default: fn_fall_through();
   }

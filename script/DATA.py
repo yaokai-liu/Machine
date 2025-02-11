@@ -28,5 +28,6 @@ TERMINALS = {
         "RIGHT_SQUARE_BRACKET": "]",
         "EQUAL": "=",
         "REGISTER": "register",
+        "IN": "in",
         "TERMINATOR": 0,
 }

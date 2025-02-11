@@ -42,6 +42,7 @@ enum COND_OP {
   CB_AND,
   CB_XOR,
   CB_INV,
+  CB_IN,
 };
 
 enum BOOL_OP {
