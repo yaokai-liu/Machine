@@ -92,80 +92,120 @@ Condition *p_Condition_0(void *argv[], GContext *, const Allocator *allocator) {
 }
 CondExpr *p_CondExpr_0(void *argv[], GContext *, const Allocator *allocator) {
   CondExpr *lhs = (CondExpr *) argv[0];
-  uint32_t type = (uint32_t) (uint64_t) argv[1];
-  SingleCondExpr *rhs = (SingleCondExpr *) argv[2];
+  AndCondExpr *rhs = (AndCondExpr *) argv[2];
 
   CondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
-  expr->type = enum_BOOL_BIN_OP;
-  expr->op = type;
+  expr->type = enum_BOOL_OR;
   expr->lhs = lhs;
   expr->rhs = rhs;
   return expr;
 }
+
 CondExpr *p_CondExpr_1(void *argv[], GContext *, const Allocator *allocator) {
-  uint32_t type = (uint32_t) (uint64_t) ((Terminal *) argv[0])->value;
-  SingleCondExpr *rhs = (SingleCondExpr *) argv[1];
+  AndCondExpr *rhs = (AndCondExpr *) argv[0];
 
   CondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
-  expr->type = enum_BOOL_SINGLE_OP;
-  expr->op = type;
+  expr->type = enum_AndCondExpr;
   expr->lhs = nullptr;
   expr->rhs = rhs;
   return expr;
 }
-CondExpr *p_CondExpr_2(void *argv[], GContext *, const Allocator *allocator) {
+AndCondExpr *p_AndCondExpr_0(void *argv[], GContext *, const Allocator *allocator) {
+  AndCondExpr *lhs = (AndCondExpr *) argv[0];
+  SingleCondExpr *rhs = (SingleCondExpr *) argv[2];
+
+  AndCondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
+  expr->type = enum_BOOL_AND;
+  expr->lhs = lhs;
+  expr->rhs = rhs;
+  return expr;
+}
+AndCondExpr *p_AndCondExpr_1(void *argv[], GContext *, const Allocator *allocator) {
   SingleCondExpr *rhs = (SingleCondExpr *) argv[0];
 
-  CondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
-  expr->type = enum_BOOL_SINGLE_OP;
-  expr->op = BS_ID;
+  AndCondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
+  expr->type = enum_SingleCondExpr;
   expr->lhs = nullptr;
   expr->rhs = rhs;
   return expr;
 }
+
 SingleCondExpr *p_SingleCondExpr_0(void *argv[], GContext *, const Allocator *allocator) {
   CondExpr *rhs = (CondExpr *) argv[1];
 
   SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
   expr->type = enum_CondExpr;
-  expr->op = BS_ID;
   expr->lhs = nullptr;
-  expr->rhs = (Evaluable *) rhs;
+  expr->rhs = rhs;
   return expr;
 }
-SingleCondExpr *p_SingleCondExpr_1(void *argv[], GContext *, const Allocator *allocator) {
-  Evaluable *lhs = (Evaluable *) argv[0];
-  uint32_t type = (uint32_t) (uint64_t) ((Terminal *) argv[1])->value;
-  Evaluable *rhs = (Evaluable *) argv[2];
+CondExpr *p_SingleCondExpr_1(void *argv[], GContext *, const Allocator *allocator) {
+  SingleCondExpr *rhs = (SingleCondExpr *) argv[1];
 
-  SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
-  expr->type = enum_COND_BIN_OP;
-  expr->op = type;
-  expr->lhs = lhs;
+  CondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
+  expr->type = enum_BOOL_NOT;
+  expr->lhs = nullptr;
   expr->rhs = rhs;
   return expr;
 }
 SingleCondExpr *p_SingleCondExpr_2(void *argv[], GContext *, const Allocator *allocator) {
   Evaluable *lhs = (Evaluable *) argv[0];
-  Identifier *rhs = (Identifier *) argv[2];
+  uint32_t type = (uint32_t) (uint64_t) argv[1];
+  Evaluable *rhs = (Evaluable *) argv[2];
 
   SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
-  expr->type = enum_IN;
-  expr->op = CB_IN;
+  expr->type = type;
   expr->lhs = lhs;
   expr->rhs = rhs;
   return expr;
 }
 SingleCondExpr *p_SingleCondExpr_3(void *argv[], GContext *, const Allocator *allocator) {
-  uint32_t type = (uint32_t) (uint64_t) ((Terminal *) argv[0])->value;
+  Evaluable *lhs = (Evaluable *) argv[0];
+  Identifier *rhs = (Identifier *) argv[2];
+
+  SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
+  expr->type = CB_IN;
+  expr->lhs = lhs;
+  expr->rhs = rhs;
+  return expr;
+}
+SingleCondExpr *p_SingleCondExpr_4(void *argv[], GContext *, const Allocator *allocator) {
+  uint32_t type = (uint32_t) (uint64_t) argv[0];
   Evaluable *rhs = (Evaluable *) argv[1];
 
   SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
-  expr->type = enum_COND_SINGLE_OP;
-  expr->op = type;
+  expr->type = type;
   expr->lhs = nullptr;
   expr->rhs = rhs;
   return expr;
+}
+
+Options *p_Options_0(void *argv[], GContext *, const Allocator *allocator) {
+  Options *options = (Options *) argv[0];
+  Evaluable *evaluable = (Evaluable *) argv[2];
+
+  Array_append(options, evaluable, 1);
+  allocator->free(evaluable);
+  return options;
+}
+
+Options *p_Options_1(void *argv[], GContext *, const Allocator *allocator) {
+  Evaluable *evaluable = (Evaluable *) argv[0];
+
+  Options *options = Array_new(sizeof(Evaluable), enum_Evaluable, allocator);
+  Array_append(options, evaluable, 1);
+  allocator->free(evaluable);
+  return options;
+}
+
+Switchable *p_Switchable_0(void *argv[], GContext *, const Allocator *allocator) {
+  CondExpr *expr = (CondExpr *) argv[1];
+  Options *options = (Options *) argv[4];
+
+  Switchable *switchable = allocator->calloc(1, sizeof(Switchable));
+  switchable->expr = expr;
+  switchable->options = options;
+  return switchable;
 }
 
 Entries *p_Entries_0(void *[], GContext *, const Allocator *) {
@@ -209,6 +249,8 @@ Variable *p_Variable_0(void *argv[], GContext *context, const Allocator *allocat
   const REFER(MemItem) item = GContext_findMemItem(context, rhs);
   grammarAssert(item, "no such field.");
   Gcontext_setItems(context, nullptr);
+  releaseIdentifier(rhs, allocator);
+  allocator->free(rhs);
 
   Variable *var = allocator->calloc(1, sizeof(Variable));
   var->type = enum_MemItem;
@@ -297,11 +339,22 @@ Immediate *p_Immediate_0(void *argv[], GContext *context, const Allocator *) {
   return result;
 }
 
-InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
+InstrForm *p_InstrForm_0(void *argv[], GContext *context, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   InstrParts *part_array = (InstrParts *) argv[4];
-
+  grammarAssert(
+      width % 8 == 0, "illegal width of parts. "
+                      "width must be an integer multiple of a byte with."
+  );
+  uint32_t sum_width = 0;
+  const InstrPart *first = Array_first_real(part_array);
+  const InstrPart *last = Array_last_real(part_array);
+  for (const InstrPart *part = first; part <= last; part++) { sum_width += part->width; }
+  grammarAssert(
+      sum_width <= width, "illegal width of parts. "
+                          "width must be an integer multiple of a byte with."
+  );
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
   form->tick = 1;
@@ -311,11 +364,24 @@ InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
   return form;
 }
 
-InstrForm *p_InstrForm_1(void *argv[], GContext *, const Allocator *allocator) {
+InstrForm *p_InstrForm_1(void *argv[], GContext *context, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   uint32_t tick = (uint32_t) (uint64_t) argv[3];
   InstrParts *part_array = (InstrParts *) argv[5];
+
+  grammarAssert(
+      width % 8 == 0, "illegal width of parts. "
+                      "width must be an integer multiple of a byte with."
+  );
+  uint32_t sum_width = 0;
+  const InstrPart *first = Array_first_real(part_array);
+  const InstrPart *last = Array_last_real(part_array);
+  for (const InstrPart *part = first; part <= last; part++) { sum_width += part->width; }
+  grammarAssert(
+      sum_width <= width, "illegal width of parts. "
+                          "width must be an integer multiple of a byte with."
+  );
 
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
@@ -346,11 +412,12 @@ InstrPart *p_InstrPart_0(void *argv[], GContext *context, const Allocator *alloc
   uint32_t width = (uint32_t) (uint64_t) argv[2];
   Layout *layout = (Layout *) argv[4];
 
-  if (0 == width) {
-    GContext_setErrorMessage(context, "empty part.");
-    return nullptr;
-  }
+  grammarAssert(width != 0, "empty part.");
 
+  grammarAssert(
+      width % 8 == 0, "illegal width of parts. "
+                      "width must be an integer multiple of a byte with."
+  );
   grammarAssertNotDeclaredInstrPart(name);
 
   InstrPart *part = allocator->calloc(1, sizeof(InstrPart));
@@ -367,11 +434,12 @@ InstrPart *p_InstrPart_1(void *argv[], GContext *context, const Allocator *alloc
   Layout *layout = (Layout *) argv[4];
   Condition *condition = (Condition *) argv[5];
 
-  if (0 == width) {
-    GContext_setErrorMessage(context, "empty part.");
-    return nullptr;
-  }
+  grammarAssert(width != 0, "empty part.");
 
+  grammarAssert(
+      width % 8 == 0, "illegal width of parts. "
+                      "width must be an integer multiple of a byte with."
+  );
   grammarAssertNotDeclaredInstrPart(name);
 
   InstrPart *part = allocator->calloc(1, sizeof(InstrPart));
@@ -425,6 +493,14 @@ Layout *p_Layout_0(void *argv[], GContext *, const Allocator *allocator) {
 }
 
 Layout *p_Layout_1(void *argv[], GContext *, const Allocator *allocator) {
+  Switchable *switchable = (Switchable *) argv[0];
+  Layout *layout = allocator->calloc(1, sizeof(Layout));
+  layout->type = enum_Switchable;
+  layout->target = switchable;
+  return layout;
+}
+
+Layout *p_Layout_2(void *argv[], GContext *, const Allocator *allocator) {
   MappingItems *items = (MappingItems *) argv[1];
   Layout *layout = allocator->calloc(1, sizeof(Layout));
   layout->type = enum_MappingItems;
@@ -466,8 +542,41 @@ MappingItem *p_MappingItem_0(void *argv[], GContext *context, const Allocator *a
   }
 
   MappingItem *item = allocator->calloc(1, sizeof(MappingItem));
+  item->type = enum_Evaluable;
   item->field = bit_field;
-  item->evaluable = evaluable;
+  item->target = evaluable;
+
+  GContext_addMapItem(context, item);
+
+  return item;
+}
+MappingItem *p_MappingItem_1(void *argv[], GContext *context, const Allocator *allocator) {
+  BitField *bit_field = (BitField *) argv[0];
+  Switchable *switchable = (Switchable *) argv[2];
+
+  if (bit_field) {
+    uint64_t width = GContext_getLastWidth(context);
+    if (bit_field->upper > width) {
+      GContext_setErrorMessage(context, "overflow bits.");
+      return nullptr;
+    }
+  }
+  if (GContext_getMapItem(context, bit_field)) {
+    GContext_setErrorMessage(context, "rewrite bits.");
+    return nullptr;
+  }
+  const Evaluable *first = Array_first_real(switchable->options);
+  const Evaluable *last = Array_last_real(switchable->options);
+  for (const Evaluable *eval = first; eval <= last; eval++) {
+    if (0 != check_mapping_item(context, bit_field, eval)) {
+      GContext_setErrorMessage(context, "bit filed width mismatch.");
+      return nullptr;
+    }
+  }
+  MappingItem *item = allocator->calloc(1, sizeof(MappingItem));
+  item->type = enum_Switchable;
+  item->field = bit_field;
+  item->target = switchable;
 
   GContext_addMapItem(context, item);
 
@@ -483,7 +592,7 @@ MappingItems *p_MappingItems_0(void *argv[], GContext *context, const Allocator 
       GContext_setErrorMessage(context, "redefine default bits.");
       return nullptr;
     }
-    items->default_eval = item->evaluable;
+    items->default_eval = item->target;
   } else {
     items->lowest = min(item->field->lower, items->lowest);
     uint32_t index = Array_length(items->itemArray);
@@ -501,7 +610,7 @@ MappingItems *p_MappingItems_1(void *argv[], GContext *, const Allocator *alloca
   items->itemArray = Array_new(sizeof(MappingItem), enum_MappingItem, allocator);
   items->itemTree = AVLTree_new(allocator, (compare_t *) BitField_cmp);
   if (!item->field) {
-    items->default_eval = item->evaluable;
+    items->default_eval = item->target;
     items->lowest = 0;
   } else {
     Array_append(items->itemArray, item, 1);
@@ -704,13 +813,14 @@ Set *p_Set_0(void *argv[], GContext *context, const Allocator *) {
   return GContext_addSet(context, &set);
 }
 
-SetItems *p_SetItems_0(void *argv[], GContext *context, const Allocator *) {
+SetItems *p_SetItems_0(void *argv[], GContext *context, const Allocator *allocator) {
   SetItems *items = (SetItems *) argv[0];
   Identifier *ident = (Identifier *) argv[2];
 
   grammarAssertDefinedRecord(ident);
 
   Array_append(items, ident, 1);
+  allocator->free(ident);
 
   return items;
 }
@@ -722,13 +832,12 @@ SetItems *p_SetItems_1(void *argv[], GContext *context, const Allocator *allocat
 
   SetItems *items = Array_new(sizeof(Identifier), enum_IDENTIFIER, allocator);
   Array_append(items, ident, 1);
+  allocator->free(ident);
 
   return items;
 }
 
 #include "stack.h"
-
-void releaseToken(void *token, uint32_t type, const Allocator *allocator);
 
 Machine *failed_to_get_next_state(
     Stack *state_stack, Stack *token_stack, void *token, uint32_t type, const Allocator *allocator

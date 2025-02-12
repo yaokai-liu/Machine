@@ -20,13 +20,13 @@
 #include <string.h>
 
 constexpr char_t ENCODING_DEF_FMT_HEAD[] = "{\n"
-                                           "  constexpr uint32_t size = %u;\n"
+                                           "  uint32_t size = 0;\n"
                                            "  uint8_t bytes[%u] = {};\n"
-                                           "  uint64_t number = 0;\n"
+                                           "  uint64_t value = 0;\n"
                                            "  uint32_t index = 0;\n";
 
 constexpr char_t ENCODING_DEF_FMT_TAIL[] = "  Array_append(buffer, bytes, size);\n"
-                                           "  return size;\n"
+                                           "  return size / 8;\n"
                                            "}\n";
 
 constexpr char_t ENCODING_DEC_FMT[] = "uint32_t encoding_%s_%u(Array *buffer, uint64_t args[])";
@@ -67,7 +67,7 @@ int32_t online_gen_instr_encoding_def(
     sprintf(head_buffer, encoding_dec_fmt, instr_op, i);
     push_string(head_buffer);
     const uint32_t n_bytes = forms[i].width / 8;
-    sprintf(head_buffer, ENCODING_DEF_FMT_HEAD, n_bytes, n_bytes);
+    sprintf(head_buffer, ENCODING_DEF_FMT_HEAD, n_bytes);
     push_string(head_buffer);
     if (forms[i].pattern->args) {
       const uint32_t n_args = Array_length(forms[i].pattern->args);
@@ -287,9 +287,11 @@ int32_t eval_to_val(const GContext *, Evaluable *evaluable, char_t *buffer, cons
   return -1;
 }
 
+// TODO: codegen_items_bf is in a recursive call chain,
+//  maybe it will cause a out of memory, please solve it.
 int32_t codegen_items_bf(
     const GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field,
-    const Pattern *pattern
+    const Pattern *pattern, char_t *temp_buffer
 ) {
   const uint32_t pre_len = Array_length(buffer);
   MappingItem *item = getMappingItem(items, bit_field);
@@ -297,7 +299,7 @@ int32_t codegen_items_bf(
   getDefaultMappingBit(default_bit);
   if (!item) {
     int len = sprintf(
-        FMT_BUFFER, "  number = numSetBits(number, %d, %d, %ld);\n", bit_field->lower,
+        FMT_BUFFER, "  value = numSetBits(value, %d, %d, %ld);\n", bit_field->lower,
         bit_field->upper + 1, (int64_t) default_bit
     );
     if (len > 0) { push_string(FMT_BUFFER); }
@@ -309,30 +311,24 @@ int32_t codegen_items_bf(
 
   if (bl > bit_field->lower) {
     BitField lower_bf = {.lower = bit_field->lower, .upper = bl - 1};
-    codegen_items_bf(context, buffer, items, &lower_bf, pattern);
+    codegen_items_bf(context, buffer, items, &lower_bf, pattern, temp_buffer);
   }
-  char_t *temp_buffer = nullptr;
-  if (item->evaluable->type != enum_NUMBER) {
-    size_t size = ((Identifier *) item->evaluable->lhs)->len;
-    temp_buffer = GContext_getAllocator(context)->malloc((2 * size + 128) * sizeof(char_t));
-  } else {
-    temp_buffer = GContext_getAllocator(context)->malloc(128 * sizeof(char_t));
+  if (item->type == enum_Evaluable) {
+    Evaluable *eval = item->target;
+    eval_to_val(context, eval, temp_buffer, pattern);
+    sprintf(FMT_BUFFER, "    value = numSetBits(value, %d, %d, %s);\n", bl, bu + 1, temp_buffer);
+    push_string(FMT_BUFFER);
   }
-  eval_to_val(context, item->evaluable, temp_buffer, pattern);
-  sprintf(FMT_BUFFER, "    number = numSetBits(number, %d, %d, %s);\n", bl, bu + 1, temp_buffer);
-  push_string(FMT_BUFFER);
-  GContext_getAllocator(context)->free(temp_buffer);
-
   if (bu < bit_field->upper) {
     BitField upper_bf = {.lower = bu + 1, .upper = bit_field->upper};
-    codegen_items_bf(context, buffer, items, &upper_bf, nullptr);
+    codegen_items_bf(context, buffer, items, &upper_bf, pattern, temp_buffer);
   }
   return (int32_t) (Array_length(buffer) - pre_len);
 }
 
 int32_t codegen_layout(
     const GContext *context, Array *buffer, const Layout *layout, uint32_t width,
-    const Pattern *pattern
+    const Pattern *pattern, char_t *temp_buffer
 ) {
   const uint32_t pre_len = Array_length(buffer);
   switch (layout->type) {
@@ -346,9 +342,9 @@ int32_t codegen_layout(
     case enum_MappingItems: {
       MappingItems *items = layout->target;
       for (uint32_t i = 0; i < width; i += 64) {
-        push_string("    number = 0;\n");
+        push_string("    value = 0;\n");
         BitField bf = {.lower = i, .upper = min(i + 63, width - 1)};
-        codegen_items_bf(context, buffer, items, &bf, pattern);
+        codegen_items_bf(context, buffer, items, &bf, pattern, temp_buffer);
         sprintf(FMT_BUFFER, "    pushInstrBytes(%d);\n", min(64, width - i) / 8);
         push_string(FMT_BUFFER);
       }
@@ -365,10 +361,12 @@ int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrFo
   for (uint32_t i = 0; i < n_parts; i++) {
     const uint32_t width = parts[i].width;
     const Layout *layout = parts[i].layout;
+    //    const Condition *condition = parts[i].condition;
     sprintf(temp_buffer, "  /* %s */ {\n", parts[i].name->ptr);
     push_string(temp_buffer);
-    codegen_layout(context, buffer, layout, width, form->pattern);
-    push_string("  }\n");
+    codegen_layout(context, buffer, layout, width, form->pattern, temp_buffer);
+    sprintf(temp_buffer, "    size += %u;\n  }\n", parts->width);
+    push_string(temp_buffer);
   }
   return (int32_t) (Array_length(buffer) - pre_len);
 }

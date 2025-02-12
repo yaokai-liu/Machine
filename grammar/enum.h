@@ -32,7 +32,7 @@ enum IMMEDIATE_TYPE {
 };
 
 enum COND_OP {
-  CS_INV = 1,
+  CS_INV = 128,
   CB_LT,
   CB_LE,
   CB_GT,
@@ -41,15 +41,7 @@ enum COND_OP {
   CB_OR,
   CB_AND,
   CB_XOR,
-  CB_INV,
   CB_IN,
-};
-
-enum BOOL_OP {
-  BS_ID = 1,
-  BS_NOT,
-  BB_AND,
-  BB_OR,
 };
 
 #endif  // MACHINE_ENUM_H

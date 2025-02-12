@@ -10,6 +10,7 @@
 #include "target.h"
 #include "avl-tree.h"
 #include "context.h"
+#include "enum.h"
 #include "tokens.gen.h"
 
 void releaseIdentifier(Identifier *ident, const Allocator *allocator) {
@@ -60,11 +61,23 @@ void releaseEvaluable(Evaluable *evaluable, const Allocator *allocator) {
   allocator->free(evaluable->lhs);
 }
 
+void releaseSwitchable(Switchable *switchable, const Allocator *allocator) {
+  releaseCondExpr(switchable->expr, allocator);
+  allocator->free(switchable->expr);
+  Array_reset(switchable->options, (destruct_t *) releaseEvaluable);
+  Array_destroy(switchable->options);
+}
+
 void releaseMappingItem(MappingItem *item, const Allocator *allocator) {
   releaseBitField(item->field, allocator);
   allocator->free(item->field);
-  releaseEvaluable(item->evaluable, allocator);
-  allocator->free(item->evaluable);
+  if (item->type == enum_Evaluable) {
+    releaseEvaluable(item->target, allocator);
+    allocator->free(item->target);
+  } else if (item->type == enum_Switchable) {
+    releaseSwitchable(item->target, allocator);
+    allocator->free(item->target);
+  }
 }
 
 void releaseMappingItems(MappingItems *items, const Allocator *allocator) {
@@ -81,14 +94,18 @@ void releaseLayout(Layout *layout, const Allocator *allocator) {
   switch (layout->type) {
     case enum_Evaluable: {
       releaseEvaluable(layout->target, allocator);
-      allocator->free(layout->target);
-      return;
+      break;
     }
     case enum_MappingItems: {
       releaseMappingItems(layout->target, allocator);
-      allocator->free(layout->target);
+      break;
+    }
+    case enum_Switchable: {
+      releaseSwitchable(layout->target, allocator);
+      break;
     }
   }
+  allocator->free(layout->target);
 }
 
 void releaseInstrPart(InstrPart *part, const Allocator *allocator) {
@@ -96,6 +113,10 @@ void releaseInstrPart(InstrPart *part, const Allocator *allocator) {
   allocator->free(part->layout);
   releaseIdentifier(part->name, allocator);
   allocator->free(part->name);
+  if (part->condition) {
+    releaseCondition(part->condition, allocator);
+    allocator->free(part->condition);
+  }
 }
 
 void releaseInstrForm(InstrForm *form, const Allocator *allocator) {
@@ -146,6 +167,50 @@ void releaseSet(Set *set, const Allocator *allocator) {
   allocator->free(set->name);
   Array_reset(set->items, (destruct_t *) releaseIdentifier);
   Array_destroy(set->items);
+}
+
+void releaseCondition(Condition *condition, const Allocator *allocator) {
+  releaseCondExpr(condition->expr, allocator);
+  allocator->free(condition->expr);
+}
+
+void releaseCondExpr(CondExpr *expr, const Allocator *allocator) {
+  switch (expr->type) {
+    case enum_BOOL_AND:
+    case enum_BOOL_OR: {
+      releaseCondExpr(expr->lhs, allocator);
+      releaseCondExpr(expr->rhs, allocator);
+      allocator->free(expr->lhs);
+      allocator->free(expr->rhs);
+      break;
+    }
+    case enum_AndCondExpr:
+    case enum_SingleCondExpr:
+    case enum_CondExpr:
+    case enum_BOOL_NOT: {
+      releaseCondExpr(expr->rhs, allocator);
+      allocator->free(expr->rhs);
+      break;
+    }
+    case CS_INV: {
+      releaseEvaluable(expr->rhs, allocator);
+      allocator->free(expr->rhs);
+      break;
+    }
+    case CB_IN: {
+      releaseEvaluable(expr->lhs, allocator);
+      releaseIdentifier(expr->rhs, allocator);
+      allocator->free(expr->lhs);
+      allocator->free(expr->rhs);
+      break;
+    }
+    default: {
+      releaseEvaluable(expr->lhs, allocator);
+      releaseEvaluable(expr->rhs, allocator);
+      allocator->free(expr->lhs);
+      allocator->free(expr->rhs);
+    }
+  }
 }
 
 #include "string_t.h"

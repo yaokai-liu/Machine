@@ -415,7 +415,7 @@ uint32_t tokenize_symbol_LT(
     const char_t * const input, Terminal * const result, const Allocator * const
 ) {
   const char_t *pText = input;
-  result->type = enum_COND_BIN_OP;
+  result->type = enum_BIN_OP;
   if (*pText == '=') {
     result->value = (void *) (uint64_t) CB_LE;
     result->length = 2;
@@ -429,7 +429,7 @@ uint32_t tokenize_symbol_GT(
     const char_t * const input, Terminal * const result, const Allocator * const
 ) {
   const char_t *pText = input;
-  result->type = enum_COND_BIN_OP;
+  result->type = enum_BIN_OP;
   if (*pText == '=') {
     result->value = (void *) (uint64_t) CB_GE;
     result->length = 2;
@@ -444,7 +444,7 @@ uint32_t tokenize_symbol_EQ(
 ) {
   const char_t *pText = input;
   if (*pText == '=') {
-    result->type = enum_COND_BIN_OP;
+    result->type = enum_BIN_OP;
     result->value = (void *) (uint64_t) CB_EQ;
     result->length = 2;
     return 2;
@@ -459,12 +459,12 @@ uint32_t tokenize_symbol_OR(
 ) {
   const char_t *pText = input;
   if (*pText == '|') {
-    result->type = enum_BOOL_BIN_OP;
-    result->value = (void *) (uint64_t) BB_OR;
+    result->type = enum_BOOL_OR;
+    result->value = nullptr;
     result->length = 2;
     return 2;
   }
-  result->type = enum_COND_BIN_OP;
+  result->type = enum_BIN_OP;
   result->value = (void *) (uint64_t) CB_OR;
   result->length = 1;
   return 1;
@@ -474,34 +474,27 @@ uint32_t tokenize_symbol_AND(
 ) {
   const char_t *pText = input;
   if (*pText == '&') {
-    result->type = enum_BOOL_BIN_OP;
-    result->value = (void *) (uint64_t) BB_AND;
+    result->type = enum_BOOL_AND;
+    result->value = nullptr;
     result->length = 2;
     return 2;
   }
-  result->type = enum_COND_BIN_OP;
+  result->type = enum_BIN_OP;
   result->value = (void *) (uint64_t) CB_AND;
   result->length = 1;
   return 1;
 }
 uint32_t
     tokenize_symbol_XOR(const char_t * const, Terminal * const result, const Allocator * const) {
-  result->type = enum_COND_BIN_OP;
+  result->type = enum_BIN_OP;
   result->value = (void *) (uint64_t) CB_XOR;
   result->length = 1;
   return 1;
 }
 uint32_t
     tokenize_symbol_INV(const char_t * const, Terminal * const result, const Allocator * const) {
-  result->type = enum_COND_SINGLE_OP;
+  result->type = enum_SINGLE_OP;
   result->value = (void *) (uint64_t) CS_INV;
-  result->length = 1;
-  return 1;
-}
-uint32_t
-    tokenize_symbol_NOT(const char_t * const, Terminal * const result, const Allocator * const) {
-  result->type = enum_BOOL_SINGLE_OP;
-  result->value = (void *) (uint64_t) BS_NOT;
   result->length = 1;
   return 1;
 }
@@ -539,14 +532,16 @@ uint32_t tokenize_number(
 
 constexpr uint32_t TERMINAL_TYPE_LITERALS[] = {
     enum_LEFT_BRACKET, enum_RIGHT_BRACKET, enum_COLON, enum_SEMICOLON, enum_RIGHT_SQUARE_BRACKET,
-    enum_RIGHT_PAREN,  enum_COMMA,         enum_DOT,   enum_AT,
+    enum_RIGHT_PAREN,  enum_COMMA,         enum_DOT,   enum_AT,        enum_BOOL_NOT,
+    enum_QUESTION_MARK
 };
 inline uint32_t single_tokenize(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
   // single literal
-  uint32_t length = stridx_o(*input, "{}:;]),.@");
-  if (length < lenof("{}:;]),.@")) {
+#define STRING_LITERAL "{}:;]),.@!?"
+  uint32_t length = stridx_o(*input, STRING_LITERAL);
+  if (length < lenof(STRING_LITERAL)) {
     result->type = TERMINAL_TYPE_LITERALS[length];
     result->value = nullptr;
     result->length = 1;
@@ -595,9 +590,6 @@ inline uint32_t single_tokenize(
     }
     case '~': {
       return tokenize_symbol_INV(input + 1, result, allocator);
-    }
-    case '!': {
-      return tokenize_symbol_NOT(input + 1, result, allocator);
     }
     default: {
     }

@@ -36,12 +36,12 @@ int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrFo
 
 int32_t codegen_layout(
     const GContext *context, Array *buffer, const Layout *layout, uint32_t width,
-    const Pattern *pattern
+    const Pattern *pattern, char_t *temp_buffer
 );
 
 int32_t codegen_items_bf(
     const GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field,
-    const Pattern *pattern
+    const Pattern *pattern, char_t *temp_buffer
 );
 
 int32_t eval_to_val(
