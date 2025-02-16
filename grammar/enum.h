@@ -10,38 +10,26 @@
 #ifndef MACHINE_ENUM_H
 #define MACHINE_ENUM_H
 
-enum MEM_KEY {
-  MEM_BASE = 1,
-  MEM_OFFSET,
-};
-
-enum PART_KEY {
-  PART_PREFIX = 1,
-  PART_SUFFIX,
-  PART_PRINCIPAL
-};
-
-enum WIDTH_TYPE {
-  WIDTH_BIT,
-  WIDTH_BYTE
-};
-
 enum IMMEDIATE_TYPE {
   IT_UNSIGNED,
   IT_SIGNED,
 };
 
-enum COND_OP {
-  CS_INV = 128,
+enum BOOL_COND_OP {
+  CB_IN = 128,
   CB_LT,
   CB_LE,
   CB_GT,
   CB_GE,
   CB_EQ,
-  CB_OR,
-  CB_AND,
-  CB_XOR,
-  CB_IN,
+  CB_NE,
+  CB_BIT_OR,
+  CB_BIT_AND,
+  CB_BIT_XOR,
+  CS_BIT_INV,
+
+  BOOL_AND_ARRAY,
+  BOOL_OR_ARRAY,
 };
 
 #endif  // MACHINE_ENUM_H

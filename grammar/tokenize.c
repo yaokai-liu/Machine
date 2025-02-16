@@ -465,7 +465,7 @@ uint32_t tokenize_symbol_OR(
     return 2;
   }
   result->type = enum_BIN_OP;
-  result->value = (void *) (uint64_t) CB_OR;
+  result->value = (void *) (uint64_t) CB_BIT_OR;
   result->length = 1;
   return 1;
 }
@@ -480,21 +480,21 @@ uint32_t tokenize_symbol_AND(
     return 2;
   }
   result->type = enum_BIN_OP;
-  result->value = (void *) (uint64_t) CB_AND;
+  result->value = (void *) (uint64_t) CB_BIT_AND;
   result->length = 1;
   return 1;
 }
 uint32_t
     tokenize_symbol_XOR(const char_t * const, Terminal * const result, const Allocator * const) {
   result->type = enum_BIN_OP;
-  result->value = (void *) (uint64_t) CB_XOR;
+  result->value = (void *) (uint64_t) CB_BIT_XOR;
   result->length = 1;
   return 1;
 }
 uint32_t
     tokenize_symbol_INV(const char_t * const, Terminal * const result, const Allocator * const) {
   result->type = enum_SINGLE_OP;
-  result->value = (void *) (uint64_t) CS_INV;
+  result->value = (void *) (uint64_t) CS_BIT_INV;
   result->length = 1;
   return 1;
 }

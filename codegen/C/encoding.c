@@ -29,8 +29,10 @@ constexpr char_t ENCODING_DEF_FMT_TAIL[] = "  Array_append(buffer, bytes, size);
                                            "  return size / 8;\n"
                                            "}\n";
 
-constexpr char_t ENCODING_DEC_FMT[] = "uint32_t encoding_%s_%u(Array *buffer, uint64_t args[])";
-constexpr char_t ENCODING_DEC_NO_ARGS_FMT[] = "uint32_t encoding_%s_%u(Array *buffer, uint64_t [])";
+constexpr char_t ENCODING_DEC_FMT[] =
+    "uint32_t encoding_%s_%u(Array *buffer, const Entry *entries[])";
+constexpr char_t ENCODING_DEC_NO_ARGS_FMT[] =
+    "uint32_t encoding_%s_%u(Array *buffer, const Entry *entries[])";
 constexpr char_t ENCODING_NAME_FMT[] = "encoding_%s_%u";
 
 #define ctx_push_string(type, s)                                                     \
@@ -73,7 +75,7 @@ int32_t online_gen_instr_encoding_def(
       const uint32_t n_args = Array_length(forms[i].pattern->args);
       const Parameter *args = Array_real_addr(forms[i].pattern->args, 0);
       for (uint32_t j = 0; j < n_args; j++) {
-        sprintf(head_buffer, "  uint64_t %s = args[%u];\n", args[j].name->ptr, j);
+        sprintf(head_buffer, "  const Entry *%s = entries[%u];\n", args[j].name->ptr, j);
         push_string(head_buffer);
       }
     }
@@ -86,23 +88,7 @@ int32_t online_gen_instr_encoding_def(
 const char_t INSTR_EXEC_DEC_FMT[] = "uint32_t %s(Array *buffer, ...);\n";
 const char_t INSTR_EXEC_DEF_HEAD_FMT[] = "uint32_t %s(Array *buffer, ...) {\n"
                                          "  constexpr uint32_t entry_offset = %u;\n";
-const char_t INSTR_EXEC_DEF_BODY[] = "  enum ENTRY_TYPE_ENUM types[MAX_ARGS] = {};\n"
-                                     "  uint64_t values[MAX_ARGS] = {};\n"
-                                     "  va_list entries;\n"
-                                     "  va_start(entries, buffer);\n"
-                                     "  uint32_t n_args = 0;\n"
-                                     "  for (; n_args < MAX_ARGS; n_args ++) {\n"
-                                     "    Entry * entry = va_arg(entries, Entry *);\n"
-                                     "    if (!entry) { return 0; }\n"
-                                     "    types[n_args] = entry->type;\n"
-                                     "    values[n_args] = entry->value;\n"
-                                     "  }\n"
-                                     "  va_end(entries);\n"
-                                     "  CURRENT_MACHINE->argCount = 0;\n"
-                                     "  return convert_instr_to_bytes(\n"
-                                     "        entry_offset, buffer, types, values, n_args\n"
-                                     "  );\n"
-                                     "}\n";
+const char_t INSTR_EXEC_DEF_BODY[] = "  instrExecDefPrincipalPart();\n}\n";
 void gen_instr_exec(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
   const GContext *context = machine->context;
@@ -174,11 +160,11 @@ void gen_jump_table_def(
   for (uint32_t i = 0; i < key_count; i++) {
     const Record *record = Array_vert2real(context->recordArray, (REFER(Record)) key_items[i].key);
     switch (record->typeid) {
-      val_case_item(Memory, mem, "MEM");
-      val_case_item(Immediate, imm, "IMM");
-      val_case_item(Register, reg, "REG");
-      val_case_item(RegisterGroup, grp, "GRP");
-      val_case_item(Set, set, "SET");
+      val_case_item(Memory, mem, "MEM")
+      val_case_item(Immediate, imm, "IMM")
+      val_case_item(Register, reg, "REG")
+      val_case_item(RegisterGroup, grp, "GRP")
+      val_case_item(Set, set, "SET")
       default: {
       }
     }
@@ -253,8 +239,6 @@ void gen_jump_table_def(
       ((uint32_t) (uint64_t) AVLTree_get((_items)->itemTree, (uint64_t) (bf)) - 1) \
   )
 
-static thread_local char_t FMT_BUFFER[1024] = {};
-
 #define MAX_IDENT_LEN 64
 int32_t eval_to_val(const GContext *, Evaluable *evaluable, char_t *buffer, const Pattern *) {
   if (enum_NUMBER == evaluable->type) {
@@ -269,17 +253,19 @@ int32_t eval_to_val(const GContext *, Evaluable *evaluable, char_t *buffer, cons
       BitField *bf = evaluable->rhs;
       uint32_t width = bf->upper - bf->lower + 1;
       // TODO: if record refers to a set there may has different behaviors, please solve it.
-      return sprintf(buffer, "(%s >> %d) & UINT_N_MAX(%d)", ident->ptr, bf->lower, width);
+      return sprintf(buffer, "(%s->value >> %d) & UINT_N_MAX(%d)", ident->ptr, bf->lower, width);
     }
     case enum_Variable: {
       switch (variable->type) {
         case enum_IDENTIFIER: {
-          return sprintf(buffer, "%s", ident->ptr);
+          return sprintf(buffer, "%s->value", ident->ptr);
         }
         case enum_MemItem: {
           const MemItem *item = variable->rhs;
           uint32_t width = item->width;
-          return sprintf(buffer, "(%s >> %d) & UINT_N_MAX(%d)", ident->ptr, item->start, width);
+          return sprintf(
+              buffer, "(%s->value >> %d) & UINT_N_MAX(%d)", ident->ptr, item->start, width
+          );
         }
       }
     }
@@ -299,10 +285,10 @@ int32_t codegen_items_bf(
   getDefaultMappingBit(default_bit);
   if (!item) {
     int len = sprintf(
-        FMT_BUFFER, "  value = numSetBits(value, %d, %d, %ld);\n", bit_field->lower,
+        temp_buffer, "  value = numSetBits(value, %d, %d, %ld);\n", bit_field->lower,
         bit_field->upper + 1, (int64_t) default_bit
     );
-    if (len > 0) { push_string(FMT_BUFFER); }
+    if (len > 0) { push_string(temp_buffer); }
     return (int32_t) (Array_length(buffer) - pre_len);
   }
 
@@ -315,9 +301,10 @@ int32_t codegen_items_bf(
   }
   if (item->type == enum_Evaluable) {
     Evaluable *eval = item->target;
-    eval_to_val(context, eval, temp_buffer, pattern);
-    sprintf(FMT_BUFFER, "    value = numSetBits(value, %d, %d, %s);\n", bl, bu + 1, temp_buffer);
-    push_string(FMT_BUFFER);
+    char_t temp_buffer1[512] = {};
+    eval_to_val(context, eval, temp_buffer1, pattern);
+    sprintf(temp_buffer, "    value = numSetBits(value, %d, %d, %s);\n", bl, bu + 1, temp_buffer1);
+    push_string(temp_buffer);
   }
   if (bu < bit_field->upper) {
     BitField upper_bf = {.lower = bu + 1, .upper = bit_field->upper};
@@ -326,6 +313,117 @@ int32_t codegen_items_bf(
   return (int32_t) (Array_length(buffer) - pre_len);
 }
 
+constexpr char_t TYPE_ENUM_FMT[] = "enum_%s_%s";
+#define findParameterNdxAndType(ident)                         \
+  do {                                                         \
+    const uint32_t length = Array_length(pattern->args);       \
+    const Parameter *params = Array_first_real(pattern->args); \
+    for (uint32_t i = 0; i < length; i++) {                    \
+      if (Identifier_cmp(params[i].name, ident) == 0) {        \
+        type = params[i].type;                                 \
+        break;                                                 \
+      }                                                        \
+    }                                                          \
+  } while (false)
+#define type_case_item(Type, var, PREFIX)                                   \
+  case enum_##Type: {                                                       \
+    const Type *var = Array_real_addr(context->var##Array, record->offset); \
+    sprintf(buffer, TYPE_ENUM_FMT, PREFIX, var->name->ptr);                 \
+    break;                                                                  \
+  }
+void type_to_val(const GContext *context, const Identifier *ident, char_t *buffer) {
+  const Record *record = GContext_findRecord(context, ident);
+  switch (record->typeid) {
+    type_case_item(Memory, mem, "MEM")
+    type_case_item(Immediate, imm, "IMM")
+    type_case_item(Register, reg, "REG")
+    type_case_item(RegisterGroup, grp, "GRP")
+    type_case_item(Set, set, "SET")
+  }
+}
+
+#define bin_op_case_item(op, fmt)                           \
+  case op: {                                                \
+    eval_to_val(context, expr->lhs, temp_buffer1, pattern); \
+    eval_to_val(context, expr->rhs, temp_buffer2, pattern); \
+    sprintf(buffer, fmt, temp_buffer1, temp_buffer2);       \
+    break;                                                  \
+  }
+#define sin_op_case_item(op, fmt)                           \
+  case op: {                                                \
+    eval_to_val(context, expr->rhs, temp_buffer2, pattern); \
+    sprintf(buffer, fmt, temp_buffer2);                     \
+    break;                                                  \
+  }
+int32_t codegen_bool_expr(
+    const GContext *context, const CondExpr * const expr, const Pattern *pattern, char_t *buffer
+) {
+  char_t temp_buffer1[512] = {};
+  char_t temp_buffer2[512] = {};
+  if (expr->type < CB_IN) {
+    if (expr->lhs) {
+      codegen_bool_expr(context, expr->lhs, pattern, buffer);
+      strcpy(temp_buffer1, buffer);
+    }
+    if (expr->rhs) {
+      codegen_bool_expr(context, expr->rhs, pattern, buffer);
+      strcpy(temp_buffer2, buffer);
+    }
+  }
+  switch (expr->type) {
+    case enum_BOOL_OR: {
+      sprintf(buffer, "(%s || %s)", temp_buffer1, temp_buffer2);
+      break;
+    }
+    case enum_BOOL_AND: {
+      sprintf(buffer, "(%s && %s)", temp_buffer1, temp_buffer2);
+      break;
+    }
+    case enum_BOOL_NOT: {
+      sprintf(buffer, "(!%s)", temp_buffer2);
+      break;
+    }
+    case CB_IN: {
+      const Identifier *type = nullptr;
+      const Variable *var = (Variable *) expr->lhs;
+      const Identifier *supper_type = expr->rhs;
+      const Identifier *ident = var->lhs;
+      findParameterNdxAndType(ident);
+      type_to_val(context, supper_type, temp_buffer1);
+      if (var->type == enum_IDENTIFIER) {
+        sprintf(buffer, "entry_type_check(%s->type, %s)", ident->ptr, temp_buffer1);
+      } else if (var->type == enum_MemItem) {
+        const MemItem *item = (MemItem *) var->rhs;
+        const Record *record = GContext_findRecord(context, type);
+        const Memory *mem = GContext_getMemory(context, record->offset);
+        const MemItem *items = Array_first_real(mem->items);
+        uint32_t offset = item - items;
+        sprintf(buffer, "entry_type_check(%s->subtypes[%d], %s)", ident->ptr, offset, temp_buffer1);
+      }
+      break;
+    }
+      bin_op_case_item(CB_LT, "(%s <  %s)")
+      bin_op_case_item(CB_LE, "(%s <= %s)")
+      bin_op_case_item(CB_GT, "(%s >  %s)")
+      bin_op_case_item(CB_GE, "(%s >= %s)")
+      bin_op_case_item(CB_EQ, "(%s == %s)")
+      bin_op_case_item(CB_BIT_OR, "(%s |  %s)")
+      bin_op_case_item(CB_BIT_AND, "(%s &  %s)")
+      bin_op_case_item(CB_BIT_XOR, "(%s ^  %s)")
+      sin_op_case_item(CS_BIT_INV, "(~ %s)")
+    default: {
+    }
+  }
+  return 0;
+}
+int32_t codegen_condition(
+    const GContext *context, Array *buffer, const Condition *condition, const Pattern *pattern,
+    char_t *temp_buffer
+) {
+  codegen_bool_expr(context, condition->expr, pattern, temp_buffer);
+  push_string(temp_buffer);
+  return 0;
+}
 int32_t codegen_layout(
     const GContext *context, Array *buffer, const Layout *layout, uint32_t width,
     const Pattern *pattern, char_t *temp_buffer
@@ -334,9 +432,8 @@ int32_t codegen_layout(
   switch (layout->type) {
     case enum_Evaluable: {
       Evaluable *evaluable = layout->target;
-      int32_t size = eval_to_val(context, evaluable, FMT_BUFFER, pattern);
-      if (size < 0) { return size; }
-      pushEncodingNumberN(FMT_BUFFER, width / 8);
+      eval_to_val(context, evaluable, temp_buffer, pattern);
+      pushEncodingNumberN(temp_buffer, width / 8);
       break;
     }
     case enum_MappingItems: {
@@ -345,8 +442,8 @@ int32_t codegen_layout(
         push_string("    value = 0;\n");
         BitField bf = {.lower = i, .upper = min(i + 63, width - 1)};
         codegen_items_bf(context, buffer, items, &bf, pattern, temp_buffer);
-        sprintf(FMT_BUFFER, "    pushInstrBytes(%d);\n", min(64, width - i) / 8);
-        push_string(FMT_BUFFER);
+        sprintf(temp_buffer, "    pushInstrBytes(%d);\n", min(64, width - i) / 8);
+        push_string(temp_buffer);
       }
     }
   }
@@ -359,11 +456,19 @@ int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrFo
   const uint32_t n_parts = Array_length(form->parts);
   const InstrPart * const parts = Array_real_addr(form->parts, 0);
   for (uint32_t i = 0; i < n_parts; i++) {
+    const Identifier *name = parts[i].name;
     const uint32_t width = parts[i].width;
     const Layout *layout = parts[i].layout;
-    //    const Condition *condition = parts[i].condition;
-    sprintf(temp_buffer, "  /* %s */ {\n", parts[i].name->ptr);
-    push_string(temp_buffer);
+    const Condition *condition = parts[i].condition;
+    if (condition) {
+      sprintf(temp_buffer, "  /* %s */\n  if (", name->ptr);
+      push_string(temp_buffer);
+      codegen_condition(context, buffer, condition, form->pattern, temp_buffer);
+      push_string(") {\n");
+    } else {
+      sprintf(temp_buffer, "  /* %s */ {\n", name->ptr);
+      push_string(temp_buffer);
+    }
     codegen_layout(context, buffer, layout, width, form->pattern, temp_buffer);
     sprintf(temp_buffer, "    size += %u;\n  }\n", parts->width);
     push_string(temp_buffer);

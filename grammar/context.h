@@ -43,6 +43,7 @@ typedef struct GContext {
   Stack /*<Identifier*>*/ *identStack;
   AVLTree /*<BitField*, MappingItem*>*/ *mappingTree;
   uint32_t maxArgCount;
+  uint32_t maxFieldCount;
   const char_t *errorMessage;
   bool isCondition;
 } GContext;

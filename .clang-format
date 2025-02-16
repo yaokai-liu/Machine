@@ -79,6 +79,10 @@ StatementMacros:
   - releaseTokenCase
   - contextAddRecord_DEF
   - contextGetFromOffset_DEF
+  - val_case_item
+  - type_case_item
+  - bin_op_case_item
+  - sin_op_case_item
 TabWidth: 2
 UseCRLF: false
 UseTab: Never

@@ -45,6 +45,7 @@ inline GContext *GContext_new(const Allocator *allocator) {
   context->mappingTree = nullptr;
   context->errorMessage = nullptr;
   context->maxArgCount = 0x10;
+  context->maxFieldCount = 0x10;
   return context;
 }
 
@@ -128,11 +129,11 @@ inline REFER(Instruction) GContext_addInstruction(GContext *context, const Instr
     return Array_real_addr(context->array, offset);                                 \
   }
 
-contextGetFromOffset_DEF(Immediate, immArray);
-contextGetFromOffset_DEF(Register, regArray);
-contextGetFromOffset_DEF(Memory, memArray);
-contextGetFromOffset_DEF(RegisterGroup, grpArray);
-contextGetFromOffset_DEF(Set, setArray);
+contextGetFromOffset_DEF(Immediate, immArray)
+contextGetFromOffset_DEF(Register, regArray)
+contextGetFromOffset_DEF(Memory, memArray)
+contextGetFromOffset_DEF(RegisterGroup, grpArray)
+contextGetFromOffset_DEF(Set, setArray)
 
 inline const Instruction *GContext_getInstruction(const GContext *context, uint32_t index) {
   return Array_real_addr(context->instrArray, index);

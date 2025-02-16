@@ -184,21 +184,18 @@ void releaseCondExpr(CondExpr *expr, const Allocator *allocator) {
       allocator->free(expr->rhs);
       break;
     }
-    case enum_AndCondExpr:
-    case enum_SingleCondExpr:
-    case enum_CondExpr:
     case enum_BOOL_NOT: {
       releaseCondExpr(expr->rhs, allocator);
       allocator->free(expr->rhs);
       break;
     }
-    case CS_INV: {
+    case CS_BIT_INV: {
       releaseEvaluable(expr->rhs, allocator);
       allocator->free(expr->rhs);
       break;
     }
     case CB_IN: {
-      releaseEvaluable(expr->lhs, allocator);
+      releaseVariable(expr->lhs, allocator);
       releaseIdentifier(expr->rhs, allocator);
       allocator->free(expr->lhs);
       allocator->free(expr->rhs);

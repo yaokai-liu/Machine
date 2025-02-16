@@ -78,15 +78,31 @@ constexpr char_t MACROS[] =
     "  do {                                 \\\n"
     "    setEncodingNumber(val);            \\\n"
     "    pushInstrBytes(count);             \\\n"
-    "  } while (false)\n";
+    "  } while (false)\n"
+    "#define instrExecDefPrincipalPart()           \\\n"
+    "  const Entry *entries[MAX_ARGS] = {};        \\\n"
+    "  va_list args;                               \\\n"
+    "  va_start(args, buffer);                     \\\n"
+    "  uint32_t n_args = 0;                        \\\n"
+    "  for (; n_args < MAX_ARGS; n_args ++) {      \\\n"
+    "    Entry * entry = va_arg(args, Entry *);    \\\n"
+    "    if (!entry) { return 0; }                 \\\n"
+    "    entries[n_args] = entry;                  \\\n"
+    "  }                                           \\\n"
+    "  va_end(args);                               \\\n"
+    "  CURRENT_MACHINE->argCount = 0;              \\\n"
+    "  return convert_instr_to_bytes(              \\\n"
+    "        entry_offset, buffer, entries, n_args \\\n"
+    "  )\n";
 
 constexpr char_t EXPORT_DECLARE[] = "typedef struct Machine Machine;\n"
                                     "typedef struct Entry Entry;\n";
 
-constexpr char_t TYPEDEF_ENTRY[] = "typedef struct Entry {\n"
-                                   "  enum ENTRY_TYPE_ENUM type;\n"
-                                   "  uint64_t value;\n"
-                                   "} Entry;\n";
+constexpr char_t TYPEDEF_ENTRY_FMT[] = "typedef struct Entry {\n"
+                                       "  enum ENTRY_TYPE_ENUM type;\n"
+                                       "  uint64_t value;\n"
+                                       "  enum ENTRY_TYPE_ENUM subtypes[%u];\n"
+                                       "} Entry;\n";
 
 constexpr char_t TYPEDEF_MACHINE_FMT[] = "typedef struct Machine {\n"
                                          "  uint32_t argCount;\n"
@@ -106,7 +122,7 @@ constexpr char_t STRUCT_JUMP_ITEM[] = "struct jump_item {\n"
 constexpr char_t STRUCT_JUMP_STATE[] = "struct jump_state {\n"
                                        "  uint32_t count;\n"
                                        "  uint32_t index;\n"
-                                       "  uint32_t (*fn_encoding)(Array *, uint64_t[]);\n"
+                                       "  uint32_t (*fn_encoding)(Array *, const Entry *[]);\n"
                                        "};\n";
 
 constexpr char_t STRUCT_SET_GRP_JUMP_STATE[] = "struct set_grp_jump_state {\n"
@@ -136,13 +152,11 @@ constexpr char_t MACHINE_NEW_DEF[] = "Machine *Machine_new(const Allocator *allo
 
 constexpr char_t CONVERT_INSTR_TO_BYTES_DEC[] =
     "uint32_t convert_instr_to_bytes(\n"
-    "    uint32_t offset, Array *buffer, enum ENTRY_TYPE_ENUM types[],\n"
-    "    uint64_t values[], uint32_t n_args\n"
+    "    uint32_t offset, Array *buffer, const Entry *entries[], uint32_t n_args\n"
     ");\n";
 constexpr char_t CONVERT_INSTR_TO_BYTES_DEF[] =
     "uint32_t convert_instr_to_bytes(\n"
-    "    uint32_t offset, Array *buffer, enum ENTRY_TYPE_ENUM types[],\n"
-    "    uint64_t values[], uint32_t n_args\n"
+    "    uint32_t offset, Array *buffer, const Entry *entries[], uint32_t n_args\n"
     ") {\n"
     "  auto state = &JUMP_STATE_TABLE[offset];\n"
     "  uint32_t ndx = 0;\n"
@@ -150,7 +164,7 @@ constexpr char_t CONVERT_INSTR_TO_BYTES_DEF[] =
     "    bool matched = false;\n"
     "    for (uint32_t j = 0; j < state->count; j++) {\n"
     "      auto type1 = &JUMP_KEY_TABLE[state->index + j];\n"
-    "      if (entry_type_check(type1->expected_type, types[ndx])) {\n"
+    "      if (entry_type_check(type1->expected_type, entries[ndx]->type)) {\n"
     "        matched = true;\n"
     "        offset = type1->next_state_index;\n"
     "        break;\n"
@@ -160,7 +174,7 @@ constexpr char_t CONVERT_INSTR_TO_BYTES_DEF[] =
     "    state = &JUMP_STATE_TABLE[offset];\n"
     "  }\n"
     "  if (!state->fn_encoding) { return 0; }\n"
-    "  return state->fn_encoding(buffer, values);\n"
+    "  return state->fn_encoding(buffer, entries);\n"
     "}\n";
 
 constexpr char_t EXPORT_HEADER_FMT[] = "#ifndef MACHINE_%s_H\n"
@@ -203,7 +217,8 @@ void gen_static_definitions(Generator *generator, const Machine *machine) {
   gen_license(generator, out_buffer, filename);
   ctx_push_string(includes, temp_buffer);
   ctx_push_string(macros, MACROS);
-  ctx_push_string(types, TYPEDEF_ENTRY);
+  sprintf(temp_buffer, TYPEDEF_ENTRY_FMT, machine->context->maxFieldCount);
+  ctx_push_string(types, temp_buffer);
   sprintf(temp_buffer, TYPEDEF_MACHINE_FMT, machine->context->maxArgCount);
   ctx_push_string(types, temp_buffer);
   ctx_push_string(types, STRUCT_JUMP_ITEM);

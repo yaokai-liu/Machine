@@ -131,6 +131,7 @@ const char_t *type_string(uint32_t id) {
 }
 
 constexpr char_t ENTRY_TYPE_CHECK_FMT[] = "  entry_type_check(enum_%s_%s, %s->type);\n";
+constexpr char_t ENTRY_TYPE_ADD_FMT[] = "  entry->subtypes[%u] = %s->type;\n";
 constexpr char_t ENTRY_VALUE_SET_FMT[] = "  number = numSetBits(number, %d, %d, %s->value);\n";
 constexpr char_t VALUE_SET_FMT[] = "  number = numSetBits(number, %d, %d, %s);\n";
 void gen_mem_def_sprintf(
@@ -148,6 +149,8 @@ void gen_mem_def_sprintf(
         const char_t *t_kind = type_string(record->typeid);
         const char_t *t_name = items[i].type->ptr;
         sprintf(temp_buffer, ENTRY_TYPE_CHECK_FMT, t_kind, t_name, items[i].name->ptr);
+        push_string(temp_buffer);
+        sprintf(temp_buffer, ENTRY_TYPE_ADD_FMT, i, items[i].name->ptr);
         push_string(temp_buffer);
       }
     }

@@ -101,15 +101,10 @@ CondExpr *p_CondExpr_0(void *argv[], GContext *, const Allocator *allocator) {
   return expr;
 }
 
-CondExpr *p_CondExpr_1(void *argv[], GContext *, const Allocator *allocator) {
-  AndCondExpr *rhs = (AndCondExpr *) argv[0];
-
-  CondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
-  expr->type = enum_AndCondExpr;
-  expr->lhs = nullptr;
-  expr->rhs = rhs;
-  return expr;
+CondExpr *p_CondExpr_1(void *argv[], GContext *, const Allocator *) {
+  return (CondExpr *) argv[0];
 }
+
 AndCondExpr *p_AndCondExpr_0(void *argv[], GContext *, const Allocator *allocator) {
   AndCondExpr *lhs = (AndCondExpr *) argv[0];
   SingleCondExpr *rhs = (SingleCondExpr *) argv[2];
@@ -120,24 +115,11 @@ AndCondExpr *p_AndCondExpr_0(void *argv[], GContext *, const Allocator *allocato
   expr->rhs = rhs;
   return expr;
 }
-AndCondExpr *p_AndCondExpr_1(void *argv[], GContext *, const Allocator *allocator) {
-  SingleCondExpr *rhs = (SingleCondExpr *) argv[0];
-
-  AndCondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
-  expr->type = enum_SingleCondExpr;
-  expr->lhs = nullptr;
-  expr->rhs = rhs;
-  return expr;
+AndCondExpr *p_AndCondExpr_1(void *argv[], GContext *, const Allocator *) {
+  return (CondExpr *) argv[0];
 }
-
-SingleCondExpr *p_SingleCondExpr_0(void *argv[], GContext *, const Allocator *allocator) {
-  CondExpr *rhs = (CondExpr *) argv[1];
-
-  SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
-  expr->type = enum_CondExpr;
-  expr->lhs = nullptr;
-  expr->rhs = rhs;
-  return expr;
+SingleCondExpr *p_SingleCondExpr_0(void *argv[], GContext *, const Allocator *) {
+  return (CondExpr *) argv[0];
 }
 CondExpr *p_SingleCondExpr_1(void *argv[], GContext *, const Allocator *allocator) {
   SingleCondExpr *rhs = (SingleCondExpr *) argv[1];
@@ -160,7 +142,7 @@ SingleCondExpr *p_SingleCondExpr_2(void *argv[], GContext *, const Allocator *al
   return expr;
 }
 SingleCondExpr *p_SingleCondExpr_3(void *argv[], GContext *, const Allocator *allocator) {
-  Evaluable *lhs = (Evaluable *) argv[0];
+  Variable *lhs = (Variable *) argv[0];
   Identifier *rhs = (Identifier *) argv[2];
 
   SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
