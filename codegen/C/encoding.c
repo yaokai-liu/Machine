@@ -425,6 +425,7 @@ int32_t codegen_bool_expr(
       bin_op_case_item(CB_GT, "(%s >  %s)")
       bin_op_case_item(CB_GE, "(%s >= %s)")
       bin_op_case_item(CB_EQ, "(%s == %s)")
+      bin_op_case_item(CB_NE, "(%s != %s)")
       bin_op_case_item(CB_BIT_OR, "(%s |  %s)")
       bin_op_case_item(CB_BIT_AND, "(%s &  %s)")
       bin_op_case_item(CB_BIT_XOR, "(%s ^  %s)")

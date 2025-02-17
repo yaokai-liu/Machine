@@ -29,6 +29,7 @@
 #include "array.h"
 #include "avl-tree.h"
 #include "context.h"
+#include "expr-reduce.h"
 #include "semantic.h"
 #include "target.h"
 #include "terminal.h"
@@ -146,6 +147,9 @@ CondExpr *p_SingleCondExpr_1(void *argv[], GContext *, const Allocator *allocato
   expr->type = enum_BOOL_NOT;
   expr->lhs = nullptr;
   expr->rhs = rhs;
+
+  expr = optimize_not_expr(expr, allocator);
+
   return expr;
 }
 SingleCondExpr *p_SingleCondExpr_2(void *argv[], GContext *, const Allocator *allocator) {

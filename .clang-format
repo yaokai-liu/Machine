@@ -83,6 +83,8 @@ StatementMacros:
   - type_case_item
   - bin_op_case_item
   - sin_op_case_item
+  - cb_inverse_case_item
+  - bool_inverse_case_item
 TabWidth: 2
 UseCRLF: false
 UseTab: Never
