@@ -57,13 +57,16 @@ int32_t codegen_layout(
     const Pattern *pattern, char_t *temp_buffer
 );
 
-int32_t codegen_items_bf(
+int32_t codegen_mapping_items(
     const GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field,
     const Pattern *pattern, char_t *temp_buffer
 );
 
 int32_t eval_to_val(
-    const GContext *context, Evaluable *evaluable, char_t *buffer, const Pattern *pattern
+    const GContext *context, const Evaluable *evaluable, char_t *buffer, const Pattern *pattern
+);
+int32_t codegen_expr(
+    const GContext *context, const CondExpr *expr, const Pattern *pattern, char_t *buffer
 );
 
 #endif  // MACHINE_ENCODING_H
