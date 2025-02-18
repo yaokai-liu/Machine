@@ -58,7 +58,7 @@ CondExpr *optimize_not_expr(CondExpr *expr, const Allocator *allocator) {
   SingleCondExpr *rhs = expr->rhs;
   switch (rhs->type) {
     case enum_BOOL_NOT: {
-      CondExpr *r_rhs = rhs->rhs;
+      CondExpr *r_rhs = optimize_not_expr(expr, allocator);
       expr->rhs = r_rhs->rhs;
       expr->lhs = r_rhs->lhs;
       allocator->free(rhs);
