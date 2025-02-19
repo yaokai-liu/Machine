@@ -19,10 +19,20 @@
  *
  * Project Name: machine
  * Module Name: codegen/elf
- * Filename: elf.c
+ * Filename: elf64.c
  * Creator: Yaokai Liu
  * Create Date: 2025-02-19
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#include "elf.h"
+#include "elf64.h"
+
+unsigned long elf64_hash(const unsigned char *name) {
+  unsigned long h = 0, g;
+  while (*name) {
+    h = (h << 4) + *name++;
+    if ((g = h & 0xf0000000)) { h ^= g >> 24; }
+    h &= 0x0fffffff;
+  }
+  return h;
+}
