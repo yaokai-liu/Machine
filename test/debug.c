@@ -25,9 +25,9 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
+#include "../codegen/generate.h"
 #include "allocator.h"
 #include "char_t.h"
-#include "generate.h"
 #include "parse.h"
 #include "target.h"
 #include "terminal.h"

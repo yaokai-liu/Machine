@@ -247,60 +247,59 @@ enum P_FLAG {
 };
 
 typedef struct {
-  Elf64_Word p_type; /* Type of segment */
-  Elf64_Word p_flags; /* Segment attributes */
-  Elf64_Off p_offset; /* Offset in file */
-  Elf64_Addr p_vaddr; /* Virtual address in memory */
-  Elf64_Addr p_paddr; /* Reserved */
-  Elf64_Xword p_filesz; /* Size of segment in file */
-  Elf64_Xword p_memsz; /* Size of segment in memory */
-  Elf64_Xword p_align; /* Alignment of segment */
+  Elf64_Word p_type;
+  Elf64_Word p_flags;
+  Elf64_Off p_offset;
+  Elf64_Addr p_vaddr;
+  Elf64_Addr p_paddr;
+  Elf64_Xword p_filesz;
+  Elf64_Xword p_memsz;
+  Elf64_Xword p_align;
 } Elf64_Phdr;
 
-
 enum D_TAG_TYPE {
-    DT_NULL,
-    DT_NEEDED,
+  DT_NULL,
+  DT_NEEDED,
 
-    DT_PLTRELSZ,
+  DT_PLTRELSZ,
 
-    DT_PLTGOT,
+  DT_PLTGOT,
 
-    DT_HASH,
-    DT_STRTAB,
-    DT_SYMTAB,
-    DT_RELA,
-    DT_RELASZ,
-    DT_RELAENT,
-    DT_STRSZ,
-    DT_SYMENT,
-    DT_INIT,
-    DT_FINI,
-    DT_SONAME,
-    DT_RPATH,
-    DT_SYMBOLIC,
+  DT_HASH,
+  DT_STRTAB,
+  DT_SYMTAB,
+  DT_RELA,
+  DT_RELASZ,
+  DT_RELAENT,
+  DT_STRSZ,
+  DT_SYMENT,
+  DT_INIT,
+  DT_FINI,
+  DT_SONAME,
+  DT_RPATH,
+  DT_SYMBOLIC,
 
-    DT_REL,
-    DT_RELSZ,
-    DT_RELENT,
-    DT_PLTREL,
+  DT_REL,
+  DT_RELSZ,
+  DT_RELENT,
+  DT_PLTREL,
 
-    DT_DEBUG,
-    DT_TEXTREL,
+  DT_DEBUG,
+  DT_TEXTREL,
 
-    DT_JUMPREL,
+  DT_JUMPREL,
 
-    DT_BIND_NOW,
+  DT_BIND_NOW,
 
-    DT_INIT_ARRAY,
-    DT_FINI_ARRAY,
-    DT_INIT_ARRAYSZ,
-    DT_FINI_ARRAYSZ,
+  DT_INIT_ARRAY,
+  DT_FINI_ARRAY,
+  DT_INIT_ARRAYSZ,
+  DT_FINI_ARRAYSZ,
 
-    DT_LOOS = 0x60000000,
-    DT_HIOS = 0x6fffffff,
-    DT_LOPROC = 0x70000000,
-    DT_HIPROC = 0x7fffffff,
+  DT_LOOS = 0x60000000,
+  DT_HIOS = 0x6fffffff,
+  DT_LOPROC = 0x70000000,
+  DT_HIPROC = 0x7fffffff,
 };
 
 typedef struct {
@@ -310,6 +309,7 @@ typedef struct {
     Elf64_Addr d_ptr;
   } d_un;
 } Elf64_Dyn;
+
 extern Elf64_Dyn _DYNAMIC[]
 
 #endif  // MACHINE_ELF64_H

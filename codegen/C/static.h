@@ -28,11 +28,8 @@
 #ifndef MACHINE_STATIC_H
 #define MACHINE_STATIC_H
 
-#include "generate.h"
+#include "gen-export.h"
 
-void gen_license(Generator *generator, Array *buffer, const char_t *filename);
-void gen_export_header(Generator *generator, const Machine *machine);
-void gen_export_tail(Generator *generator, const Machine *machine);
 void gen_static_definitions(Generator *generator, const Machine *machine);
 void gen_driver(Generator *generator, const Machine *machine);
 
