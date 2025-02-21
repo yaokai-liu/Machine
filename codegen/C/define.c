@@ -113,7 +113,7 @@ void gen_mem_dec_sprintf(
       if (record->typeid == enum_Immediate) {
         sprintf(temp_buffer, "uint64_t *%s", items[i].name->ptr);
       } else {
-        sprintf(temp_buffer, "Entry *%s", items[i].name->ptr);
+        sprintf(temp_buffer, "const Entry *%s", items[i].name->ptr);
       }
     } else {
       sprintf(temp_buffer, "uint64_t %s", items[i].name->ptr);
