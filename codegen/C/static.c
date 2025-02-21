@@ -36,8 +36,8 @@ constexpr char_t INCLUDES[] = "#include \"%s.h\"\n"
                               "#include <stdarg.h>\n";
 
 constexpr char_t MACROS[] =
-    "#define min(a, b)             ((a) < (b)) ? (a) : (b)\n"
-    "#define UINT_N_MAX(n_bits)    (n_bits == 64 ? -1 : ((1LLU << (n_bits)) - 1))\n"
+    "#define max(a, b)             ((a) > (b)) ? (a) : (b)\n"
+    "#define UINT_N_MAX(n_bits)    (n_bits == 64 ? (-1LLU) : ((1LLU << (n_bits)) - 1))\n"
     "#define LOW_BITS(val, n_bits) ((val) & UINT_N_MAX(n_bits))\n"
     "#define MASK_BITS(bl, bu)     (UINT_N_MAX(bu) - UINT_N_MAX(bl))\n"
     "#define numSetBits(num, bl, bu, val) \\\n"
@@ -46,7 +46,7 @@ constexpr char_t MACROS[] =
     "  do { value = (val); } while (false)\n"
     "#define pushInstrBytes(_count)                 \\\n"
     "  do {                                         \\\n"
-    "    uint32_t last = min(_count + index, size); \\\n"
+    "    uint32_t last = max(_count + index, size); \\\n"
     "    for (uint32_t i = index; i < last; i++) {  \\\n"
     "      bytes[i] = value & 0xFF;                 \\\n"
     "      value >>= 8;                             \\\n"
@@ -65,7 +65,7 @@ constexpr char_t MACROS[] =
     "  uint32_t n_args = 0;                        \\\n"
     "  for (; n_args < MAX_ARGS; n_args ++) {      \\\n"
     "    Entry * entry = va_arg(args, Entry *);    \\\n"
-    "    if (!entry) { return 0; }                 \\\n"
+    "    if (entry->type == enum_NONE) { break; }  \\\n"
     "    entries[n_args] = entry;                  \\\n"
     "  }                                           \\\n"
     "  va_end(args);                               \\\n"
@@ -87,8 +87,8 @@ constexpr char_t TYPEDEF_MACHINE_FMT[] = "typedef struct Machine {\n"
 
 constexpr char_t CURRENT_MACHINE[] = "Machine *CURRENT_MACHINE;\n";
 
-constexpr char_t MAX_ARGS_DECLARE[] = "constexpr uint32_t MAX_ARGS;\n";
-constexpr char_t MAX_ARGS_FMT[] = "constexpr uint32_t MAX_ARGS = %u;\n";
+constexpr char_t MAX_ARGS_DECLARE[] = "const uint32_t MAX_ARGS;\n";
+constexpr char_t MAX_ARGS_FMT[] = "const uint32_t MAX_ARGS = %u;\n";
 
 constexpr char_t STRUCT_JUMP_ITEM[] = "struct jump_item {\n"
                                       "  enum ENTRY_TYPE_ENUM expected_type;\n"
@@ -112,7 +112,7 @@ constexpr char_t ENTRY_TYPE_CHECK_DEF[] =
     "bool entry_type_check(enum ENTRY_TYPE_ENUM type1, enum ENTRY_TYPE_ENUM type2) {\n"
     "  if (type1 == type2) { return type1 < enum_BEGIN_SET_GRP; }\n"
     "  else if (enum_BEGIN_SET_GRP < type1 && type1 < enum_TYPE_ENUM_UPPER_BOUND) {\n"
-    "    auto state = &SET_GRP_STATE_TABLE[type1 - enum_BEGIN_SET_GRP + 1];\n"
+    "    auto state = &SET_GRP_STATE_TABLE[type1 - enum_BEGIN_SET_GRP - 1];\n"
     "    for (uint32_t i = 0 ; i < state->count; i ++) {\n"
     "      type1 = SET_GRP_VAL_TABLE[state->index + i];\n"
     "      if (entry_type_check(type1, type2)) { return true; }\n"
@@ -123,6 +123,9 @@ constexpr char_t ENTRY_TYPE_CHECK_DEF[] =
 constexpr char_t MACHINE_NEW_DEF[] = "Machine *Machine_new(const Allocator *allocator) {\n"
                                      "  Machine *machine = allocator->calloc(1, sizeof(Machine));\n"
                                      "  return machine;\n"
+                                     "}\n";
+constexpr char_t USE_MACHINE_DEF[] = "void useMachine(Machine *machine) {\n"
+                                     "  CURRENT_MACHINE = machine;\n"
                                      "}\n";
 
 constexpr char_t CONVERT_INSTR_TO_BYTES_DEC[] =
@@ -147,6 +150,7 @@ constexpr char_t CONVERT_INSTR_TO_BYTES_DEF[] =
     "    }\n"
     "    if (!matched) { return 0; }\n"
     "    state = &JUMP_STATE_TABLE[offset];\n"
+    "    ndx++;\n"
     "  }\n"
     "  if (!state->fn_encoding) { return 0; }\n"
     "  return state->fn_encoding(buffer, entries);\n"
@@ -192,6 +196,7 @@ void gen_driver(Generator *generator, const Machine *machine) {
   sprintf(temp_buffer, MAX_ARGS_FMT, machine->context->maxArgCount);
   ctx_push_string(definitions, temp_buffer);
   ctx_push_string(definitions, MACHINE_NEW_DEF);
+  ctx_push_string(definitions, USE_MACHINE_DEF);
   ctx_push_string(definitions, ENTRY_TYPE_CHECK_DEF);
   ctx_push_string(definitions, CONVERT_INSTR_TO_BYTES_DEF);
 }

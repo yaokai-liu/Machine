@@ -47,7 +47,7 @@
 
 constexpr char_t MEM_DEC_NAME_FMT[] = "const Entry *MEM_%s";
 constexpr char_t IMM_DEC_FMT[] = "const Entry *IMM_%s(uint64_t val);\n";
-constexpr char_t REG_DEC_FMT[] = "const Entry *const REG_%s;\n";
+constexpr char_t REG_DEC_FMT[] = "extern const Entry *const REG_%s;\n";
 constexpr char_t MEM_DEF_HEAD_FMT[] =
     " {\n"
     "  Entry * entry = &CURRENT_MACHINE->entries[CURRENT_MACHINE->argCount];\n"
@@ -65,7 +65,7 @@ constexpr char_t IMM_DEF_FMT[] =
     "  CURRENT_MACHINE->argCount++;\n"
     "  return entry;\n"
     "}\n";
-constexpr char_t REG_ENTRY_DEF_FMT[] = "const static Entry Entry_REG_%s = {\n"
+constexpr char_t REG_ENTRY_DEF_FMT[] = "static const Entry Entry_REG_%s = {\n"
                                        "  .type = enum_REG_%s,\n"
                                        "  .value = 0x%lx,\n"
                                        "};\n";
@@ -89,6 +89,7 @@ void gen_enum_item(Generator *generator, const Machine *machine) {
   const GContext *context = machine->context;
   Array *buffer = Generator_getOutputBuffer(generator, GenBuf_enums);
   push_string("enum ENTRY_TYPE_ENUM {\n");
+  push_string("  enum_NONE,\n");
   gen_type_enum_item(Memory, MEM, mem);
   gen_type_enum_item(Immediate, IMM, imm);
   gen_type_enum_item(Register, REG, reg);
@@ -194,9 +195,9 @@ void gen_mem_def(const GContext *context, Array *buffer) {
   }
 }
 
-constexpr char_t SET_GRP_VAL_TABLE_DEC_FMT[] = "const static enum ENTRY_TYPE_ENUM\n"
+constexpr char_t SET_GRP_VAL_TABLE_DEC_FMT[] = "static const enum ENTRY_TYPE_ENUM\n"
                                                "SET_GRP_VAL_TABLE[];\n";
-constexpr char_t SET_GRP_STATE_TABLE_DEC_FMT[] = "const static struct set_grp_jump_state\n"
+constexpr char_t SET_GRP_STATE_TABLE_DEC_FMT[] = "static const struct set_grp_jump_state\n"
                                                  "SET_GRP_STATE_TABLE[];\n";
 #define gen_imm_sprintf(...) gen_type_sprintf(Immediate, imm, __VA_ARGS__)
 #define gen_reg_sprintf(...) gen_type_sprintf(Register, reg, __VA_ARGS__)
@@ -204,8 +205,8 @@ void gen_context_dec(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
   const GContext *context = machine->context;
   Array *buffer = Generator_getOutputBuffer(generator, GenBuf_exports);
+  push_string("extern const Entry *const EOI;\n");
   gen_mem_dec(context, buffer);
-  push_string(";\n");
   gen_imm_sprintf(IMM_DEC_FMT, entries[i].name->ptr);
   gen_reg_sprintf(REG_DEC_FMT, entries[i].name->ptr);
 
@@ -218,15 +219,18 @@ void gen_context_def(Generator *generator, const Machine *machine) {
   const GContext *context = machine->context;
   Array *buffer = Generator_getOutputBuffer(generator, GenBuf_definitions);
 
+  push_string("static const Entry Entry_EOI = { .type = enum_NONE, .value = 0x0 };\n");
   gen_reg_sprintf(REG_ENTRY_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr, entries[i].code);
+
+  push_string("const Entry *const EOI = &Entry_EOI;\n");
   gen_mem_def(context, buffer);
   gen_imm_sprintf(IMM_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr);
   gen_reg_sprintf(REG_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr);
 }
 
-constexpr char_t SET_GRP_VAL_TABLE_HEAD_FMT[] = "const static enum ENTRY_TYPE_ENUM\n"
+constexpr char_t SET_GRP_VAL_TABLE_HEAD_FMT[] = "static const enum ENTRY_TYPE_ENUM\n"
                                                 "SET_GRP_VAL_TABLE[] = {\n";
-constexpr char_t SET_GRP_STATE_TABLE_HEAD_FMT[] = "const static struct set_grp_jump_state\n"
+constexpr char_t SET_GRP_STATE_TABLE_HEAD_FMT[] = "static const struct set_grp_jump_state\n"
                                                   "SET_GRP_STATE_TABLE[] = {\n";
 #define val_case_item(Type, var, FMT)                                       \
   case enum_##Type: {                                                       \

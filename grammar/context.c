@@ -286,7 +286,7 @@ void GContext_dump_instruction(GContext *context, Instruction *instr) {
   Trie /*<REFER(Record), uint64_t>*/ *args_trie = GContext_build_args_trie(context, instr);
   if (!args_trie) { return; }
   Trie_dump(args_trie, context->keyArray, context->stateArray);
-  instr->entry_offset = Array_length(context->stateArray);
+  instr->entry_offset = Array_length(context->stateArray) - 1;
   Trie_destroy(args_trie);
 }
 

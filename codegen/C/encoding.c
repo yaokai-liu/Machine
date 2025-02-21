@@ -44,7 +44,7 @@ constexpr char_t ENCODING_DEF_FMT_HEAD[] = "{\n"
                                            "  uint32_t index = 0;\n";
 
 constexpr char_t ENCODING_DEF_FMT_TAIL[] = "  Array_append(buffer, bytes, size);\n"
-                                           "  return size / 8;\n"
+                                           "  return size;\n"
                                            "}\n";
 
 constexpr char_t ENCODING_DEC_FMT[] =
@@ -141,17 +141,17 @@ void gen_instr_exec(Generator *generator, const Machine *machine) {
   releasePrimeArray(encoding_def_buffer);
 }
 
-constexpr char_t JUMP_KEY_DEC_FMT[] = "const static struct jump_item\n"
+constexpr char_t JUMP_KEY_DEC_FMT[] = "static const struct jump_item\n"
                                       "JUMP_KEY_TABLE[];\n";
-constexpr char_t JUMP_STATE_DEC_FMT[] = "const static struct jump_state\n"
+constexpr char_t JUMP_STATE_DEC_FMT[] = "static const struct jump_state\n"
                                         "JUMP_STATE_TABLE[];\n";
 void gen_jump_table_dec(Generator *generator, const Machine *) {
   ctx_push_string(declares, JUMP_KEY_DEC_FMT);
   ctx_push_string(declares, JUMP_STATE_DEC_FMT);
 }
-constexpr char_t JUMP_KEY_HEADER_FMT[] = "const static struct jump_item\n"
+constexpr char_t JUMP_KEY_HEADER_FMT[] = "static const struct jump_item\n"
                                          "JUMP_KEY_TABLE[] = {\n";
-constexpr char_t JUMP_STATE_HEADER_FMT[] = "const static struct jump_state\n"
+constexpr char_t JUMP_STATE_HEADER_FMT[] = "static const struct jump_state\n"
                                            "JUMP_STATE_TABLE[] = {\n";
 constexpr char_t KEY_ITEM_FMT[] = "  { .expected_type = enum_%s_%s, .next_state_index = %lu },\n";
 constexpr char_t STATE_ITEM_FMT[] = "  { .count = %u, .index = %u, .fn_encoding = %s },\n";
@@ -448,14 +448,14 @@ int32_t codegen_expr(
       findParameterNdxAndType(ident);
       type_to_val(context, supper_type, temp_buffer1);
       if (var->type == enum_IDENTIFIER) {
-        sprintf(buffer, "entry_type_check(%s->type, %s)", ident->ptr, temp_buffer1);
+        sprintf(buffer, "entry_type_check(%s, %s->type)", temp_buffer1, ident->ptr);
       } else if (var->type == enum_MemItem) {
         const MemItem *item = (MemItem *) var->rhs;
         const Record *record = GContext_findRecord(context, type);
         const Memory *mem = GContext_getMemory(context, record->offset);
         const MemItem *items = Array_first_real(mem->items);
         uint32_t offset = item - items;
-        sprintf(buffer, "entry_type_check(%s->subtypes[%d], %s)", ident->ptr, offset, temp_buffer1);
+        sprintf(buffer, "entry_type_check(%s, %s->subtypes[%d])", temp_buffer1, ident->ptr, offset);
       }
       break;
     }
@@ -529,7 +529,7 @@ int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrFo
       push_string(temp_buffer);
     }
     codegen_layout(context, buffer, layout, width, form->pattern, temp_buffer);
-    sprintf(temp_buffer, "    size += %u;\n  }\n", parts->width);
+    sprintf(temp_buffer, "    size += %u;\n  }\n", parts->width / 8);
     push_string(temp_buffer);
   }
   return (int32_t) (Array_length(buffer) - pre_len);

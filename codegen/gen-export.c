@@ -77,6 +77,7 @@ constexpr char_t EXPORT_DECLARE[] = "typedef struct Machine Machine;\n"
                                     "typedef struct Entry Entry;\n";
 
 constexpr char_t MACHINE_NEW_DEC[] = "Machine *Machine_new(const Allocator *allocator);\n";
+constexpr char_t USE_MACHINE_DEC[] = "void useMachine(Machine *machine);\n";
 
 constexpr char_t EXPORT_TAIL_FMT[] = "\n#endif  // MACHINE_%s_H\n";
 
@@ -117,6 +118,7 @@ void gen_export_header(Generator *generator, const Machine *machine) {
   ctx_push_string(exports, EXPORT_INCLUDES);
   ctx_push_string(exports, EXPORT_DECLARE);
   ctx_push_string(exports, MACHINE_NEW_DEC);
+  ctx_push_string(exports, USE_MACHINE_DEC);
 }
 
 void gen_export_tail(Generator *generator, const Machine *machine) {
