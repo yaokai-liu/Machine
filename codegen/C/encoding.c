@@ -529,7 +529,7 @@ int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrFo
       push_string(temp_buffer);
     }
     codegen_layout(context, buffer, layout, width, form->pattern, temp_buffer);
-    sprintf(temp_buffer, "    size += %u;\n  }\n", parts->width / 8);
+    sprintf(temp_buffer, "    size += %u;\n  }\n", width / 8);
     push_string(temp_buffer);
   }
   return (int32_t) (Array_length(buffer) - pre_len);

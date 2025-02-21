@@ -8,7 +8,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 
 add_compile_options("-O3" "-Os")
-add_compile_options("-funsigned-char")
+add_compile_options("-funsigned-char" "-fno-builtin")
 add_compile_options("-Wall" "-Wextra" "-Werror")
 if (ENABLE_TEST_COV)
     add_compile_options("-fprofile-arcs" "-ftest-coverage")
