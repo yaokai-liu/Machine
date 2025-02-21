@@ -1,0 +1,917 @@
+machine x64 {
+  register gax [64-bit] {
+  rax: [63-0] = 0b0000;
+  eax: [31-0] = 0b0000;
+   ax: [16-0] = 0b0000;
+   ah: [15-8] = 0b0100;
+   al: [07-0] = 0b0000;
+  };
+  register gcx [64-bit] {
+  rcx: [63-0] = 0b0001;
+  ecx: [31-0] = 0b0001;
+   cx: [16-0] = 0b0001;
+   ch: [15-8] = 0b0101;
+   cl: [07-0] = 0b0001;
+  };
+  register gdx [64-bit] {
+  rdx: [63-0] = 0b0010;
+  edx: [31-0] = 0b0010;
+   dx: [16-0] = 0b0010;
+   dh: [15-8] = 0b0110;
+   dl: [07-0] = 0b0010;
+  };
+  register gbx [64-bit] {
+  rbx: [63-0] = 0b0011;
+  ebx: [31-0] = 0b0011;
+   bx: [16-0] = 0b0011;
+   bh: [15-8] = 0b0111;
+   bl: [07-0] = 0b0011;
+  };
+  register gsp [64-bit] {
+  rsp: [63-0] = 0b0100;
+  esp: [31-0] = 0b0100;
+   sp: [16-0] = 0b0100;
+  spl: [07-0] = 0b0100;
+  };
+  register gbp [64-bit] {
+  rbp: [63-0] = 0b0101;
+  ebp: [31-0] = 0b0101;
+   bp: [16-0] = 0b0101;
+  bpl: [07-0] = 0b0101;
+  };
+  register gsi [64-bit] {
+  rsi: [63-0] = 0b0110;
+  esi: [31-0] = 0b0110;
+   si: [16-0] = 0b0110;
+  sil: [07-0] = 0b0110;
+  };
+  register gdi [64-bit] {
+  rdi: [63-0] = 0b0111;
+  edi: [31-0] = 0b0111;
+   di: [16-0] = 0b0111;
+  dil: [07-0] = 0b0111;
+  };
+  register gr8 [64-bit] {
+   r8: [63-0] = 0b1000;
+  r8d: [31-0] = 0b1000;
+  r8w: [16-0] = 0b1000;
+  r8b: [07-0] = 0b1000;
+  };
+  register gr9 [64-bit] {
+   r9: [63-0] = 0b1001;
+  r9d: [31-0] = 0b1001;
+  r9w: [16-0] = 0b1001;
+  r9b: [07-0] = 0b1001;
+  };
+  register gr10 [64-bit] {
+   r10: [63-0] = 0b1010;
+  r10d: [31-0] = 0b1010;
+  r10w: [16-0] = 0b1010;
+  r10b: [07-0] = 0b1010;
+  };
+  register gr11 [64-bit] {
+   r11: [63-0] = 0b1011;
+  r11d: [31-0] = 0b1011;
+  r11w: [16-0] = 0b1011;
+  r11b: [07-0] = 0b1011;
+  };
+  register gr12 [64-bit] {
+   r12: [63-0] = 0b1100;
+  r12d: [31-0] = 0b1100;
+  r12w: [16-0] = 0b1100;
+  r12b: [07-0] = 0b1100;
+  };
+  register gr13 [64-bit] {
+   r13: [63-0] = 0b1101;
+  r13d: [31-0] = 0b1101;
+  r13w: [16-0] = 0b1101;
+  r13b: [07-0] = 0b1101;
+  };
+  register gr14 [64-bit] {
+   r14: [63-0] = 0b1110;
+  r14d: [31-0] = 0b1110;
+  r14w: [16-0] = 0b1110;
+  r14b: [07-0] = 0b1110;
+  };
+  register gr15 [64-bit] {
+   r15: [63-0] = 0b1111;
+  r15d: [31-0] = 0b1111;
+  r15w: [16-0] = 0b1111;
+  r15b: [07-0] = 0b1111;
+  };
+  register mmx0 [64-bit] {
+  mm0: [63-0] = 0b000;
+  };
+  register gmmx1 [64-bit] {
+  mm1: [63-0] = 0b001;
+  };
+  register gmmx2 [64-bit] {
+  mm2: [63-0] = 0b010;
+  };
+  register gmmx3 [64-bit] {
+  mm3: [63-0] = 0b011;
+  };
+  register gmmx4 [64-bit] {
+  mm4: [63-0] = 0b100;
+  };
+  register gmmx5 [64-bit] {
+  mm5: [63-0] = 0b101;
+  };
+  register gmmx6 [64-bit] {
+  mm6: [63-0] = 0b110;
+  };
+  register gmmx7 [64-bit] {
+  mm7: [63-0] = 0b111;
+  };
+  register gxmm0 [128-bit] {
+  xmm0: [127-0] = 0b0000;
+  };
+  register gxmm1 [128-bit] {
+  xmm1: [127-0] = 0b0001;
+  };
+  register gxmm2 [128-bit] {
+  xmm2: [127-0] = 0b0010;
+  };
+  register gxmm3 [128-bit] {
+  xmm3: [127-0] = 0b0011;
+  };
+  register gxmm4 [128-bit] {
+  xmm4: [127-0] = 0b0100;
+  };
+  register gxmm5 [128-bit] {
+  xmm5: [127-0] = 0b0101;
+  };
+  register gxmm6 [128-bit] {
+  xmm6: [127-0] = 0b0110;
+  };
+  register gxmm7 [128-bit] {
+  xmm7: [127-0] = 0b0111;
+  };
+  register gxmm8 [128-bit] {
+  xmm8: [127-0] = 0b1000;
+  };
+  register gxmm9 [128-bit] {
+  xmm9: [127-0] = 0b1001;
+  };
+  register gxmm10 [128-bit] {
+  xmm10: [127-0] = 0b1010;
+  };
+  register gxmm11 [128-bit] {
+  xmm11: [127-0] = 0b1011;
+  };
+  register gxmm12 [128-bit] {
+  xmm12: [127-0] = 0b1100;
+  };
+  register gxmm13 [128-bit] {
+  xmm13: [127-0] = 0b1101;
+  };
+  register gxmm14 [128-bit] {
+  xmm14: [127-0] = 0b1110;
+  };
+  register gxmm15 [128-bit] {
+  xmm15: [127-0] = 0b1111;
+  };
+  register gcr0 [64-bit] {
+  cr0: [63-0] = 0b0000;
+  };
+  register gcr1 [64-bit] {
+  cr1: [63-0] = 0b0001;
+  };
+  register gcr2 [64-bit] {
+  cr2: [63-0] = 0b0010;
+  };
+  register gcr3 [64-bit] {
+  cr3: [63-0] = 0b0011;
+  };
+  register gcr4 [64-bit] {
+  cr4: [63-0] = 0b0100;
+  };
+  register gcr5 [64-bit] {
+  cr5: [63-0] = 0b0101;
+  };
+  register gcr6 [64-bit] {
+  cr6: [63-0] = 0b0110;
+  };
+  register gcr7 [64-bit] {
+  cr7: [63-0] = 0b0111;
+  };
+  register gcr8 [64-bit] {
+  cr8: [63-0] = 0b1000;
+  };
+  register gcr9 [64-bit] {
+  cr9: [63-0] = 0b1001;
+  };
+  register gcr10 [64-bit] {
+  cr10: [63-0] = 0b1010;
+  };
+  register gcr11 [64-bit] {
+  cr11: [63-0] = 0b1011;
+  };
+  register gcr12 [64-bit] {
+  cr12: [63-0] = 0b1100;
+  };
+  register gcr13 [64-bit] {
+  cr13: [63-0] = 0b1101;
+  };
+  register gcr14 [64-bit] {
+  cr14: [63-0] = 0b1110;
+  };
+  register gcr15 [64-bit] {
+  cr15: [63-0] = 0b1111;
+  };
+  register gdr0 [64-bit] {
+  dr0: [63-0] = 0b0000;
+  };
+  register gdr1 [64-bit] {
+  dr1: [63-0] = 0b0001;
+  };
+  register gdr2 [64-bit] {
+  dr2: [63-0] = 0b0010;
+  };
+  register gdr3 [64-bit] {
+  dr3: [63-0] = 0b0011;
+  };
+  register gdr4 [64-bit] {
+  dr4: [63-0] = 0b0100;
+  };
+  register gdr5 [64-bit] {
+  dr5: [63-0] = 0b0101;
+  };
+  register gdr6 [64-bit] {
+  dr6: [63-0] = 0b0110;
+  };
+  register gdr7 [64-bit] {
+  dr7: [63-0] = 0b0111;
+  };
+  register gdr8 [64-bit] {
+  dr8: [63-0] = 0b1000;
+  };
+  register gdr9 [64-bit] {
+  dr9: [63-0] = 0b1001;
+  };
+  register gdr10 [64-bit] {
+  dr10: [63-0] = 0b1010;
+  };
+  register gdr11 [64-bit] {
+  dr11: [63-0] = 0b1011;
+  };
+  register gdr12 [64-bit] {
+  dr12: [63-0] = 0b1100;
+  };
+  register gdr13 [64-bit] {
+  dr13: [63-0] = 0b1101;
+  };
+  register gdr14 [64-bit] {
+  dr14: [63-0] = 0b1110;
+  };
+  register gdr15 [64-bit] {
+  dr15: [63-0] = 0b1111;
+  };
+
+  immediate Ib[8 ] unsigned;
+  immediate Iw[16] unsigned;
+  immediate Id[32] unsigned;
+  immediate Ir[64] unsigned;
+
+  set gpr64 { rax, rcx, rdx, rbx, rsp, rbp, rsi, rdi, r8, r9, r10, r11, r12, r13, r14, r15 };
+  set gpr32 { eax, ecx, edx, ebx, esp, ebp, esi, edi, r8d, r9d, r10d, r11d, r12d, r13d, r14d, r15d };
+  set gpr16 { ax, cx, dx, bx, sp, bp, si, di, r8w, r9w, r10w, r11w, r12w, r13w, r14w, r15w };
+  set gpr8 { al, cl, dl, bl, spl, bpl, sil, dil, r8b, r9b, r10b, r11b, r12b, r13b, r14b, r15b };
+  set mmx { mm0, mm1, mm2, mm3, mm4, mm5, mm6, mm7 };
+  set sse { xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8, xmm9, xmm10, xmm11, xmm12, xmm13, xmm14, xmm15 };
+  set cr { cr0, cr1, cr2, cr3, cr4, cr5, cr6, cr7, cr8, cr9, cr10, cr11, cr12, cr13, cr14, cr15 };
+  set dr { dr0, dr1, dr2, dr3, dr4, dr5, dr6, dr7, dr8, dr9, dr10, dr11, dr12, dr13, dr14, dr15 };
+
+  set gpr8H { ah, ch, dh, bh };
+  set gpr64Base { rax, rcx, rdx, rbx, rsp, rbp, rsi, rdi };
+  set gpr64Extend { r8, r9, r10, r11, r12, r13, r14, r15 };
+
+
+  set Gb { gpr8 };
+  set Gw { gpr16 };
+  set Gd { gpr32 };
+  set Gr { gpr64 };
+  set Gv { Gr, Gd };
+  set G {Gv, gpr16};
+
+  memory REFv [1-byte] {
+    reg: [4] = Gv;
+  };
+
+  memory SIBv [1-byte] {
+    index: [4] = Gv;
+    base: [4] = Gv;
+  };
+
+  instruction add {
+    [Gb a, Gb b] = [2-byte] {
+      opcode: [8] = 0x00;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [G a, G b] = [4-byte] {
+      prefix: [8] = 0x66 @ (a in Gw || b in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 1,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a[3-3]
+      } @ (a in Gr || b in Gr);
+      opcode: [8] = 0x01;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [REFv a, Gb b] = [3-byte] {
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 0,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a.reg[3-3]
+      } @ (a.reg in Gr);
+      opcode: [8] = 0x00;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = b,
+        [2-0] = a.reg
+      };
+    };
+    [REFv a, G b] = [4-byte] {
+      prefix: [8] = 0x66 @ (b in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = (b in Gr) ? 1 : 0,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a.reg[3-3]
+      } @ (a.reg in Gr);
+      opcode: [8] = 0x01;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = b,
+        [2-0] = a.reg
+      };
+    };
+  };
+  instruction radd {
+    [Gb a, Gb b] = [2-byte] {
+      opcode: [8] = 0x02;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [G a, G b] = [4-byte] {
+      prefix: [8] = 0x66 @ (a in Gw || b in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 1,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a[3-3]
+      } @ (a in Gr || b in Gr);
+      opcode: [8] = 0x03;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [Gb a, REFv b] = [3-byte] {
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 0,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a[3-3]
+      } @ (b.reg in Gr);
+      opcode: [8] = 0x02;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [G a, REFv b] = [4-byte] {
+      prefix: [8] = 0x66 @ (a in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = (a in Gd) ? 0 : 1,
+        [2-2] = a[3-3],
+        [1-1] = 0,
+        [0-0] = b.reg[3-3]
+      } @ (b.reg in Gr);
+      opcode: [8] = 0x03;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = a,
+        [2-0] = b.reg
+      };
+    };
+  };
+  instruction addi {
+    [Ib a] = [2-byte] {
+      opcode: [8] = 0x04;
+      imm: [8] = a;
+    };
+    [Id a] = [5-byte] {
+      opcode: [8] = 0x05;
+      imm: [32] = a;
+    };
+  };
+
+  instruction adc {
+    [Gb a, Gb b] = [2-byte] {
+      opcode: [8] = 0x10;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [G a, G b] = [4-byte] {
+      prefix: [8] = 0x66 @ (a in Gw || b in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 1,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a[3-3]
+      } @ (a in Gr || b in Gr);
+      opcode: [8] = 0x11;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [REFv a, Gb b] = [3-byte] {
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 0,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a.reg[3-3]
+      } @ (a.reg in Gr);
+      opcode: [8] = 0x10;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = b,
+        [2-0] = a.reg
+      };
+    };
+    [REFv a, G b] = [4-byte] {
+      prefix: [8] = 0x66 @ (b in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = (b in Gr) ? 1 : 0,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a.reg[3-3]
+      } @ (a.reg in Gr);
+      opcode: [8] = 0x11;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = b,
+        [2-0] = a.reg
+      };
+    };
+  };
+  instruction radc {
+    [Gb a, Gb b] = [2-byte] {
+      opcode: [8] = 0x12;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [G a, G b] = [4-byte] {
+      prefix: [8] = 0x66 @ (a in Gw || b in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 1,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a[3-3]
+      } @ (a in Gr || b in Gr);
+      opcode: [8] = 0x13;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [Gb a, REFv b] = [3-byte] {
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 0,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a[3-3]
+      } @ (b.reg in Gr);
+      opcode: [8] = 0x12;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [G a, REFv b] = [4-byte] {
+      prefix: [8] = 0x66 @ (a in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = (a in Gd) ? 0 : 1,
+        [2-2] = a[3-3],
+        [1-1] = 0,
+        [0-0] = b.reg[3-3]
+      } @ (b.reg in Gr);
+      opcode: [8] = 0x13;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = a,
+        [2-0] = b.reg
+      };
+    };
+  };
+  instruction adci {
+    [Ib a] = [2-byte] {
+      opcode: [8] = 0x14;
+      imm: [8] = a;
+    };
+    [Id a] = [5-byte] {
+      opcode: [8] = 0x15;
+      imm: [32] = a;
+    };
+  };
+
+  instruction and {
+    [Gb a, Gb b] = [2-byte] {
+      opcode: [8] = 0x20;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [G a, G b] = [4-byte] {
+      prefix: [8] = 0x66 @ (a in Gw || b in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 1,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a[3-3]
+      } @ (a in Gr || b in Gr);
+      opcode: [8] = 0x21;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [REFv a, Gb b] = [3-byte] {
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 0,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a.reg[3-3]
+      } @ (a.reg in Gr);
+      opcode: [8] = 0x20;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = b,
+        [2-0] = a.reg
+      };
+    };
+    [REFv a, G b] = [4-byte] {
+      prefix: [8] = 0x66 @ (b in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = (b in Gr) ? 1 : 0,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a.reg[3-3]
+      } @ (a.reg in Gr);
+      opcode: [8] = 0x21;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = b,
+        [2-0] = a.reg
+      };
+    };
+  };
+  instruction rand {
+    [Gb a, Gb b] = [2-byte] {
+      opcode: [8] = 0x22;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [G a, G b] = [4-byte] {
+      prefix: [8] = 0x66 @ (a in Gw || b in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 1,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a[3-3]
+      } @ (a in Gr || b in Gr);
+      opcode: [8] = 0x23;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [Gb a, REFv b] = [3-byte] {
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 0,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a[3-3]
+      } @ (b.reg in Gr);
+      opcode: [8] = 0x22;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [G a, REFv b] = [4-byte] {
+      prefix: [8] = 0x66 @ (a in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = (a in Gd) ? 0 : 1,
+        [2-2] = a[3-3],
+        [1-1] = 0,
+        [0-0] = b.reg[3-3]
+      } @ (b.reg in Gr);
+      opcode: [8] = 0x23;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = a,
+        [2-0] = b.reg
+      };
+    };
+  };
+  instruction andi {
+    [Ib a] = [2-byte] {
+      opcode: [8] = 0x24;
+      imm: [8] = a;
+    };
+    [Id a] = [5-byte] {
+      opcode: [8] = 0x25;
+      imm: [32] = a;
+    };
+  };
+
+  instruction xor {
+    [Gb a, Gb b] = [2-byte] {
+      opcode: [8] = 0x30;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [G a, G b] = [4-byte] {
+      prefix: [8] = 0x66 @ (a in Gw || b in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 1,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a[3-3]
+      } @ (a in Gr || b in Gr);
+      opcode: [8] = 0x31;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [REFv a, Gb b] = [3-byte] {
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 0,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a.reg[3-3]
+      } @ (a.reg in Gr);
+      opcode: [8] = 0x30;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = b,
+        [2-0] = a.reg
+      };
+    };
+    [REFv a, G b] = [4-byte] {
+      prefix: [8] = 0x66 @ (b in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = (b in Gr) ? 1 : 0,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a.reg[3-3]
+      } @ (a.reg in Gr);
+      opcode: [8] = 0x31;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = b,
+        [2-0] = a.reg
+      };
+    };
+  };
+  instruction rxor {
+    [Gb a, Gb b] = [2-byte] {
+      opcode: [8] = 0x32;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [G a, G b] = [4-byte] {
+      prefix: [8] = 0x66 @ (a in Gw || b in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 1,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a[3-3]
+      } @ (a in Gr || b in Gr);
+      opcode: [8] = 0x33;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [Gb a, REFv b] = [3-byte] {
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 0,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a[3-3]
+      } @ (b.reg in Gr);
+      opcode: [8] = 0x32;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [G a, REFv b] = [4-byte] {
+      prefix: [8] = 0x66 @ (a in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = (a in Gd) ? 0 : 1,
+        [2-2] = a[3-3],
+        [1-1] = 0,
+        [0-0] = b.reg[3-3]
+      } @ (b.reg in Gr);
+      opcode: [8] = 0x33;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = a,
+        [2-0] = b.reg
+      };
+    };
+  };
+  instruction xori {
+    [Ib a] = [2-byte] {
+      opcode: [8] = 0x34;
+      imm: [8] = a;
+    };
+    [Id a] = [5-byte] {
+      opcode: [8] = 0x35;
+      imm: [32] = a;
+    };
+  };
+
+  instruction push {
+    [gpr64Base a] = [1-byte] {
+      opcode: [8] = {
+        [7-4] = 0x5,
+        [3-0] = a
+      };
+    };
+    [gpr64Extend a] = [2-byte] {
+      REX: [8] = 0x41;
+      opcode: [8] = {
+        [7-4] = 0x5,
+        [3-0] = a
+      };
+    };
+  };
+  instruction jo {
+    [Ib a] = [2-byte] {
+      opcode: [8] = 0x70;
+      imm: [8] = a;
+    };
+  };
+  instruction jno {
+    [Ib a] = [2-byte] {
+      opcode: [8] = 0x71;
+      imm: [8] = a;
+    };
+  };
+  instruction jb {
+    [Ib a] = [2-byte] {
+      opcode: [8] = 0x72;
+      imm: [8] = a;
+    };
+  };
+  instruction jnb {
+    [Ib a] = [2-byte] {
+      opcode: [8] = 0x73;
+      imm: [8] = a;
+    };
+  };
+  instruction jz {
+    [Ib a] = [2-byte] {
+      opcode: [8] = 0x74;
+      imm: [8] = a;
+    };
+  };
+  instruction jnz {
+    [Ib a] = [2-byte] {
+      opcode: [8] = 0x75;
+      imm: [8] = a;
+    };
+  };
+  instruction jbe {
+    [Ib a] = [2-byte] {
+      opcode: [8] = 0x76;
+      imm: [8] = a;
+    };
+  };
+  instruction jnbe {
+    [Ib a] = [2-byte] {
+      opcode: [8] = 0x77;
+      imm: [8] = a;
+    };
+  };
+
+  instruction xchg {
+    [Gb a, Gb b] = [2-byte] {
+      opcode: [8] = 0x86;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+    [G a, G b] = [4-byte] {
+      prefix: [8] = 0x66 @ (a in Gw || b in Gw);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = (a in Gr) ? 1 : 0,
+        [2-2] = b[3-3],
+        [1-1] = 0,
+        [0-0] = a[3-3]
+      } @ (a in Gr || b in Gr);
+      opcode: [8] = 0x87;
+      modRM: [8] = {
+        [7-6] = 0b11,
+        [5-3] = b,
+        [2-0] = a
+      };
+    };
+  };
+
+  instruction mov {
+    [Ib a] = [2-byte] {
+      opcode: [8] = 0xa0;
+      imm: [8] = a;
+    };
+    [Id a] = [5-byte] {
+      opcode: [8] = 0xa1;
+      imm: [4-byte] = a;
+    };
+  };
+  instruction rmov {
+    [Ib a] = [2-byte] {
+      opcode: [8] = 0xa2;
+      imm: [8] = a;
+    };
+    [Id a] = [5-byte] {
+      opcode: [8] = 0xa3;
+      imm: [4-byte] = a;
+    };
+  };
+};
