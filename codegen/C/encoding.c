@@ -360,7 +360,7 @@ int32_t codegen_mapping_items(
     push_string(temp_buffer);
   } else if (item->type == enum_Switchable) {
     Switchable *switchable = item->target;
-    BitField bf = {bl, bu};
+    BitField bf = {.lower = bl, .upper = bu};
     codegen_switchable(context, buffer, switchable, &bf, pattern, temp_buffer);
   }
   if (bu < bit_field->upper) {

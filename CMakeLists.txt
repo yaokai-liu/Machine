@@ -60,7 +60,7 @@ add_executable(debug test/debug.c)
 target_link_libraries(debug PRIVATE grammar codegen_C)
 target_include_directories(debug PRIVATE codegen/C)
 
-#aux_source_directory(test/common TEST_COMMON_SRC)
+aux_source_directory(test/common TEST_COMMON_SRC)
 #aux_source_directory(test/parse TEST_PARSE_SRC)
 aux_source_directory(test/tokenize TEST_TOKENIZE_SRC)
 add_executable(test-tokenize test/test-tokenize.c ${TEST_COMMON_SRC} ${TEST_TOKENIZE_SRC})

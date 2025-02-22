@@ -273,6 +273,9 @@ machine x64 {
   immediate Id[32] unsigned;
   immediate Ir[64] unsigned;
 
+  set Iv { Ir, Id };
+  set I { Iv, Iw };
+
   set gpr64 { rax, rcx, rdx, rbx, rsp, rbp, rsi, rdi, r8, r9, r10, r11, r12, r13, r14, r15 };
   set gpr32 { eax, ecx, edx, ebx, esp, ebp, esi, edi, r8d, r9d, r10d, r11d, r12d, r13d, r14d, r15d };
   set gpr16 { ax, cx, dx, bx, sp, bp, si, di, r8w, r9w, r10w, r11w, r12w, r13w, r14w, r15w };
@@ -1347,6 +1350,254 @@ machine x64 {
         [5-3] = a,
         [2-0] = b.reg
       };
+    };
+  };
+  instruction moviAX {
+    [Ib a] = [2-byte] {
+        opcode: [8] = 0xb0;
+        imm: [8] = a;
+    };
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = 0x48 @ (a in Ir);
+      opcode: [8] = 0xb8;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction moviCX {
+    [Ib a] = [2-byte] {
+        opcode: [8] = 0xb1;
+        imm: [8] = a;
+    };
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = 0x48 @ (a in Ir);
+      opcode: [8] = 0xb9;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction moviDX {
+    [Ib a] = [2-byte] {
+        opcode: [8] = 0xb2;
+        imm: [8] = a;
+    };
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = 0x48 @ (a in Ir);
+      opcode: [8] = 0xba;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction moviBX {
+    [Ib a] = [2-byte] {
+        opcode: [8] = 0xb3;
+        imm: [8] = a;
+    };
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = 0x48 @ (a in Ir);
+      opcode: [8] = 0xbb;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction moviSP {
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = 0x48 @ (a in Ir);
+      opcode: [8] = 0xbc;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction moviBP {
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = 0x48 @ (a in Ir);
+      opcode: [8] = 0xbd;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction moviSI {
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = 0x48 @ (a in Ir);
+      opcode: [8] = 0xbe;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction moviDI {
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = 0x48 @ (a in Ir);
+      opcode: [8] = 0xbf;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction movAH {
+    [Ib a] = [2-byte] {
+        opcode: [8] = 0xb4;
+        imm: [8] = a;
+    };
+  };
+  instruction movCH {
+    [Ib a] = [2-byte] {
+        opcode: [8] = 0xb5;
+        imm: [8] = a;
+    };
+  };
+  instruction movDH {
+    [Ib a] = [2-byte] {
+        opcode: [8] = 0xb6;
+        imm: [8] = a;
+    };
+  };
+  instruction movBH {
+    [Ib a] = [2-byte] {
+        opcode: [8] = 0xb7;
+        imm: [8] = a;
+    };
+  };
+  instruction moviR8 {
+    [Ib a] = [3-byte] {
+      REX: [8] = 0x41;
+      opcode: [8] = 0xb0;
+      imm: [8] = a;
+    };
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = (a in Ir) ? 0x49 : 0x41;
+      opcode: [8] = 0xb8;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction moviR9 {
+    [Ib a] = [3-byte] {
+      REX: [8] = 0x41;
+      opcode: [8] = 0xb1;
+      imm: [8] = a;
+    };
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = (a in Ir) ? 0x49 : 0x41;
+      opcode: [8] = 0xb9;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction moviR10 {
+    [Ib a] = [3-byte] {
+      REX: [8] = 0x41;
+      opcode: [8] = 0xb2;
+      imm: [8] = a;
+    };
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = (a in Ir) ? 0x49 : 0x41;
+      opcode: [8] = 0xba;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction moviR11 {
+    [Ib a] = [3-byte] {
+      REX: [8] = 0x41;
+      opcode: [8] = 0xb3;
+      imm: [8] = a;
+    };
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = (a in Ir) ? 0x49 : 0x41;
+      opcode: [8] = 0xbb;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction moviR12 {
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = (a in Ir) ? 0x49 : 0x41;
+      opcode: [8] = 0xbc;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction moviR13 {
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = (a in Ir) ? 0x49 : 0x41;
+      opcode: [8] = 0xbd;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction moviR14 {
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = (a in Ir) ? 0x49 : 0x41;
+      opcode: [8] = 0xbe;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction moviR15 {
+    [I a] = [17-byte] {
+      prefix: [8] = 0x66 @ (a in Iw);
+      REX: [8] = (a in Ir) ? 0x49 : 0x41;
+      opcode: [8] = 0xbf;
+      imm1: [16] = a @ (a in Iw);
+      imm2: [32] = a @ (a in Id);
+      imm3: [64] = a @ (a in Ir);
+    };
+  };
+  instruction movR12b {
+    [Ib a] = [3-byte] {
+      REX: [8] = 0x41;
+      opcode: [8] = 0xb4;
+      imm: [8] = a;
+    };
+  };
+  instruction movR13b {
+    [Ib a] = [3-byte] {
+      REX: [8] = 0x41;
+      opcode: [8] = 0xb5;
+      imm: [8] = a;
+    };
+  };
+  instruction movR14b {
+    [Ib a] = [3-byte] {
+      REX: [8] = 0x41;
+      opcode: [8] = 0xb6;
+      imm: [8] = a;
+    };
+  };
+  instruction movR15b {
+    [Ib a] = [3-byte] {
+      REX: [8] = 0x41;
+      opcode: [8] = 0xb7;
+      imm: [8] = a;
     };
   };
 
