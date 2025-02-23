@@ -273,8 +273,11 @@ machine x64 {
   immediate Id[32] unsigned;
   immediate Ir[64] unsigned;
 
+  set Iz { Id, Iw };
   set Iv { Ir, Id };
   set I { Iv, Iw };
+
+  set va { rax, eax, ax };
 
   set gpr64 { rax, rcx, rdx, rbx, rsp, rbp, rsi, rdi, r8, r9, r10, r11, r12, r13, r14, r15 };
   set gpr32 { eax, ecx, edx, ebx, esp, ebp, esi, edi, r8d, r9d, r10d, r11d, r12d, r13d, r14d, r15d };
@@ -307,7 +310,7 @@ machine x64 {
   };
 
   instruction add {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x00;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -315,7 +318,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -331,7 +334,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [REFv a, Gb b] = [3-byte] {
+    [REFv a, Gb b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       opcode: [8] = 0x00;
       modRM: [8] = {
@@ -340,7 +343,7 @@ machine x64 {
         [2-0] = a.reg
       };
     };
-    [REFv a, G b] = [5-byte] {
+    [REFv a, G b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       prefix: [8] = 0x66 @ (b in Gw);
       REX: [8] = {
@@ -359,7 +362,7 @@ machine x64 {
     };
   };
   instruction radd {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x02;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -367,7 +370,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -383,7 +386,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [Gb a, REFv b] = [3-byte] {
+    [Gb a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       opcode: [8] = 0x02;
       modRM: [8] = {
@@ -392,7 +395,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, REFv b] = [5-byte] {
+    [G a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       prefix: [8] = 0x66 @ (a in Gw);
       REX: [8] = {
@@ -411,18 +414,18 @@ machine x64 {
     };
   };
   instruction addi {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x04;
       imm: [8] = a;
     };
-    [Id a] = [5-byte] {
+    [Id a] = {
       opcode: [8] = 0x05;
       imm: [32] = a;
     };
   };
 
   instruction adc {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x10;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -430,7 +433,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -446,7 +449,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [REFv a, Gb b] = [3-byte] {
+    [REFv a, Gb b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       opcode: [8] = 0x10;
       modRM: [8] = {
@@ -455,7 +458,7 @@ machine x64 {
         [2-0] = a.reg
       };
     };
-    [REFv a, G b] = [5-byte] {
+    [REFv a, G b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       prefix: [8] = 0x66 @ (b in Gw);
       REX: [8] = {
@@ -474,7 +477,7 @@ machine x64 {
     };
   };
   instruction radc {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x12;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -482,7 +485,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -498,7 +501,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [Gb a, REFv b] = [3-byte] {
+    [Gb a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       opcode: [8] = 0x12;
       modRM: [8] = {
@@ -507,7 +510,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, REFv b] = [5-byte] {
+    [G a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       prefix: [8] = 0x66 @ (a in Gw);
       REX: [8] = {
@@ -526,18 +529,18 @@ machine x64 {
     };
   };
   instruction adci {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x14;
       imm: [8] = a;
     };
-    [Id a] = [5-byte] {
+    [Id a] = {
       opcode: [8] = 0x15;
       imm: [32] = a;
     };
   };
 
   instruction and {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x20;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -545,7 +548,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -561,7 +564,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [REFv a, Gb b] = [3-byte] {
+    [REFv a, Gb b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       opcode: [8] = 0x20;
       modRM: [8] = {
@@ -570,7 +573,7 @@ machine x64 {
         [2-0] = a.reg
       };
     };
-    [REFv a, G b] = [5-byte] {
+    [REFv a, G b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       prefix: [8] = 0x66 @ (b in Gw);
       REX: [8] = {
@@ -589,7 +592,7 @@ machine x64 {
     };
   };
   instruction rand {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x22;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -597,7 +600,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -613,7 +616,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [Gb a, REFv b] = [3-byte] {
+    [Gb a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       opcode: [8] = 0x22;
       modRM: [8] = {
@@ -622,7 +625,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, REFv b] = [5-byte] {
+    [G a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       prefix: [8] = 0x66 @ (a in Gw);
       REX: [8] = {
@@ -641,18 +644,18 @@ machine x64 {
     };
   };
   instruction andi {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x24;
       imm: [8] = a;
     };
-    [Id a] = [5-byte] {
+    [Id a] = {
       opcode: [8] = 0x25;
       imm: [32] = a;
     };
   };
 
   instruction xor {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x30;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -660,7 +663,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -676,7 +679,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [REFv a, Gb b] = [3-byte] {
+    [REFv a, Gb b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       opcode: [8] = 0x30;
       modRM: [8] = {
@@ -685,7 +688,7 @@ machine x64 {
         [2-0] = a.reg
       };
     };
-    [REFv a, G b] = [5-byte] {
+    [REFv a, G b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       prefix: [8] = 0x66 @ (b in Gw);
       REX: [8] = {
@@ -704,7 +707,7 @@ machine x64 {
     };
   };
   instruction rxor {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x32;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -712,7 +715,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -728,7 +731,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [Gb a, REFv b] = [3-byte] {
+    [Gb a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       opcode: [8] = 0x32;
       modRM: [8] = {
@@ -737,7 +740,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, REFv b] = [5-byte] {
+    [G a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       prefix: [8] = 0x66 @ (a in Gw);
       REX: [8] = {
@@ -756,11 +759,11 @@ machine x64 {
     };
   };
   instruction xori {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x34;
       imm: [8] = a;
     };
-    [Id a] = [5-byte] {
+    [Id a] = {
       opcode: [8] = 0x35;
       imm: [32] = a;
     };
@@ -768,7 +771,7 @@ machine x64 {
 
 
   instruction or {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x08;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -776,7 +779,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -792,7 +795,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [REFv a, Gb b] = [3-byte] {
+    [REFv a, Gb b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       opcode: [8] = 0x08;
       modRM: [8] = {
@@ -801,7 +804,7 @@ machine x64 {
         [2-0] = a.reg
       };
     };
-    [REFv a, G b] = [5-byte] {
+    [REFv a, G b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       prefix: [8] = 0x66 @ (b in Gw);
       REX: [8] = {
@@ -820,7 +823,7 @@ machine x64 {
     };
   };
   instruction ror {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x0a;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -828,7 +831,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -844,7 +847,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [Gb a, REFv b] = [3-byte] {
+    [Gb a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       opcode: [8] = 0x0a;
       modRM: [8] = {
@@ -853,7 +856,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, REFv b] = [5-byte] {
+    [G a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       prefix: [8] = 0x66 @ (a in Gw);
       REX: [8] = {
@@ -872,18 +875,18 @@ machine x64 {
     };
   };
   instruction ori {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x0c;
       imm: [8] = a;
     };
-    [Id a] = [5-byte] {
+    [Id a] = {
       opcode: [8] = 0x0d;
       imm: [32] = a;
     };
   };
 
   instruction sbb {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x18;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -891,7 +894,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -907,7 +910,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [REFv a, Gb b] = [3-byte] {
+    [REFv a, Gb b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       opcode: [8] = 0x18;
       modRM: [8] = {
@@ -916,7 +919,7 @@ machine x64 {
         [2-0] = a.reg
       };
     };
-    [REFv a, G b] = [5-byte] {
+    [REFv a, G b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       prefix: [8] = 0x66 @ (b in Gw);
       REX: [8] = {
@@ -935,7 +938,7 @@ machine x64 {
     };
   };
   instruction rsbb {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x1a;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -943,7 +946,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -959,7 +962,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [Gb a, REFv b] = [3-byte] {
+    [Gb a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       opcode: [8] = 0x1a;
       modRM: [8] = {
@@ -968,7 +971,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, REFv b] = [5-byte] {
+    [G a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       prefix: [8] = 0x66 @ (a in Gw);
       REX: [8] = {
@@ -987,18 +990,18 @@ machine x64 {
     };
   };
   instruction sbbi {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x1c;
       imm: [8] = a;
     };
-    [Id a] = [5-byte] {
+    [Id a] = {
       opcode: [8] = 0x1d;
       imm: [32] = a;
     };
   };
 
   instruction sub {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x28;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -1006,7 +1009,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -1022,7 +1025,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [REFv a, Gb b] = [3-byte] {
+    [REFv a, Gb b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       opcode: [8] = 0x28;
       modRM: [8] = {
@@ -1031,7 +1034,7 @@ machine x64 {
         [2-0] = a.reg
       };
     };
-    [REFv a, G b] = [5-byte] {
+    [REFv a, G b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       prefix: [8] = 0x66 @ (b in Gw);
       REX: [8] = {
@@ -1050,7 +1053,7 @@ machine x64 {
     };
   };
   instruction rsub {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x2a;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -1058,7 +1061,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -1074,7 +1077,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [Gb a, REFv b] = [3-byte] {
+    [Gb a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       opcode: [8] = 0x2a;
       modRM: [8] = {
@@ -1083,8 +1086,8 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, REFv b] = [5-byte] {
-      asoPrefix: [8] = 0x67 @ (b.reg in Gd);
+    [G a, REFv b] = {
+      asoPrefix: [8] = 0x67 @ (b.reg in G);
       prefix: [8] = 0x66 @ (a in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -1102,18 +1105,18 @@ machine x64 {
     };
   };
   instruction subi {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x2c;
       imm: [8] = a;
     };
-    [Id a] = [5-byte] {
+    [Id a] = {
       opcode: [8] = 0x2d;
       imm: [32] = a;
     };
   };
 
   instruction cmp {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x38;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -1121,7 +1124,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -1137,7 +1140,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [REFv a, Gb b] = [3-byte] {
+    [REFv a, Gb b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       opcode: [8] = 0x38;
       modRM: [8] = {
@@ -1146,7 +1149,7 @@ machine x64 {
         [2-0] = a.reg
       };
     };
-    [REFv a, G b] = [5-byte] {
+    [REFv a, G b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       prefix: [8] = 0x66 @ (b in Gw);
       REX: [8] = {
@@ -1165,7 +1168,7 @@ machine x64 {
     };
   };
   instruction rcmp {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x3a;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -1173,7 +1176,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -1189,7 +1192,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [Gb a, REFv b] = [3-byte] {
+    [Gb a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       opcode: [8] = 0x3a;
       modRM: [8] = {
@@ -1198,7 +1201,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, REFv b] = [5-byte] {
+    [G a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       prefix: [8] = 0x66 @ (a in Gw);
       REX: [8] = {
@@ -1217,18 +1220,18 @@ machine x64 {
     };
   };
   instruction cmpi {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x3c;
       imm: [8] = a;
     };
-    [Id a] = [5-byte] {
+    [Id a] = {
       opcode: [8] = 0x3d;
       imm: [32] = a;
     };
   };
 
   instruction push {
-    [Gr a] = [2-byte] {
+    [Gr a] = {
       REX: [8] = 0x41 @ (a in gpr64Extend);
       opcode: [8] = {
         [7-4] = 0x5,
@@ -1238,7 +1241,7 @@ machine x64 {
     };
   };
   instruction pop {
-    [Gr a] = [2-byte] {
+    [Gr a] = {
       REX: [8] = 0x41 @ (a in gpr64Extend);
       opcode: [8] = {
         [7-4] = 0x5,
@@ -1249,7 +1252,7 @@ machine x64 {
   };
 
   instruction mov {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x88;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -1257,7 +1260,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -1273,7 +1276,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [REFv a, Gb b] = [3-byte] {
+    [REFv a, Gb b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       opcode: [8] = 0x88;
       modRM: [8] = {
@@ -1282,7 +1285,7 @@ machine x64 {
         [2-0] = a.reg
       };
     };
-    [REFv a, G b] = [5-byte] {
+    [REFv a, G b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in Gd);
       prefix: [8] = 0x66 @ (b in Gw);
       REX: [8] = {
@@ -1301,7 +1304,7 @@ machine x64 {
     };
   };
   instruction rmov {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x8a;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -1309,7 +1312,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -1325,7 +1328,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [Gb a, REFv b] = [3-byte] {
+    [Gb a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       opcode: [8] = 0x8a;
       modRM: [8] = {
@@ -1334,7 +1337,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, REFv b] = [5-byte] {
+    [G a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       prefix: [8] = 0x66 @ (a in Gw);
       REX: [8] = {
@@ -1353,11 +1356,11 @@ machine x64 {
     };
   };
   instruction moviAX {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
         opcode: [8] = 0xb0;
         imm: [8] = a;
     };
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = 0x48 @ (a in Ir);
       opcode: [8] = 0xb8;
@@ -1367,11 +1370,11 @@ machine x64 {
     };
   };
   instruction moviCX {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
         opcode: [8] = 0xb1;
         imm: [8] = a;
     };
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = 0x48 @ (a in Ir);
       opcode: [8] = 0xb9;
@@ -1381,11 +1384,11 @@ machine x64 {
     };
   };
   instruction moviDX {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
         opcode: [8] = 0xb2;
         imm: [8] = a;
     };
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = 0x48 @ (a in Ir);
       opcode: [8] = 0xba;
@@ -1395,11 +1398,11 @@ machine x64 {
     };
   };
   instruction moviBX {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
         opcode: [8] = 0xb3;
         imm: [8] = a;
     };
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = 0x48 @ (a in Ir);
       opcode: [8] = 0xbb;
@@ -1409,7 +1412,7 @@ machine x64 {
     };
   };
   instruction moviSP {
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = 0x48 @ (a in Ir);
       opcode: [8] = 0xbc;
@@ -1419,7 +1422,7 @@ machine x64 {
     };
   };
   instruction moviBP {
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = 0x48 @ (a in Ir);
       opcode: [8] = 0xbd;
@@ -1429,7 +1432,7 @@ machine x64 {
     };
   };
   instruction moviSI {
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = 0x48 @ (a in Ir);
       opcode: [8] = 0xbe;
@@ -1439,7 +1442,7 @@ machine x64 {
     };
   };
   instruction moviDI {
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = 0x48 @ (a in Ir);
       opcode: [8] = 0xbf;
@@ -1449,36 +1452,36 @@ machine x64 {
     };
   };
   instruction movAH {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
         opcode: [8] = 0xb4;
         imm: [8] = a;
     };
   };
   instruction movCH {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
         opcode: [8] = 0xb5;
         imm: [8] = a;
     };
   };
   instruction movDH {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
         opcode: [8] = 0xb6;
         imm: [8] = a;
     };
   };
   instruction movBH {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
         opcode: [8] = 0xb7;
         imm: [8] = a;
     };
   };
   instruction moviR8 {
-    [Ib a] = [3-byte] {
+    [Ib a] = {
       REX: [8] = 0x41;
       opcode: [8] = 0xb0;
       imm: [8] = a;
     };
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = (a in Ir) ? 0x49 : 0x41;
       opcode: [8] = 0xb8;
@@ -1488,12 +1491,12 @@ machine x64 {
     };
   };
   instruction moviR9 {
-    [Ib a] = [3-byte] {
+    [Ib a] = {
       REX: [8] = 0x41;
       opcode: [8] = 0xb1;
       imm: [8] = a;
     };
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = (a in Ir) ? 0x49 : 0x41;
       opcode: [8] = 0xb9;
@@ -1503,12 +1506,12 @@ machine x64 {
     };
   };
   instruction moviR10 {
-    [Ib a] = [3-byte] {
+    [Ib a] = {
       REX: [8] = 0x41;
       opcode: [8] = 0xb2;
       imm: [8] = a;
     };
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = (a in Ir) ? 0x49 : 0x41;
       opcode: [8] = 0xba;
@@ -1518,12 +1521,12 @@ machine x64 {
     };
   };
   instruction moviR11 {
-    [Ib a] = [3-byte] {
+    [Ib a] = {
       REX: [8] = 0x41;
       opcode: [8] = 0xb3;
       imm: [8] = a;
     };
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = (a in Ir) ? 0x49 : 0x41;
       opcode: [8] = 0xbb;
@@ -1533,7 +1536,7 @@ machine x64 {
     };
   };
   instruction moviR12 {
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = (a in Ir) ? 0x49 : 0x41;
       opcode: [8] = 0xbc;
@@ -1543,7 +1546,7 @@ machine x64 {
     };
   };
   instruction moviR13 {
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = (a in Ir) ? 0x49 : 0x41;
       opcode: [8] = 0xbd;
@@ -1553,7 +1556,7 @@ machine x64 {
     };
   };
   instruction moviR14 {
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = (a in Ir) ? 0x49 : 0x41;
       opcode: [8] = 0xbe;
@@ -1563,7 +1566,7 @@ machine x64 {
     };
   };
   instruction moviR15 {
-    [I a] = [17-byte] {
+    [I a] = {
       prefix: [8] = 0x66 @ (a in Iw);
       REX: [8] = (a in Ir) ? 0x49 : 0x41;
       opcode: [8] = 0xbf;
@@ -1573,36 +1576,158 @@ machine x64 {
     };
   };
   instruction movR12b {
-    [Ib a] = [3-byte] {
+    [Ib a] = {
       REX: [8] = 0x41;
       opcode: [8] = 0xb4;
       imm: [8] = a;
     };
   };
   instruction movR13b {
-    [Ib a] = [3-byte] {
+    [Ib a] = {
       REX: [8] = 0x41;
       opcode: [8] = 0xb5;
       imm: [8] = a;
     };
   };
   instruction movR14b {
-    [Ib a] = [3-byte] {
+    [Ib a] = {
       REX: [8] = 0x41;
       opcode: [8] = 0xb6;
       imm: [8] = a;
     };
   };
   instruction movR15b {
-    [Ib a] = [3-byte] {
+    [Ib a] = {
       REX: [8] = 0x41;
       opcode: [8] = 0xb7;
       imm: [8] = a;
     };
   };
+  instruction movsb {
+    [rdi a, rsi b] = {
+      opcode: [8] = 0xa4;
+    };
+    [edi a, esi b] = {
+      asoPrefix: [8] = 0x67;
+      opcode: [8] = 0xa4;
+    };
+  };
+  instruction movsw {
+    [rdi a, rsi b] = {
+      prefix: [8] = 0x66;
+      opcode: [8] = 0xa5;
+    };
+    [edi a, esi b] = {
+      asoPrefix: [8] = 0x67;
+      prefix: [8] = 0x66;
+      opcode: [8] = 0xa5;
+    };
+  };
+  instruction movsd {
+    [rdi a, rsi b] = {
+      opcode: [8] = 0xa5;
+    };
+    [edi a, esi b] = {
+      asoPrefix: [8] = 0x67;
+      opcode: [8] = 0xa5;
+    };
+  };
+  instruction movsq {
+    [rdi a, rsi b] = {
+      REX: [8] = 0x48;
+      opcode: [8] = 0xa5;
+    };
+    [edi a, esi b] = {
+      asoPrefix: [8] = 0x67;
+      REX: [8] = 0x48;
+      opcode: [8] = 0xa5;
+    };
+  };
+
+  instruction cmpsb {
+    [rdi a, rsi b] = {
+      opcode: [8] = 0xa6;
+    };
+    [edi a, esi b] = {
+      asoPrefix: [8] = 0x67;
+      opcode: [8] = 0xa6;
+    };
+  };
+  instruction cmpsw {
+    [rdi a, rsi b] = {
+      prefix: [8] = 0x66;
+      opcode: [8] = 0xa7;
+    };
+    [edi a, esi b] = {
+      asoPrefix: [8] = 0x67;
+      prefix: [8] = 0x66;
+      opcode: [8] = 0xa7;
+    };
+  };
+  instruction cmpsd {
+    [rdi a, rsi b] = {
+      opcode: [8] = 0xa7;
+    };
+    [edi a, esi b] = {
+      asoPrefix: [8] = 0x67;
+      opcode: [8] = 0xa7;
+    };
+  };
+  instruction cmpsq {
+    [rdi a, rsi b] = {
+      REX: [8] = 0x48;
+      opcode: [8] = 0xa7;
+    };
+    [edi a, esi b] = {
+      asoPrefix: [8] = 0x67;
+      REX: [8] = 0x48;
+      opcode: [8] = 0xa7;
+    };
+  };
+
+  instruction stosb {
+    [rdi a, al b] = {
+      opcode: [8] = 0xaa;
+    };
+    [edi a, al b] = {
+      asoPrefix: [8] = 0x67;
+      opcode: [8] = 0xab;
+    };
+  };
+  instruction stosw {
+    [rdi a, ax b] = {
+      prefix: [8] = 0x66;
+      opcode: [8] = 0xab;
+    };
+    [edi a, ax b] = {
+      asoPrefix: [8] = 0x67;
+      prefix: [8] = 0x66;
+      opcode: [8] = 0xab;
+    };
+  };
+  instruction stosd {
+    [rdi a, eax b] = {
+      opcode: [8] = 0xab;
+    };
+    [edi a, eax b] = {
+      asoPrefix: [8] = 0x67;
+      opcode: [8] = 0xab;
+    };
+  };
+  instruction stosq {
+    [rdi a, rax b] = {
+      REX: [8] = 0x48;
+      opcode: [8] = 0xab;
+    };
+    [edi a, rax b] = {
+      asoPrefix: [8] = 0x67;
+      REX: [8] = 0x48;
+      opcode: [8] = 0xab;
+    };
+  };
 
   instruction lea {
-    [G a, REFv b] = [5-byte] {
+    [G a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in Gd);
       prefix: [8] = 0x66 @ (a in Gw);
       REX: [8] = {
@@ -1622,104 +1747,125 @@ machine x64 {
   };
 
   instruction jo {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x70;
       imm: [8] = a;
     };
   };
   instruction jno {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x71;
       imm: [8] = a;
     };
   };
   instruction jb {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x72;
       imm: [8] = a;
     };
   };
   instruction jnb {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x73;
       imm: [8] = a;
     };
   };
   instruction jz {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x74;
       imm: [8] = a;
     };
   };
   instruction jnz {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x75;
       imm: [8] = a;
     };
   };
   instruction jbe {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x76;
       imm: [8] = a;
     };
   };
   instruction jnbe {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x77;
       imm: [8] = a;
     };
   };
   instruction js {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x78;
       imm: [8] = a;
     };
   };
   instruction jns {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x79;
       imm: [8] = a;
     };
   };
   instruction jp {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x7a;
       imm: [8] = a;
     };
   };
   instruction jnp {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x7b;
       imm: [8] = a;
     };
   };
   instruction jl {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x7c;
       imm: [8] = a;
     };
   };
   instruction jnl {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x7d;
       imm: [8] = a;
     };
   };
   instruction jle {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x7e;
       imm: [8] = a;
     };
   };
   instruction jnle {
-    [Ib a] = [2-byte] {
+    [Ib a] = {
       opcode: [8] = 0x7f;
       imm: [8] = a;
     };
   };
 
+  instruction testi {
+    [al a, Ib b] = {
+      opcode: [8] = 0xa8;
+      imm1: [8] = b;
+    };
+    [ax a, Iw b] = {
+      prefix: [8] = 0x66;
+      opcode: [8] = 0xa9;
+      imm1: [16] = b;
+    };
+    [eax a, Id b] = {
+      opcode: [8] = 0xa9;
+      imm1: [32] = b;
+    };
+    [rax a, Id b] = {
+      REX: [8] = 0x48;
+      opcode: [8] = 0xa9;
+      imm: [32] = b;
+    };
+  };
+
   instruction xchg {
-    [Gb a, Gb b] = [2-byte] {
+    [Gb a, Gb b] = {
       opcode: [8] = 0x86;
       modRM: [8] = {
         [7-6] = 0b11,
@@ -1727,7 +1873,7 @@ machine x64 {
         [2-0] = a
       };
     };
-    [G a, G b] = [4-byte] {
+    [G a, G b] = {
       prefix: [8] = 0x66 @ (a in Gw || b in Gw);
       REX: [8] = {
         [7-4] = 0x4,
@@ -1743,5 +1889,8 @@ machine x64 {
         [2-0] = a
       };
     };
+  };
+  instruction nop {
+    [] = { opcode: [8] = 0x90; };
   };
 };

@@ -343,22 +343,14 @@ Immediate *p_Immediate_0(void *argv[], GContext *context, const Allocator *) {
   return result;
 }
 
-InstrForm *p_InstrForm_0(void *argv[], GContext *context, const Allocator *allocator) {
+InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
-  uint32_t width = (uint32_t) (uint64_t) argv[2];
-  InstrParts *part_array = (InstrParts *) argv[4];
-  grammarAssert(
-      width % 8 == 0, "illegal width of parts. "
-                      "width must be an integer multiple of a byte with."
-  );
-  uint32_t sum_width = 0;
+  InstrParts *part_array = (InstrParts *) argv[3];
+  uint32_t width = 0;
   const InstrPart *first = Array_first_real(part_array);
   const InstrPart *last = Array_last_real(part_array);
-  for (const InstrPart *part = first; part <= last; part++) { sum_width += part->width; }
-  grammarAssert(
-      sum_width <= width, "illegal width of parts. "
-                          "width must be an integer multiple of a byte with."
-  );
+  for (const InstrPart *part = first; part <= last; part++) { width += part->width; }
+
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
   form->tick = 1;
@@ -368,24 +360,15 @@ InstrForm *p_InstrForm_0(void *argv[], GContext *context, const Allocator *alloc
   return form;
 }
 
-InstrForm *p_InstrForm_1(void *argv[], GContext *context, const Allocator *allocator) {
+InstrForm *p_InstrForm_1(void *argv[], GContext *, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
-  uint32_t width = (uint32_t) (uint64_t) argv[2];
   uint32_t tick = (uint32_t) (uint64_t) argv[3];
-  InstrParts *part_array = (InstrParts *) argv[5];
+  InstrParts *part_array = (InstrParts *) argv[4];
 
-  grammarAssert(
-      width % 8 == 0, "illegal width of parts. "
-                      "width must be an integer multiple of a byte with."
-  );
-  uint32_t sum_width = 0;
+  uint32_t width = 0;
   const InstrPart *first = Array_first_real(part_array);
   const InstrPart *last = Array_last_real(part_array);
-  for (const InstrPart *part = first; part <= last; part++) { sum_width += part->width; }
-  grammarAssert(
-      sum_width <= width, "illegal width of parts. "
-                          "width must be an integer multiple of a byte with."
-  );
+  for (const InstrPart *part = first; part <= last; part++) { width += part->width; }
 
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;

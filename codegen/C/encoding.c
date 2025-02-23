@@ -50,7 +50,7 @@ constexpr char_t ENCODING_DEF_FMT_TAIL[] = "  Array_append(buffer, bytes, size);
 constexpr char_t ENCODING_DEC_FMT[] =
     "uint32_t encoding_%s_%u(Array *buffer, const Entry *entries[])";
 constexpr char_t ENCODING_DEC_NO_ARGS_FMT[] =
-    "uint32_t encoding_%s_%u(Array *buffer, const Entry *entries[])";
+    "uint32_t encoding_%s_%u(Array *buffer, const Entry *[])";
 constexpr char_t ENCODING_NAME_FMT[] = "encoding_%s_%u";
 
 #define ctx_push_string(type, s)                                                     \

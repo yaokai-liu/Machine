@@ -327,8 +327,7 @@ void pop_context_width_and_ident(GContext *context, void *) {
   pop_context_width(context, nullptr);
   pop_context_ident(context, nullptr);
 }
-void pop_context_width_and_set_parts_null(GContext *context, void *) {
-  pop_context_width(context, nullptr);
+void set_parts_null(GContext *context, void *) {
   Gcontext_setParts(context, nullptr);
 }
 void pop_context_width_and_set_items_null(GContext *context, void *) {
@@ -358,9 +357,9 @@ void set_condition_false(GContext *context, void *) {
 #define IN_REGISTER(s)    __MACHINE_IDENTIFIER_LEFT_BRACKET_REGISTER_IDENTIFIER_WIDTH_LEFT_BRACKET_##s
 #define IN_INSTRUCTION(s) __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_##s
 #define IN_INSTR_FORM(s) \
-  __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_EQUAL_WIDTH_LEFT_BRACKET_##s
+  __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_EQUAL_LEFT_BRACKET_##s
 #define IN_INSTR_PART(s) \
-  __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_EQUAL_WIDTH_LEFT_BRACKET_IDENTIFIER_COLON_WIDTH_EQUAL_LEFT_BRACKET_##s
+  __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_EQUAL_LEFT_BRACKET_IDENTIFIER_COLON_WIDTH_EQUAL_LEFT_BRACKET_##s
 
 fn_ctx_act *get_after_stack_actions(int32_t state) {
   switch (state) {
@@ -370,7 +369,6 @@ fn_ctx_act *get_after_stack_actions(int32_t state) {
     }
     case IN_MACHINE(REGISTER_IDENTIFIER_WIDTH):
     case IN_MACHINE(MEMORY_IDENTIFIER_WIDTH):
-    case IN_INSTRUCTION(Pattern_EQUAL_WIDTH):
     case IN_INSTR_FORM(IDENTIFIER_COLON_WIDTH): {
       return push_context_width;
     }
@@ -404,7 +402,7 @@ fn_ctx_act *get_after_reduce_actions(int32_t state) {
     }
     case IN_INSTRUCTION(InstrForms_InstrForm):
     case IN_INSTRUCTION(InstrForm): {
-      return pop_context_width_and_set_parts_null;
+      return set_parts_null;
     }
     case IN_MACHINE(Instruction): {
       return release_ctx_patterns;

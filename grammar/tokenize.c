@@ -171,14 +171,14 @@ inline uint32_t t_IDENTIFIER(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
   const char_t *pText = input;
-  if (('a' <= *pText && *pText <= 'z') || ('A' <= *pText && *pText <= 'Z')) {
+  if (startswithLetter(pText) || (*pText == '_')) {
     pText++;
   } else {
     result->length = pText - input;
     return 0;
   }
   while (true) {
-    if (startswithLetter(pText) || startswithDigital(pText)) {
+    if (startswithLetter(pText) || startswithDigital(pText) || (*pText == '_')) {
       pText++;
     } else {
       break;
