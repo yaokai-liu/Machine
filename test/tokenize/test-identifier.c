@@ -144,11 +144,53 @@ START_TEST(test_IDENTIFIER_upper) {
 
 END_TEST
 
+START_TEST(test_IDENTIFIER_underscore) {
+  const char_t *string = "ABCDEFG HIJK_LMN OPQRST UVWXYZ _";
+  Identifier *identifier;
+  uint32_t cost = 0, n_tokens = 0;
+  uint32_t lineno = 0, column = 0;
+  const Terminal *terminals = tokenize(string, &cost, &n_tokens, &lineno, &column, &STDAllocator);
+  ck_assert_uint_eq(cost, lenof("ABCDEFG HIJK_LMN OPQRST UVWXYZ _") - 1);
+  ck_assert_uint_eq(n_tokens, 4);
+  ck_assert_ptr_ne(terminals, nullptr);
+
+  ck_assert_uint_eq(terminals[0].type, enum_IDENTIFIER);
+  ck_assert_str_eq(get_name(terminals[0].type), "IDENTIFIER");
+  ck_assert_ptr_ne(terminals[0].value, nullptr);
+  identifier = (Identifier *) terminals[0].value;
+  ck_assert_uint_eq(identifier->len, lenof("ABCDEFG"));
+  ck_assert_uint_eq(strcmp_i(identifier->ptr, "ABCDEFG", identifier->len), identifier->len);
+
+  ck_assert_uint_eq(terminals[1].type, enum_IDENTIFIER);
+  ck_assert_str_eq(get_name(terminals[1].type), "IDENTIFIER");
+  ck_assert_ptr_ne(terminals[1].value, nullptr);
+  identifier = (Identifier *) terminals[1].value;
+  ck_assert_uint_eq(identifier->len, lenof("HIJK_LMN"));
+  ck_assert_uint_eq(strcmp_i(identifier->ptr, "HIJK_LMN", identifier->len), identifier->len);
+
+  ck_assert_uint_eq(terminals[2].type, enum_IDENTIFIER);
+  ck_assert_str_eq(get_name(terminals[2].type), "IDENTIFIER");
+  ck_assert_ptr_ne(terminals[2].value, nullptr);
+  identifier = (Identifier *) terminals[2].value;
+  ck_assert_uint_eq(identifier->len, lenof("OPQRST"));
+  ck_assert_uint_eq(strcmp_i(identifier->ptr, "OPQRST", identifier->len), identifier->len);
+
+  ck_assert_uint_eq(terminals[3].type, enum_IDENTIFIER);
+  ck_assert_str_eq(get_name(terminals[3].type), "IDENTIFIER");
+  ck_assert_ptr_ne(terminals[3].value, nullptr);
+  identifier = (Identifier *) terminals[3].value;
+  ck_assert_uint_eq(identifier->len, lenof("UVWXYZ"));
+  ck_assert_uint_eq(strcmp_i(identifier->ptr, "UVWXYZ", identifier->len), identifier->len);
+}
+
+END_TEST
+
 Suite *identifier_suite() {
   Suite *suite = suite_create("Identifiers");
   TCase *tc_identifiers = tcase_create("identifiers");
   tcase_add_test(tc_identifiers, test_IDENTIFIER_lower);
   tcase_add_test(tc_identifiers, test_IDENTIFIER_upper);
+  tcase_add_test(tc_identifiers, test_IDENTIFIER_underscore);
   suite_add_tcase(suite, tc_identifiers);
   return suite;
 }
