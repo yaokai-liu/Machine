@@ -357,9 +357,9 @@ void set_condition_false(GContext *context, void *) {
 #define IN_REGISTER(s)    __MACHINE_IDENTIFIER_LEFT_BRACKET_REGISTER_IDENTIFIER_WIDTH_LEFT_BRACKET_##s
 #define IN_INSTRUCTION(s) __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_##s
 #define IN_INSTR_FORM(s) \
-  __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_EQUAL_LEFT_BRACKET_##s
+  __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_ASSIGN_LEFT_BRACKET_##s
 #define IN_INSTR_PART(s) \
-  __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_EQUAL_LEFT_BRACKET_IDENTIFIER_COLON_WIDTH_EQUAL_LEFT_BRACKET_##s
+  __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_ASSIGN_LEFT_BRACKET_IDENTIFIER_COLON_WIDTH_ASSIGN_LEFT_BRACKET_##s
 
 fn_ctx_act *get_after_stack_actions(int32_t state) {
   switch (state) {
@@ -372,13 +372,13 @@ fn_ctx_act *get_after_stack_actions(int32_t state) {
     case IN_INSTR_FORM(IDENTIFIER_COLON_WIDTH): {
       return push_context_width;
     }
-    case IN_INSTR_FORM(IDENTIFIER_COLON_WIDTH_EQUAL_LEFT_BRACKET): {
+    case IN_INSTR_FORM(IDENTIFIER_COLON_WIDTH_ASSIGN_LEFT_BRACKET): {
       return realloc_context_map_item_tree;
     }
     case IN_REGISTER(Registers_RIGHT_BRACKET): {
       return pop_context_width_and_ident;
     }
-    case IN_INSTR_FORM(IDENTIFIER_COLON_WIDTH_EQUAL_Layout_AT): {
+    case IN_INSTR_FORM(IDENTIFIER_COLON_WIDTH_ASSIGN_Layout_AT): {
       return set_condition_true;
     }
     case IN_INSTR_PART(MappingItems_RIGHT_BRACKET): {
@@ -407,7 +407,7 @@ fn_ctx_act *get_after_reduce_actions(int32_t state) {
     case IN_MACHINE(Instruction): {
       return release_ctx_patterns;
     }
-    case IN_INSTR_FORM(IDENTIFIER_COLON_WIDTH_EQUAL_Layout_Condition): {
+    case IN_INSTR_FORM(IDENTIFIER_COLON_WIDTH_ASSIGN_Layout_Condition): {
       return set_condition_false;
     }
     default: {

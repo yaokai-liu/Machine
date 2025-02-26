@@ -71,15 +71,17 @@ typedef struct Evaluable {
   void *rhs;
 } Evaluable, Variable;
 
-typedef struct CondExpr CondExpr;
-typedef struct Condition {
-  CondExpr *expr;
-} Condition;
-typedef struct CondExpr {
+struct Expression {
   uint32_t type;
   void *lhs;
   void *rhs;
-} CondExpr, AndCondExpr, SingleCondExpr;
+};
+typedef struct Expression CondExpr, AndCondExpr, SingleCondExpr;
+typedef struct Expression Arith_0_Expr, Arith_1_Expr, Arith_2_Expr, Arith_3_Expr;
+
+typedef struct Condition {
+  CondExpr *expr;
+} Condition;
 
 typedef Array Options;  // Array<Evaluable>
 
@@ -192,7 +194,7 @@ void releaseRegister(Register *reg, const Allocator *allocator);
 void releaseRegisterGroup(RegisterGroup *rg, const Allocator *allocator);
 void releaseSet(Set *set, const Allocator *allocator);
 void releaseCondition(Condition *condition, const Allocator *allocator);
-void releaseCondExpr(CondExpr *expr, const Allocator *allocator);
+void releaseExpr(CondExpr *expr, const Allocator *allocator);
 
 int32_t Identifier_cmp(const Identifier *ident1, const Identifier *ident2);
 int32_t PatternArgs_cmp(PatternArgs *args1, PatternArgs *args2);

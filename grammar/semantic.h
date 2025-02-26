@@ -31,6 +31,6 @@
 #include "context.h"
 #include "target.h"
 
-int32_t check_mapping_item(GContext *context, BitField *bit_field, const Evaluable *evaluable);
+int32_t check_mapping_item(GContext *context, BitField *bit_field, const Arith_0_Expr *expr);
 
 #endif  // MACHINE_SEMANTIC_H

@@ -80,9 +80,9 @@ void releaseEvaluable(Evaluable *evaluable, const Allocator *allocator) {
 }
 
 void releaseSwitchable(Switchable *switchable, const Allocator *allocator) {
-  releaseCondExpr(switchable->expr, allocator);
+  releaseExpr(switchable->expr, allocator);
   allocator->free(switchable->expr);
-  Array_reset(switchable->options, (destruct_t *) releaseEvaluable);
+  Array_reset(switchable->options, (destruct_t *) releaseExpr);
   Array_destroy(switchable->options);
 }
 
@@ -188,27 +188,20 @@ void releaseSet(Set *set, const Allocator *allocator) {
 }
 
 void releaseCondition(Condition *condition, const Allocator *allocator) {
-  releaseCondExpr(condition->expr, allocator);
+  releaseExpr(condition->expr, allocator);
   allocator->free(condition->expr);
 }
 
-void releaseCondExpr(CondExpr *expr, const Allocator *allocator) {
+void releaseExpr(CondExpr *expr, const Allocator *allocator) {
   switch (expr->type) {
-    case enum_BOOL_AND:
-    case enum_BOOL_OR: {
-      releaseCondExpr(expr->lhs, allocator);
-      releaseCondExpr(expr->rhs, allocator);
-      allocator->free(expr->lhs);
-      allocator->free(expr->rhs);
-      break;
-    }
-    case enum_BOOL_NOT: {
-      releaseCondExpr(expr->rhs, allocator);
-      allocator->free(expr->rhs);
-      break;
-    }
-    case CS_BIT_INV: {
+    case AS_ID: {
       releaseEvaluable(expr->rhs, allocator);
+      allocator->free(expr->rhs);
+      break;
+    }
+    case AS_INV:
+    case enum_BOOL_NOT: {
+      releaseExpr(expr->rhs, allocator);
       allocator->free(expr->rhs);
       break;
     }
@@ -220,10 +213,11 @@ void releaseCondExpr(CondExpr *expr, const Allocator *allocator) {
       break;
     }
     default: {
-      releaseEvaluable(expr->lhs, allocator);
-      releaseEvaluable(expr->rhs, allocator);
+      releaseExpr(expr->lhs, allocator);
+      releaseExpr(expr->rhs, allocator);
       allocator->free(expr->lhs);
       allocator->free(expr->rhs);
+      break;
     }
   }
 }

@@ -33,21 +33,27 @@ enum IMMEDIATE_TYPE {
   IT_SIGNED,
 };
 
-enum BOOL_COND_OP {
-  CB_IN = 128,
+enum ENUM_OP {
+  AB_ADD = 128,
+  AB_SUB,
+  AB_MUL,
+  AB_DIV,
+  AB_MOD,
+  AB_OR,
+  AB_AND,
+  AB_XOR,
+  AB_LSH,
+  AB_RSH,
+  AS_INV,
+  AS_ID,
+  RECU_OP_MAX = AS_ID,
+  CB_IN,
   CB_LT,
   CB_LE,
   CB_GT,
   CB_GE,
   CB_EQ,
   CB_NE,
-  CB_BIT_OR,
-  CB_BIT_AND,
-  CB_BIT_XOR,
-  CS_BIT_INV,
-
-  BOOL_AND_ARRAY,
-  BOOL_OR_ARRAY,
 };
 
 #endif  // MACHINE_ENUM_H

@@ -62,7 +62,7 @@ add_test_for(LEFT_BRACKET, "{", 0)
 add_test_for(RIGHT_BRACKET, "}", 0)
 add_test_for(LEFT_SQUARE_BRACKET, "[", 0)
 add_test_for(RIGHT_SQUARE_BRACKET, "]", 0)
-add_test_for(EQUAL, "=", 0)
+add_test_for(ASSIGN, "=", 0)
 
 Suite *symbol_suite() {
   Suite *suite = suite_create("Symbols");
@@ -75,7 +75,7 @@ Suite *symbol_suite() {
   tcase_add_test(tc_symbols, test_RIGHT_BRACKET);
   tcase_add_test(tc_symbols, test_LEFT_SQUARE_BRACKET);
   tcase_add_test(tc_symbols, test_RIGHT_SQUARE_BRACKET);
-  tcase_add_test(tc_symbols, test_EQUAL);
+  tcase_add_test(tc_symbols, test_ASSIGN);
   suite_add_tcase(suite, tc_symbols);
   return suite;
 }

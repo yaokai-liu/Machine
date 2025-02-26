@@ -291,9 +291,9 @@ int32_t eval_to_val(const GContext *, const Evaluable *evaluable, char_t *buffer
   return -1;
 }
 
-#define push_eval(eval, bf)                                                                     \
+#define push_expr(expr, bf)                                                                     \
   do {                                                                                          \
-    eval_to_val(context, eval, temp_buffer1, pattern);                                          \
+    codegen_expr(context, expr, pattern, temp_buffer1);                                         \
     if (((uint64_t) bf) > 64) {                                                                 \
       uint32_t bl = (bf)->lower;                                                                \
       uint32_t bu = (bf)->upper;                                                                \
@@ -312,15 +312,15 @@ int32_t codegen_switchable(
 ) {
   char_t temp_buffer1[512] = {};
   Options *options = switchable->options;
-  const Evaluable *evals = Array_first_real(switchable->options);
+  const Arith_0_Expr *exprs = Array_first_real(switchable->options);
   push_string("    if (");
   codegen_expr(context, switchable->expr, pattern, temp_buffer);
   push_string(temp_buffer);
   push_string(") {\n  ");
-  push_eval(&evals[0], bf);
+  push_expr(&exprs[0], bf);
   if (Array_length(options) > 1) {
     push_string("    } else {\n  ");
-    push_eval(&evals[1], bf);
+    push_expr(&exprs[1], bf);
   }
   push_string("    }\n");
   return 0;
@@ -352,10 +352,9 @@ int32_t codegen_mapping_items(
     BitField lower_bf = {.lower = bit_field->lower, .upper = bl - 1};
     codegen_mapping_items(context, buffer, items, &lower_bf, pattern, temp_buffer);
   }
-  if (item->type == enum_Evaluable) {
-    Evaluable *eval = item->target;
+  if (item->type == enum_Arith_0_Expr) {
     char_t temp_buffer1[512] = {};
-    eval_to_val(context, eval, temp_buffer1, pattern);
+    codegen_expr(context, item->target, pattern, temp_buffer1);
     sprintf(temp_buffer, "    value = numSetBits(value, %d, %d, %s);\n", bl, bu + 1, temp_buffer1);
     push_string(temp_buffer);
   } else if (item->type == enum_Switchable) {
@@ -399,25 +398,22 @@ void type_to_val(const GContext *context, const Identifier *ident, char_t *buffe
   }
 }
 
-#define bin_op_case_item(op, fmt)                           \
-  case op: {                                                \
-    eval_to_val(context, expr->lhs, temp_buffer1, pattern); \
-    eval_to_val(context, expr->rhs, temp_buffer2, pattern); \
-    sprintf(buffer, fmt, temp_buffer1, temp_buffer2);       \
-    break;                                                  \
+#define bin_op_case_item(op, fmt)                     \
+  case op: {                                          \
+    sprintf(buffer, fmt, temp_buffer1, temp_buffer2); \
+    break;                                            \
   }
-#define sin_op_case_item(op, fmt)                           \
-  case op: {                                                \
-    eval_to_val(context, expr->rhs, temp_buffer2, pattern); \
-    sprintf(buffer, fmt, temp_buffer2);                     \
-    break;                                                  \
+#define sin_op_case_item(op, fmt)       \
+  case op: {                            \
+    sprintf(buffer, fmt, temp_buffer2); \
+    break;                              \
   }
 int32_t codegen_expr(
     const GContext *context, const CondExpr *expr, const Pattern *pattern, char_t *buffer
 ) {
   char_t temp_buffer1[512] = {};
   char_t temp_buffer2[512] = {};
-  if (expr->type < CB_IN) {
+  if (expr->type < RECU_OP_MAX) {
     if (expr->lhs) {
       codegen_expr(context, expr->lhs, pattern, buffer);
       strcpy(temp_buffer1, buffer);
@@ -428,16 +424,29 @@ int32_t codegen_expr(
     }
   }
   switch (expr->type) {
-    case enum_BOOL_OR: {
-      sprintf(buffer, "(%s || %s)", temp_buffer1, temp_buffer2);
-      break;
-    }
-    case enum_BOOL_AND: {
-      sprintf(buffer, "(%s && %s)", temp_buffer1, temp_buffer2);
-      break;
-    }
-    case enum_BOOL_NOT: {
-      sprintf(buffer, "(!%s)", temp_buffer2);
+    bin_op_case_item(enum_BOOL_OR, "(%s || %s)")
+    bin_op_case_item(enum_BOOL_AND, "(%s && %s)")
+    sin_op_case_item(enum_BOOL_NOT, "(!%s)")
+    bin_op_case_item(CB_LT, "(%s<%s)")
+    bin_op_case_item(CB_LE, "(%s<=%s)")
+    bin_op_case_item(CB_GT, "(%s>%s)")
+    bin_op_case_item(CB_GE, "(%s>=%s)")
+    bin_op_case_item(CB_EQ, "(%s==%s)")
+    bin_op_case_item(CB_NE, "(%s!=%s)")
+    sin_op_case_item(AS_INV, "(~%s)")
+    bin_op_case_item(AB_OR, "(%s|%s)")
+    bin_op_case_item(AB_AND, "(%s&%s)")
+    bin_op_case_item(AB_XOR, "(%s^%s)")
+    bin_op_case_item(AB_ADD, "(%s+%s)")
+    bin_op_case_item(AB_SUB, "(%s-%s)")
+    bin_op_case_item(AB_MUL, "(%s*%s)")
+    bin_op_case_item(AB_DIV, "(%s/%s)")
+    bin_op_case_item(AB_MOD, "(%s%%s)")
+    bin_op_case_item(AB_LSH, "(%s<<%s)")
+    bin_op_case_item(AB_RSH, "(%s>>%s)")
+    case AS_ID: {
+      eval_to_val(context, expr->rhs, temp_buffer2, pattern);
+      sprintf(buffer, "%s", temp_buffer2);
       break;
     }
     case CB_IN: {
@@ -459,16 +468,6 @@ int32_t codegen_expr(
       }
       break;
     }
-      bin_op_case_item(CB_LT, "(%s <  %s)")
-      bin_op_case_item(CB_LE, "(%s <= %s)")
-      bin_op_case_item(CB_GT, "(%s >  %s)")
-      bin_op_case_item(CB_GE, "(%s >= %s)")
-      bin_op_case_item(CB_EQ, "(%s == %s)")
-      bin_op_case_item(CB_NE, "(%s != %s)")
-      bin_op_case_item(CB_BIT_OR, "(%s |  %s)")
-      bin_op_case_item(CB_BIT_AND, "(%s &  %s)")
-      bin_op_case_item(CB_BIT_XOR, "(%s ^  %s)")
-      sin_op_case_item(CS_BIT_INV, "(~ %s)")
     default: {
     }
   }
@@ -481,10 +480,8 @@ int32_t codegen_layout(
 ) {
   const uint32_t pre_len = Array_length(buffer);
   switch (layout->type) {
-    case enum_Evaluable: {
-      Evaluable *evaluable = layout->target;
-      eval_to_val(context, evaluable, temp_buffer, pattern);
-      pushEncodingNumberN(temp_buffer, width / 8);
+    case enum_Arith_0_Expr: {
+      codegen_expr(context, layout->target, pattern, temp_buffer);
       break;
     }
     case enum_MappingItems: {

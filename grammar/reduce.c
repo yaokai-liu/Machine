@@ -103,6 +103,110 @@
     }                                         \
   } while (false)
 
+Arith_0_Expr *p_Arith_0_Expr_0(void *argv[], GContext *, const Allocator *allocator) {
+  Arith_0_Expr *lhs = (Arith_0_Expr *) argv[0];
+  uint32_t bin_op = (uint32_t) (uint64_t) argv[1];
+  Arith_1_Expr *rhs = (Arith_1_Expr *) argv[2];
+
+  Arith_0_Expr *expr = allocator->calloc(1, sizeof(Arith_0_Expr));
+  expr->type = bin_op;
+  expr->lhs = lhs;
+  expr->rhs = rhs;
+  return expr;
+}
+Arith_0_Expr *p_Arith_0_Expr_1(void *argv[], GContext *, const Allocator *allocator) {
+  uint32_t sin_op = (uint32_t) (uint64_t) argv[0];
+  Arith_0_Expr *rhs = (Arith_1_Expr *) argv[1];
+
+  Arith_0_Expr *expr = allocator->calloc(1, sizeof(Arith_0_Expr));
+  expr->type = sin_op;
+  expr->lhs = nullptr;
+  expr->rhs = rhs;
+  return expr;
+}
+Arith_0_Expr *p_Arith_0_Expr_2(void *argv[], GContext *, const Allocator *) {
+  return (Arith_1_Expr *) argv[0];
+}
+
+Arith_1_Expr *p_Arith_1_Expr_0(void *argv[], GContext *, const Allocator *allocator) {
+  Arith_1_Expr *lhs = (Arith_1_Expr *) argv[0];
+  uint32_t bin_op = (uint32_t) (uint64_t) argv[1];
+  Arith_1_Expr *rhs = (Arith_1_Expr *) argv[2];
+
+  Arith_1_Expr *expr = allocator->calloc(1, sizeof(Arith_1_Expr));
+  expr->type = bin_op;
+  expr->lhs = lhs;
+  expr->rhs = rhs;
+  return expr;
+}
+Arith_1_Expr *p_Arith_1_Expr_1(void *argv[], GContext *, const Allocator *allocator) {
+  uint32_t sin_op = (uint32_t) (uint64_t) argv[0];
+  Arith_1_Expr *rhs = (Arith_1_Expr *) argv[1];
+
+  Arith_1_Expr *expr = allocator->calloc(1, sizeof(Arith_0_Expr));
+  expr->type = sin_op;
+  expr->lhs = nullptr;
+  expr->rhs = rhs;
+  return expr;
+}
+Arith_1_Expr *p_Arith_1_Expr_2(void *argv[], GContext *, const Allocator *) {
+  return (Arith_1_Expr *) argv[0];
+}
+
+Arith_2_Expr *p_Arith_2_Expr_0(void *argv[], GContext *, const Allocator *allocator) {
+  Arith_2_Expr *lhs = (Arith_2_Expr *) argv[0];
+  uint32_t bin_op = (uint32_t) (uint64_t) argv[1];
+  Arith_1_Expr *rhs = (Arith_1_Expr *) argv[2];
+
+  Arith_2_Expr *expr = allocator->calloc(1, sizeof(Arith_2_Expr));
+  expr->type = bin_op;
+  expr->lhs = lhs;
+  expr->rhs = rhs;
+  return expr;
+}
+Arith_2_Expr *p_Arith_2_Expr_1(void *argv[], GContext *, const Allocator *allocator) {
+  uint32_t sin_op = (uint32_t) (uint64_t) argv[0];
+  Arith_2_Expr *rhs = (Arith_1_Expr *) argv[1];
+
+  Arith_2_Expr *expr = allocator->calloc(1, sizeof(Arith_2_Expr));
+  expr->type = sin_op;
+  expr->lhs = nullptr;
+  expr->rhs = rhs;
+  return expr;
+}
+Arith_2_Expr *p_Arith_2_Expr_2(void *argv[], GContext *, const Allocator *) {
+  return (Arith_2_Expr *) argv[0];
+}
+Arith_3_Expr *p_Arith_3_Expr_0(void *argv[], GContext *, const Allocator *allocator) {
+  Arith_3_Expr *lhs = (Arith_3_Expr *) argv[0];
+  uint32_t bin_op = (uint32_t) (uint64_t) argv[1];
+  Arith_1_Expr *rhs = (Arith_1_Expr *) argv[2];
+
+  Arith_3_Expr *expr = allocator->calloc(1, sizeof(Arith_3_Expr));
+  expr->type = bin_op;
+  expr->lhs = lhs;
+  expr->rhs = rhs;
+  return expr;
+}
+Arith_3_Expr *p_Arith_3_Expr_1(void *argv[], GContext *, const Allocator *allocator) {
+  uint32_t sin_op = (uint32_t) (uint64_t) argv[0];
+  Arith_3_Expr *rhs = (Arith_1_Expr *) argv[1];
+
+  Arith_3_Expr *expr = allocator->calloc(1, sizeof(Arith_3_Expr));
+  expr->type = sin_op;
+  expr->lhs = nullptr;
+  expr->rhs = rhs;
+  return expr;
+}
+Arith_3_Expr *p_Arith_3_Expr_2(void *argv[], GContext *, const Allocator *allocator) {
+  Evaluable *eval = (Evaluable *) argv[0];
+  Arith_3_Expr *expr = allocator->calloc(1, sizeof(Arith_3_Expr));
+  expr->type = AS_ID;
+  expr->lhs = nullptr;
+  expr->rhs = eval;
+  return expr;
+}
+
 Condition *p_Condition_0(void *argv[], GContext *, const Allocator *allocator) {
   CondExpr *expr = (CondExpr *) argv[2];
   Condition *cond = allocator->calloc(1, sizeof(Condition));
@@ -153,9 +257,9 @@ CondExpr *p_SingleCondExpr_1(void *argv[], GContext *, const Allocator *allocato
   return expr;
 }
 SingleCondExpr *p_SingleCondExpr_2(void *argv[], GContext *, const Allocator *allocator) {
-  Evaluable *lhs = (Evaluable *) argv[0];
+  Arith_0_Expr *lhs = (Arith_0_Expr *) argv[0];
   uint32_t type = (uint32_t) (uint64_t) argv[1];
-  Evaluable *rhs = (Evaluable *) argv[2];
+  Arith_0_Expr *rhs = (Arith_0_Expr *) argv[2];
 
   SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
   expr->type = type;
@@ -175,7 +279,7 @@ SingleCondExpr *p_SingleCondExpr_3(void *argv[], GContext *, const Allocator *al
 }
 SingleCondExpr *p_SingleCondExpr_4(void *argv[], GContext *, const Allocator *allocator) {
   uint32_t type = (uint32_t) (uint64_t) argv[0];
-  Evaluable *rhs = (Evaluable *) argv[1];
+  Arith_0_Expr *rhs = (Arith_0_Expr *) argv[1];
 
   SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
   expr->type = type;
@@ -186,7 +290,7 @@ SingleCondExpr *p_SingleCondExpr_4(void *argv[], GContext *, const Allocator *al
 
 Options *p_Options_0(void *argv[], GContext *, const Allocator *allocator) {
   Options *options = (Options *) argv[0];
-  Evaluable *evaluable = (Evaluable *) argv[2];
+  Arith_0_Expr *evaluable = (Arith_0_Expr *) argv[2];
 
   Array_append(options, evaluable, 1);
   allocator->free(evaluable);
@@ -194,9 +298,9 @@ Options *p_Options_0(void *argv[], GContext *, const Allocator *allocator) {
 }
 
 Options *p_Options_1(void *argv[], GContext *, const Allocator *allocator) {
-  Evaluable *evaluable = (Evaluable *) argv[0];
+  Arith_0_Expr *evaluable = (Arith_0_Expr *) argv[0];
 
-  Options *options = Array_new(sizeof(Evaluable), enum_Evaluable, allocator);
+  Options *options = Array_new(sizeof(Arith_0_Expr), enum_Arith_0_Expr, allocator);
   Array_append(options, evaluable, 1);
   allocator->free(evaluable);
   return options;
@@ -472,10 +576,10 @@ Instruction *p_Instruction_0(void *argv[], GContext *context, const Allocator *)
 }
 
 Layout *p_Layout_0(void *argv[], GContext *, const Allocator *allocator) {
-  Evaluable *evaluable = (Evaluable *) argv[0];
+  Arith_0_Expr *expr = (Arith_0_Expr *) argv[0];
   Layout *layout = allocator->calloc(1, sizeof(Layout));
-  layout->type = enum_Evaluable;
-  layout->target = evaluable;
+  layout->type = enum_Arith_0_Expr;
+  layout->target = expr;
   return layout;
 }
 
@@ -510,7 +614,7 @@ Machine *p___EXTEND_RULE__(void *argv[], const Allocator *) {
 
 MappingItem *p_MappingItem_0(void *argv[], GContext *context, const Allocator *allocator) {
   BitField *bit_field = (BitField *) argv[0];
-  Evaluable *evaluable = (Evaluable *) argv[2];
+  Arith_0_Expr *expr = (Arith_0_Expr *) argv[2];
 
   if (bit_field) {
     uint64_t width = GContext_getLastWidth(context);
@@ -523,15 +627,15 @@ MappingItem *p_MappingItem_0(void *argv[], GContext *context, const Allocator *a
     GContext_setErrorMessage(context, "rewrite bits.");
     return nullptr;
   }
-  if (0 != check_mapping_item(context, bit_field, evaluable)) {
+  if (0 != check_mapping_item(context, bit_field, expr)) {
     GContext_setErrorMessage(context, "bit filed width mismatch.");
     return nullptr;
   }
 
   MappingItem *item = allocator->calloc(1, sizeof(MappingItem));
-  item->type = enum_Evaluable;
+  item->type = enum_Arith_0_Expr;
   item->field = bit_field;
-  item->target = evaluable;
+  item->target = expr;
 
   GContext_addMapItem(context, item);
 
@@ -552,10 +656,10 @@ MappingItem *p_MappingItem_1(void *argv[], GContext *context, const Allocator *a
     GContext_setErrorMessage(context, "rewrite bits.");
     return nullptr;
   }
-  const Evaluable *first = Array_first_real(switchable->options);
-  const Evaluable *last = Array_last_real(switchable->options);
-  for (const Evaluable *eval = first; eval <= last; eval++) {
-    if (0 != check_mapping_item(context, bit_field, eval)) {
+  const Arith_0_Expr *first = Array_first_real(switchable->options);
+  const Arith_0_Expr *last = Array_last_real(switchable->options);
+  for (const Arith_0_Expr *expr = first; expr <= last; expr++) {
+    if (0 != check_mapping_item(context, bit_field, expr)) {
       GContext_setErrorMessage(context, "bit filed width mismatch.");
       return nullptr;
     }

@@ -3,6 +3,7 @@ from pathlib import Path
 import json
 from string import Template as Tp
 from DATA import *
+import re
 
 PROJECT_ROOT = Path(os.path.dirname(__file__)).parent
 JSON_DIR = PROJECT_ROOT / "json"
@@ -127,7 +128,7 @@ def gen_reduces():
     rule_names = rules.keys()
     args = "(void * argv[], GContext *, const Allocator * allocator);"
     enum_reduces = sorted(f"{r} = {i}" for i, r in enumerate(rule_names))
-    reduces = sorted(f"{r.split('_')[0]} * p_{r}" + args
+    reduces = sorted(f"{re.sub(r'_\d+$', '', r)} * p_{r}" + args
                      if r != '__EXTEND_RULE__'
                      else f"{GRAMMAR_TARGET} * p_{r}" + args
                      for r in rule_names)
