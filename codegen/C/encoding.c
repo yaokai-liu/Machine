@@ -93,6 +93,7 @@ int32_t online_gen_instr_encoding_def(
       const uint32_t n_args = Array_length(forms[i].pattern->args);
       const Parameter *args = Array_real_addr(forms[i].pattern->args, 0);
       for (uint32_t j = 0; j < n_args; j++) {
+        if (!args[j].used) { continue; }
         sprintf(head_buffer, "  const Entry *%s = entries[%u];\n", args[j].name->ptr, j);
         push_string(head_buffer);
       }
@@ -480,26 +481,16 @@ int32_t codegen_switchable(
   push_string("    }\n");
   return 0;
 }
-int32_t codegen_expr(
-    const GContext *context, const Expr *expr, uint32_t width, const Pattern *pattern,
-    char_t *temp_buffer
-) {
-  char_t temp_buffer1[512] = {};
-  expr_to_val(context, expr, pattern, temp_buffer1);
-  sprintf(temp_buffer, "    value = numSetBits(value, %d, %d, %s);\n", 0, width, temp_buffer1);
-  return 0;
-}
 
 int32_t codegen_layout(
     const GContext *context, Array *buffer, const Layout *layout, uint32_t width,
     const Pattern *pattern, char_t *temp_buffer
 ) {
   const uint32_t pre_len = Array_length(buffer);
-  push_string("    value = 0;\n");
   switch (layout->type) {
     case enum_Arith_0_Expr: {
-      codegen_expr(context, layout->target, width, pattern, temp_buffer);
-      push_string(temp_buffer);
+      expr_to_val(context, layout->target, pattern, temp_buffer);
+      pushEncodingNumberN(temp_buffer, width / 8);
       break;
     }
     case enum_MappingItems: {

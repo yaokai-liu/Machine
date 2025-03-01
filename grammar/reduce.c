@@ -342,8 +342,9 @@ Variable *p_Variable_0(void *argv[], GContext *context, const Allocator *allocat
   Identifier *lhs = (Identifier *) argv[0];
   Identifier *rhs = (Identifier *) argv[2];
 
-  const Parameter *param = GContext_findParameter(context, lhs);
+  Parameter *param = (Parameter *) GContext_findParameter(context, lhs);
   grammarAssert(param, "no such variable.");
+  param->used = true;
   const Record *record = GContext_findRecord(context, param->type);
   grammarAssert(record->typeid == enum_Memory, "Identifier is not accessible.");
   const Memory *memory = GContext_getMemory(context, record->offset);
@@ -373,7 +374,9 @@ Variable *p_Variable_1(void *argv[], GContext *context, const Allocator *allocat
     var->rhs = (void *) (uint64_t) reg->code;
     return var;
   }
-  grammarAssertHasArgument(ident);
+  Parameter *param = (Parameter *) GContext_findParameter(context, ident);
+  grammarAssert(param, "no such variable.");
+  param->used = true;
   Variable *var = allocator->calloc(1, sizeof(Variable));
   var->type = enum_IDENTIFIER;
   var->lhs = ident;

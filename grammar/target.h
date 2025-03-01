@@ -57,6 +57,7 @@ typedef struct Immediate {
 typedef struct Parameter {
   Identifier *type;
   Identifier *name;
+  uint32_t used;
 } Parameter;
 
 typedef Array PatternArgs;  // Array<Parameter>

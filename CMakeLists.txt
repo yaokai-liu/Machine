@@ -75,3 +75,9 @@ target_include_directories(test-tokenize PRIVATE test)
 target_link_libraries(test-tokenize PRIVATE check grammar)
 #target_link_libraries(test-parse PRIVATE check grammar)
 #target_link_libraries(test-all PRIVATE check grammar)
+
+# preset debug
+set(PRESET_NAME x64)
+add_executable(preset-debug test/preset-debug.c ${PRESET_NAME}.c ${PRESET_NAME}.h)
+target_link_libraries(preset-debug meman)
+target_compile_options(preset-debug PRIVATE "-Wno-unused-parameter")
