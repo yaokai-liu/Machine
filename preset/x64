@@ -283,13 +283,20 @@ machine x64 {
   set gpr32 { eax, ecx, edx, ebx, esp, ebp, esi, edi, r8d, r9d, r10d, r11d, r12d, r13d, r14d, r15d };
   set gpr16 { ax, cx, dx, bx, sp, bp, si, di, r8w, r9w, r10w, r11w, r12w, r13w, r14w, r15w };
   set gpr8 { al, cl, dl, bl, spl, bpl, sil, dil, r8b, r9b, r10b, r11b, r12b, r13b, r14b, r15b };
+  set gpr8v { al, cl, dl, bl, ah, ch, dh, bh, r8b, r9b, r10b, r11b, r12b, r13b, r14b, r15b };
   set mmx { mm0, mm1, mm2, mm3, mm4, mm5, mm6, mm7 };
   set sse { xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8, xmm9, xmm10, xmm11, xmm12, xmm13, xmm14, xmm15 };
   set cr { cr0, cr1, cr2, cr3, cr4, cr5, cr6, cr7, cr8, cr9, cr10, cr11, cr12, cr13, cr14, cr15 };
   set dr { dr0, dr1, dr2, dr3, dr4, dr5, dr6, dr7, dr8, dr9, dr10, dr11, dr12, dr13, dr14, dr15 };
 
   set gpr8H { ah, ch, dh, bh };
+  set gpr8Base { al, cl, dl, bl, ah, ch, dh, bh };
+  set gpr16Base { ax, cx, dx, bx, sp, bp, si, di };
+  set gpr32Base { eax, ecx, edx, ebx, esp, ebp, esi, edi };
   set gpr64Base { rax, rcx, rdx, rbx, rsp, rbp, rsi, rdi };
+  set gpr8Extend { r8d, r9d, r10d, r11d, r12d, r13d, r14d, r15d };
+  set gpr16Extend { r8w, r9w, r10w, r11w, r12w, r13w, r14w, r15w };
+  set gpr32Extend { r8d, r9d, r10d, r11d, r12d, r13d, r14d, r15d };
   set gpr64Extend { r8, r9, r10, r11, r12, r13, r14, r15 };
 
 
@@ -1355,252 +1362,27 @@ machine x64 {
       };
     };
   };
-  instruction moviAX {
-    [Ib a] = {
-        opcode: [8] = 0xb0;
-        imm: [8] = a;
+  instruction movi {
+    [gpr8v a, Ib b] = {
+        REX: [8] = 0x41 @ (a in gpr8Extend);
+        opcode: [8] = 0xb0 + (a - al) % 8;
+        imm: [8] = b;
     };
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = 0x48 @ (a in Ir);
-      opcode: [8] = 0xb8;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
+    [gpr16 a, Iw b] = {
+      prefix: [8] = 0x66;
+      REX: [8] = 0x41 @ (a in gpr16Extend);
+      opcode: [8] = 0xb8 + (a - ax) % 8;
+      imm: [16] = b;
     };
-  };
-  instruction moviCX {
-    [Ib a] = {
-        opcode: [8] = 0xb1;
-        imm: [8] = a;
+    [gpr32 a, Id b] = {
+      REX: [8] = 0x41 @ (a in gpr32Extend);
+      opcode: [8] = 0xb8 + (a - eax) % 8;
+      imm: [32] = b;
     };
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = 0x48 @ (a in Ir);
-      opcode: [8] = 0xb9;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction moviDX {
-    [Ib a] = {
-        opcode: [8] = 0xb2;
-        imm: [8] = a;
-    };
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = 0x48 @ (a in Ir);
-      opcode: [8] = 0xba;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction moviBX {
-    [Ib a] = {
-        opcode: [8] = 0xb3;
-        imm: [8] = a;
-    };
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = 0x48 @ (a in Ir);
-      opcode: [8] = 0xbb;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction moviSP {
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = 0x48 @ (a in Ir);
-      opcode: [8] = 0xbc;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction moviBP {
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = 0x48 @ (a in Ir);
-      opcode: [8] = 0xbd;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction moviSI {
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = 0x48 @ (a in Ir);
-      opcode: [8] = 0xbe;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction moviDI {
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = 0x48 @ (a in Ir);
-      opcode: [8] = 0xbf;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction movAH {
-    [Ib a] = {
-        opcode: [8] = 0xb4;
-        imm: [8] = a;
-    };
-  };
-  instruction movCH {
-    [Ib a] = {
-        opcode: [8] = 0xb5;
-        imm: [8] = a;
-    };
-  };
-  instruction movDH {
-    [Ib a] = {
-        opcode: [8] = 0xb6;
-        imm: [8] = a;
-    };
-  };
-  instruction movBH {
-    [Ib a] = {
-        opcode: [8] = 0xb7;
-        imm: [8] = a;
-    };
-  };
-  instruction moviR8 {
-    [Ib a] = {
-      REX: [8] = 0x41;
-      opcode: [8] = 0xb0;
-      imm: [8] = a;
-    };
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = (a in Ir) ? 0x49 : 0x41;
-      opcode: [8] = 0xb8;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction moviR9 {
-    [Ib a] = {
-      REX: [8] = 0x41;
-      opcode: [8] = 0xb1;
-      imm: [8] = a;
-    };
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = (a in Ir) ? 0x49 : 0x41;
-      opcode: [8] = 0xb9;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction moviR10 {
-    [Ib a] = {
-      REX: [8] = 0x41;
-      opcode: [8] = 0xb2;
-      imm: [8] = a;
-    };
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = (a in Ir) ? 0x49 : 0x41;
-      opcode: [8] = 0xba;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction moviR11 {
-    [Ib a] = {
-      REX: [8] = 0x41;
-      opcode: [8] = 0xb3;
-      imm: [8] = a;
-    };
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = (a in Ir) ? 0x49 : 0x41;
-      opcode: [8] = 0xbb;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction moviR12 {
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = (a in Ir) ? 0x49 : 0x41;
-      opcode: [8] = 0xbc;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction moviR13 {
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = (a in Ir) ? 0x49 : 0x41;
-      opcode: [8] = 0xbd;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction moviR14 {
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = (a in Ir) ? 0x49 : 0x41;
-      opcode: [8] = 0xbe;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction moviR15 {
-    [I a] = {
-      prefix: [8] = 0x66 @ (a in Iw);
-      REX: [8] = (a in Ir) ? 0x49 : 0x41;
-      opcode: [8] = 0xbf;
-      imm1: [16] = a @ (a in Iw);
-      imm2: [32] = a @ (a in Id);
-      imm3: [64] = a @ (a in Ir);
-    };
-  };
-  instruction movR12b {
-    [Ib a] = {
-      REX: [8] = 0x41;
-      opcode: [8] = 0xb4;
-      imm: [8] = a;
-    };
-  };
-  instruction movR13b {
-    [Ib a] = {
-      REX: [8] = 0x41;
-      opcode: [8] = 0xb5;
-      imm: [8] = a;
-    };
-  };
-  instruction movR14b {
-    [Ib a] = {
-      REX: [8] = 0x41;
-      opcode: [8] = 0xb6;
-      imm: [8] = a;
-    };
-  };
-  instruction movR15b {
-    [Ib a] = {
-      REX: [8] = 0x41;
-      opcode: [8] = 0xb7;
-      imm: [8] = a;
+    [gpr64 a, Id b] = {
+      REX: [8] = (a in gpr64Extend) ? 0x49 : 0x48;
+      opcode: [8] = 0xb8 + (a - rax) % 8;
+      imm: [32] = a;
     };
   };
   instruction movsb {

@@ -177,16 +177,9 @@ Arith_2_Expr *p_Arith_2_Expr_1(void *argv[], GContext *, const Allocator *alloca
 Arith_2_Expr *p_Arith_2_Expr_2(void *argv[], GContext *, const Allocator *) {
   return (Arith_2_Expr *) argv[0];
 }
-Arith_3_Expr *p_Arith_3_Expr_0(void *argv[], GContext *, const Allocator *allocator) {
-  Arith_3_Expr *lhs = (Arith_3_Expr *) argv[0];
-  uint32_t bin_op = (uint32_t) (uint64_t) argv[1];
-  Arith_1_Expr *rhs = (Arith_1_Expr *) argv[2];
-
-  Arith_3_Expr *expr = allocator->calloc(1, sizeof(Arith_3_Expr));
-  expr->type = bin_op;
-  expr->lhs = lhs;
-  expr->rhs = rhs;
-  return expr;
+Arith_3_Expr *p_Arith_3_Expr_0(void *argv[], GContext *, const Allocator *) {
+  Arith_0_Expr *expr = (Arith_0_Expr *) argv[1];
+  return (Arith_3_Expr *) expr;
 }
 Arith_3_Expr *p_Arith_3_Expr_1(void *argv[], GContext *, const Allocator *allocator) {
   uint32_t sin_op = (uint32_t) (uint64_t) argv[0];
@@ -267,10 +260,11 @@ SingleCondExpr *p_SingleCondExpr_2(void *argv[], GContext *, const Allocator *al
   expr->rhs = rhs;
   return expr;
 }
-SingleCondExpr *p_SingleCondExpr_3(void *argv[], GContext *, const Allocator *allocator) {
+SingleCondExpr *p_SingleCondExpr_3(void *argv[], GContext *context, const Allocator *allocator) {
   Variable *lhs = (Variable *) argv[0];
   Identifier *rhs = (Identifier *) argv[2];
 
+  grammarAssertDefinedRecord(rhs);
   SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
   expr->type = CB_IN;
   expr->lhs = lhs;
@@ -370,8 +364,16 @@ Variable *p_Variable_0(void *argv[], GContext *context, const Allocator *allocat
 Variable *p_Variable_1(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[0];
 
+  const Record *record = GContext_findRecord(context, ident);
+  if (record && record->typeid == enum_Register) {
+    const Register *reg = GContext_getRegister(context, record->offset);
+    Variable *var = allocator->calloc(1, sizeof(Variable));
+    var->type = VT_CONSTANT;
+    var->lhs = nullptr;
+    var->rhs = (void *) (uint64_t) reg->code;
+    return var;
+  }
   grammarAssertHasArgument(ident);
-
   Variable *var = allocator->calloc(1, sizeof(Variable));
   var->type = enum_IDENTIFIER;
   var->lhs = ident;
@@ -392,7 +394,7 @@ Evaluable *p_Evaluable_0(void *argv[], GContext *context, const Allocator *alloc
       record = GContext_findRecord(context, param->type);
     }
   }
-  grammarAssert(record, "undeclared identifier.");
+  grammarAssert(record, "undeclared variable.");
   switch (lhs->type) {
     case enum_MemItem: {
       const MemItem *item = lhs->rhs;
@@ -416,6 +418,14 @@ Evaluable *p_Evaluable_0(void *argv[], GContext *context, const Allocator *alloc
 
 Evaluable *p_Evaluable_1(void *argv[], GContext *, const Allocator *allocator) {
   Variable *var = (Variable *) argv[0];
+
+  if (var->type == VT_CONSTANT) {
+    Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
+    evaluable->type = enum_NUMBER;
+    evaluable->lhs = (void *) var->rhs;
+    evaluable->rhs = nullptr;
+    return evaluable;
+  }
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_Variable;
   evaluable->lhs = var;

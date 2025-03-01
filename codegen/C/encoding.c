@@ -271,7 +271,11 @@ int32_t eval_to_val(const GContext *, const Evaluable *evaluable, char_t *buffer
       BitField *bf = evaluable->rhs;
       uint32_t width = bf->upper - bf->lower + 1;
       // TODO: if record refers to a set there may has different behaviors, please solve it.
-      return sprintf(buffer, "(%s->value >> %d) & UINT_N_MAX(%d)", ident->ptr, bf->lower, width);
+      if (width == 0) { return sprintf(buffer, "0"); }
+      if (bf->lower == 0) {
+        return sprintf(buffer, "((%s->value)&UINT_N_MAX(%d))", ident->ptr, width);
+      }
+      return sprintf(buffer, "((%s->value>>%d)&UINT_N_MAX(%d))", ident->ptr, bf->lower, width);
     }
     case enum_Variable: {
       switch (variable->type) {
@@ -281,92 +285,18 @@ int32_t eval_to_val(const GContext *, const Evaluable *evaluable, char_t *buffer
         case enum_MemItem: {
           const MemItem *item = variable->rhs;
           uint32_t width = item->width;
+          if (width == 0) { return sprintf(buffer, "0"); }
+          if (item->start == 0) {
+            return sprintf(buffer, "((%s->value)&UINT_N_MAX(%d))", ident->ptr, width);
+          }
           return sprintf(
-              buffer, "(%s->value >> %d) & UINT_N_MAX(%d)", ident->ptr, item->start, width
+              buffer, "((%s->value>>%d)&UINT_N_MAX(%d))", ident->ptr, item->start, width
           );
         }
       }
     }
   }
   return -1;
-}
-
-#define push_expr(expr, bf)                                                                     \
-  do {                                                                                          \
-    codegen_expr(context, expr, pattern, temp_buffer1);                                         \
-    if (((uint64_t) bf) > 64) {                                                                 \
-      uint32_t bl = (bf)->lower;                                                                \
-      uint32_t bu = (bf)->upper;                                                                \
-      sprintf(                                                                                  \
-          temp_buffer, "    value = numSetBits(value, %d, %d, %s);\n", bl, bu + 1, temp_buffer1 \
-      );                                                                                        \
-      push_string(temp_buffer);                                                                 \
-    } else {                                                                                    \
-      pushEncodingNumberN(temp_buffer1, ((uint32_t) (uint64_t) bf) / 8);                        \
-    }                                                                                           \
-  } while (false)
-
-int32_t codegen_switchable(
-    const GContext *context, Array *buffer, const Switchable *switchable, BitField *bf,
-    const Pattern *pattern, char_t *temp_buffer
-) {
-  char_t temp_buffer1[512] = {};
-  Options *options = switchable->options;
-  const Arith_0_Expr *exprs = Array_first_real(switchable->options);
-  push_string("    if (");
-  codegen_expr(context, switchable->expr, pattern, temp_buffer);
-  push_string(temp_buffer);
-  push_string(") {\n  ");
-  push_expr(&exprs[0], bf);
-  if (Array_length(options) > 1) {
-    push_string("    } else {\n  ");
-    push_expr(&exprs[1], bf);
-  }
-  push_string("    }\n");
-  return 0;
-}
-
-// TODO: codegen_mapping_items is in a recursive call chain,
-//  maybe it will cause a out of memory, please solve it.
-int32_t codegen_mapping_items(
-    const GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field,
-    const Pattern *pattern, char_t *temp_buffer
-) {
-  const uint32_t pre_len = Array_length(buffer);
-  MappingItem *item = getMappingItem(items, bit_field);
-  uint64_t default_bit = 0;
-  getDefaultMappingBit(default_bit);
-  if (!item) {
-    int len = sprintf(
-        temp_buffer, "  value = numSetBits(value, %d, %d, %ld);\n", bit_field->lower,
-        bit_field->upper + 1, (int64_t) default_bit
-    );
-    if (len > 0) { push_string(temp_buffer); }
-    return (int32_t) (Array_length(buffer) - pre_len);
-  }
-
-  uint32_t bu = item->field->upper;
-  uint32_t bl = item->field->lower;
-
-  if (bl > bit_field->lower) {
-    BitField lower_bf = {.lower = bit_field->lower, .upper = bl - 1};
-    codegen_mapping_items(context, buffer, items, &lower_bf, pattern, temp_buffer);
-  }
-  if (item->type == enum_Arith_0_Expr) {
-    char_t temp_buffer1[512] = {};
-    codegen_expr(context, item->target, pattern, temp_buffer1);
-    sprintf(temp_buffer, "    value = numSetBits(value, %d, %d, %s);\n", bl, bu + 1, temp_buffer1);
-    push_string(temp_buffer);
-  } else if (item->type == enum_Switchable) {
-    Switchable *switchable = item->target;
-    BitField bf = {.lower = bl, .upper = bu};
-    codegen_switchable(context, buffer, switchable, &bf, pattern, temp_buffer);
-  }
-  if (bu < bit_field->upper) {
-    BitField upper_bf = {.lower = bu + 1, .upper = bit_field->upper};
-    codegen_mapping_items(context, buffer, items, &upper_bf, pattern, temp_buffer);
-  }
-  return (int32_t) (Array_length(buffer) - pre_len);
 }
 
 constexpr char_t TYPE_ENUM_FMT[] = "enum_%s_%s";
@@ -408,24 +338,23 @@ void type_to_val(const GContext *context, const Identifier *ident, char_t *buffe
     sprintf(buffer, fmt, temp_buffer2); \
     break;                              \
   }
-int32_t codegen_expr(
-    const GContext *context, const CondExpr *expr, const Pattern *pattern, char_t *buffer
-) {
+int32_t
+    expr_to_val(const GContext *context, const Expr *expr, const Pattern *pattern, char_t *buffer) {
   char_t temp_buffer1[512] = {};
   char_t temp_buffer2[512] = {};
-  if (expr->type < RECU_OP_MAX) {
+  if (expr->type < RECURSIVE_OP_MAX) {
     if (expr->lhs) {
-      codegen_expr(context, expr->lhs, pattern, buffer);
+      expr_to_val(context, expr->lhs, pattern, buffer);
       strcpy(temp_buffer1, buffer);
     }
     if (expr->rhs) {
-      codegen_expr(context, expr->rhs, pattern, buffer);
+      expr_to_val(context, expr->rhs, pattern, buffer);
       strcpy(temp_buffer2, buffer);
     }
   }
   switch (expr->type) {
-    bin_op_case_item(enum_BOOL_OR, "(%s || %s)")
-    bin_op_case_item(enum_BOOL_AND, "(%s && %s)")
+    bin_op_case_item(enum_BOOL_OR, "(%s||%s)")
+    bin_op_case_item(enum_BOOL_AND, "(%s&&%s)")
     sin_op_case_item(enum_BOOL_NOT, "(!%s)")
     bin_op_case_item(CB_LT, "(%s<%s)")
     bin_op_case_item(CB_LE, "(%s<=%s)")
@@ -441,7 +370,7 @@ int32_t codegen_expr(
     bin_op_case_item(AB_SUB, "(%s-%s)")
     bin_op_case_item(AB_MUL, "(%s*%s)")
     bin_op_case_item(AB_DIV, "(%s/%s)")
-    bin_op_case_item(AB_MOD, "(%s%%s)")
+    bin_op_case_item(AB_MOD, "(%s%%%s)")
     bin_op_case_item(AB_LSH, "(%s<<%s)")
     bin_op_case_item(AB_RSH, "(%s>>%s)")
     case AS_ID: {
@@ -474,14 +403,103 @@ int32_t codegen_expr(
   return 0;
 }
 
+// TODO: codegen_mapping_item is in a recursive call chain,
+//  maybe it will cause a out of memory, please solve it.
+int32_t codegen_mapping_item(
+    const GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field,
+    const Pattern *pattern, char_t *temp_buffer
+) {
+  const uint32_t pre_len = Array_length(buffer);
+  MappingItem *item = getMappingItem(items, bit_field);
+  uint64_t default_bit = 0;
+  getDefaultMappingBit(default_bit);
+  if (!item) {
+    int len = sprintf(
+        temp_buffer, "  value = numSetBits(value, %d, %d, %ld);\n", bit_field->lower,
+        bit_field->upper + 1, (int64_t) default_bit
+    );
+    if (len > 0) { push_string(temp_buffer); }
+    return (int32_t) (Array_length(buffer) - pre_len);
+  }
+
+  uint32_t bu = item->field->upper;
+  uint32_t bl = item->field->lower;
+
+  if (bl > bit_field->lower) {
+    BitField lower_bf = {.lower = bit_field->lower, .upper = bl - 1};
+    codegen_mapping_item(context, buffer, items, &lower_bf, pattern, temp_buffer);
+  }
+  if (item->type == enum_Arith_0_Expr) {
+    char_t temp_buffer1[512] = {};
+    expr_to_val(context, item->target, pattern, temp_buffer1);
+    sprintf(temp_buffer, "    value = numSetBits(value, %d, %d, %s);\n", bl, bu + 1, temp_buffer1);
+    push_string(temp_buffer);
+  } else if (item->type == enum_Switchable) {
+    Switchable *switchable = item->target;
+    BitField bf = {.lower = bl, .upper = bu};
+    codegen_switchable(context, buffer, switchable, &bf, pattern, temp_buffer);
+  }
+  if (bu < bit_field->upper) {
+    BitField upper_bf = {.lower = bu + 1, .upper = bit_field->upper};
+    codegen_mapping_item(context, buffer, items, &upper_bf, pattern, temp_buffer);
+  }
+  return (int32_t) (Array_length(buffer) - pre_len);
+}
+
+#define push_expr(expr, bf)                                                                     \
+  do {                                                                                          \
+    expr_to_val(context, expr, pattern, temp_buffer1);                                          \
+    if (((uint64_t) bf) > 64) {                                                                 \
+      uint32_t bl = (bf)->lower;                                                                \
+      uint32_t bu = (bf)->upper;                                                                \
+      sprintf(                                                                                  \
+          temp_buffer, "    value = numSetBits(value, %d, %d, %s);\n", bl, bu + 1, temp_buffer1 \
+      );                                                                                        \
+      push_string(temp_buffer);                                                                 \
+    } else {                                                                                    \
+      pushEncodingNumberN(temp_buffer1, ((uint32_t) (uint64_t) bf) / 8);                        \
+    }                                                                                           \
+  } while (false)
+
+int32_t codegen_switchable(
+    const GContext *context, Array *buffer, const Switchable *switchable, BitField *bf,
+    const Pattern *pattern, char_t *temp_buffer
+) {
+  char_t temp_buffer1[512] = {};
+  Options *options = switchable->options;
+  const Arith_0_Expr *exprs = Array_first_real(switchable->options);
+  push_string("    if (");
+  expr_to_val(context, switchable->expr, pattern, temp_buffer);
+  push_string(temp_buffer);
+  push_string(") {\n  ");
+  push_expr(&exprs[0], bf);
+  if (Array_length(options) > 1) {
+    push_string("    } else {\n  ");
+    push_expr(&exprs[1], bf);
+  }
+  push_string("    }\n");
+  return 0;
+}
+int32_t codegen_expr(
+    const GContext *context, const Expr *expr, uint32_t width, const Pattern *pattern,
+    char_t *temp_buffer
+) {
+  char_t temp_buffer1[512] = {};
+  expr_to_val(context, expr, pattern, temp_buffer1);
+  sprintf(temp_buffer, "    value = numSetBits(value, %d, %d, %s);\n", 0, width, temp_buffer1);
+  return 0;
+}
+
 int32_t codegen_layout(
     const GContext *context, Array *buffer, const Layout *layout, uint32_t width,
     const Pattern *pattern, char_t *temp_buffer
 ) {
   const uint32_t pre_len = Array_length(buffer);
+  push_string("    value = 0;\n");
   switch (layout->type) {
     case enum_Arith_0_Expr: {
-      codegen_expr(context, layout->target, pattern, temp_buffer);
+      codegen_expr(context, layout->target, width, pattern, temp_buffer);
+      push_string(temp_buffer);
       break;
     }
     case enum_MappingItems: {
@@ -489,7 +507,7 @@ int32_t codegen_layout(
       for (uint32_t i = 0; i < width; i += 64) {
         push_string("    value = 0;\n");
         BitField bf = {.lower = i, .upper = min(i + 63, width - 1)};
-        codegen_mapping_items(context, buffer, items, &bf, pattern, temp_buffer);
+        codegen_mapping_item(context, buffer, items, &bf, pattern, temp_buffer);
         sprintf(temp_buffer, "    pushInstrBytes(%d);\n", min(64, width - i) / 8);
         push_string(temp_buffer);
       }
@@ -505,29 +523,37 @@ int32_t codegen_layout(
   return (int32_t) (Array_length(buffer) - pre_len);
 }
 
+int32_t codegen_instr_part(
+    const GContext *context, Array *buffer, const InstrForm *form, const InstrPart *part,
+    char_t *temp_buffer
+) {
+  const Identifier *name = part->name;
+  const uint32_t width = part->width;
+  const Layout *layout = part->layout;
+  const Condition *condition = part->condition;
+  if (condition) {
+    sprintf(temp_buffer, "  /* %s */\n  if (", name->ptr);
+    push_string(temp_buffer);
+    expr_to_val(context, condition->expr, form->pattern, temp_buffer);
+    push_string(temp_buffer);
+    push_string(") {\n");
+  } else {
+    sprintf(temp_buffer, "  /* %s */ {\n", name->ptr);
+    push_string(temp_buffer);
+  }
+  codegen_layout(context, buffer, layout, width, form->pattern, temp_buffer);
+  sprintf(temp_buffer, "    size += %u;\n  }\n", width / 8);
+  push_string(temp_buffer);
+  return 0;
+}
+
 int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrForm *form) {
   char_t temp_buffer[512] = {};
   const uint32_t pre_len = Array_length(buffer);
   const uint32_t n_parts = Array_length(form->parts);
   const InstrPart * const parts = Array_real_addr(form->parts, 0);
   for (uint32_t i = 0; i < n_parts; i++) {
-    const Identifier *name = parts[i].name;
-    const uint32_t width = parts[i].width;
-    const Layout *layout = parts[i].layout;
-    const Condition *condition = parts[i].condition;
-    if (condition) {
-      sprintf(temp_buffer, "  /* %s */\n  if (", name->ptr);
-      push_string(temp_buffer);
-      codegen_expr(context, condition->expr, form->pattern, temp_buffer);
-      push_string(temp_buffer);
-      push_string(") {\n");
-    } else {
-      sprintf(temp_buffer, "  /* %s */ {\n", name->ptr);
-      push_string(temp_buffer);
-    }
-    codegen_layout(context, buffer, layout, width, form->pattern, temp_buffer);
-    sprintf(temp_buffer, "    size += %u;\n  }\n", width / 8);
-    push_string(temp_buffer);
+    codegen_instr_part(context, buffer, form, &parts[i], temp_buffer);
   }
   return (int32_t) (Array_length(buffer) - pre_len);
 }

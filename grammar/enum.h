@@ -28,9 +28,17 @@
 #ifndef MACHINE_ENUM_H
 #define MACHINE_ENUM_H
 
+#include "tokens.gen.h"
+
 enum IMMEDIATE_TYPE {
   IT_UNSIGNED,
   IT_SIGNED,
+};
+
+enum VAR_TYPE {
+  VT_IDENTIFIER = enum_IDENTIFIER,
+  VT_MEM_ITEM = enum_MemItem,
+  VT_CONSTANT = 128,
 };
 
 enum ENUM_OP {
@@ -46,7 +54,7 @@ enum ENUM_OP {
   AB_RSH,
   AS_INV,
   AS_ID,
-  RECU_OP_MAX = AS_ID,
+  RECURSIVE_OP_MAX = AS_ID,
   CB_IN,
   CB_LT,
   CB_LE,
