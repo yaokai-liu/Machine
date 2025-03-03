@@ -82,16 +82,17 @@ int32_t online_gen_instr_encoding_def(
 ) {
   char_t head_buffer[sizeof(ENCODING_DEF_FMT_HEAD) + 256];
   for (uint32_t i = 0; i < n_forms; ++i) {
+    const PatternArgs *arg_array = forms[i].pattern->args;
     const char_t * const encoding_dec_fmt =
-        forms->pattern->args ? ENCODING_DEC_FMT : ENCODING_DEC_NO_ARGS_FMT;
+        arg_array ? ENCODING_DEC_FMT : ENCODING_DEC_NO_ARGS_FMT;
     sprintf(head_buffer, encoding_dec_fmt, instr_op, i);
     push_string(head_buffer);
     const uint32_t n_bytes = forms[i].width / 8;
     sprintf(head_buffer, ENCODING_DEF_FMT_HEAD, n_bytes);
     push_string(head_buffer);
-    if (forms[i].pattern->args) {
-      const uint32_t n_args = Array_length(forms[i].pattern->args);
-      const Parameter *args = Array_real_addr(forms[i].pattern->args, 0);
+    if (arg_array) {
+      const uint32_t n_args = Array_length(arg_array);
+      const Parameter *args = Array_real_addr(arg_array, 0);
       for (uint32_t j = 0; j < n_args; j++) {
         if (!args[j].used) { continue; }
         sprintf(head_buffer, "  const Entry *%s = entries[%u];\n", args[j].name->ptr, j);

@@ -36,3 +36,4 @@ unsigned long elf64_hash(const unsigned char *name) {
   }
   return h;
 }
+

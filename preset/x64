@@ -1700,7 +1700,13 @@ machine x64 {
       };
     };
   };
+
   instruction nop {
     [] = { opcode: [8] = 0x90; };
+  };
+
+  instruction ret {
+    [] = { opcode: [8] = 0xc3; };
+    [Iw a] = { opcode: [8] = 0xc2; addr: [16] = a; };
   };
 };

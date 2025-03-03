@@ -3,13 +3,13 @@ Language: Cpp
 ColumnLimit: 100
 AlignAfterOpenBracket: BlockIndent
 AlignArrayOfStructures: Left
-AlignConsecutiveAssignments: false
+AlignConsecutiveAssignments: true
 AlignConsecutiveBitFields: Consecutive
 AlignConsecutiveDeclarations: false
 AlignConsecutiveMacros: AcrossEmptyLinesAndComments
 AlignEscapedNewlines: Left
 AlignOperands: Align
-AlignTrailingComments: false
+AlignTrailingComments: true
 AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: Always
