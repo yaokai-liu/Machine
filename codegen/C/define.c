@@ -52,6 +52,7 @@ constexpr char_t MEM_DEF_HEAD_FMT[] =
     " {\n"
     "  Entry * entry = &CURRENT_MACHINE->entries[CURRENT_MACHINE->argCount];\n"
     "  entry->type = enum_MEM_%s;\n"
+    "  entry->width = %lu;\n"
     "  uint64_t number = 0;\n";
 constexpr char_t MEM_DEF_TAIL[] = "  entry->value = number;\n"
                                   "  CURRENT_MACHINE->argCount++;\n"
@@ -61,13 +62,13 @@ constexpr char_t IMM_DEF_FMT[] =
     "const Entry *IMM_%s(uint64_t val) {\n"
     "  Entry * entry = &CURRENT_MACHINE->entries[CURRENT_MACHINE->argCount];\n"
     "  entry->type = enum_IMM_%s;\n"
+    "  entry->width = %lu;\n"
     "  entry->value = val;\n"
     "  CURRENT_MACHINE->argCount++;\n"
     "  return entry;\n"
     "}\n";
 constexpr char_t REG_ENTRY_DEF_FMT[] = "static const Entry Entry_REG_%s = {\n"
-                                       "  .type = enum_REG_%s,\n"
-                                       "  .value = 0x%lx,\n"
+                                       "  .type = enum_REG_%s, .width = %lu, .value = 0x%lx,\n"
                                        "};\n";
 constexpr char_t REG_DEF_FMT[] = "const Entry * const REG_%s = &Entry_REG_%s;\n";
 
@@ -149,7 +150,7 @@ const char_t *type_string(uint32_t id) {
   }
 }
 
-constexpr char_t ENTRY_TYPE_CHECK_FMT[] = "  entry_type_check(enum_%s_%s, %s->type);\n";
+constexpr char_t ENTRY_TYPE_CHECK_FMT[] = "  if (!entry_type_check(enum_%s_%s, %s->type)) { return nullptr; }\n";
 constexpr char_t ENTRY_TYPE_ADD_FMT[] = "  entry->subtypes[%u] = %s->type;\n";
 constexpr char_t ENTRY_VALUE_SET_FMT[] = "  number = numSetBits(number, %d, %d, %s->value);\n";
 constexpr char_t VALUE_SET_FMT[] = "  number = numSetBits(number, %d, %d, %s);\n";
@@ -157,7 +158,7 @@ void gen_mem_def_sprintf(
     const Memory *mem, const GContext *context, char_t *temp_buffer, Array *buffer
 ) {
   gen_mem_dec_sprintf(mem, context, temp_buffer, buffer);
-  sprintf(temp_buffer, MEM_DEF_HEAD_FMT, mem->name->ptr);
+  sprintf(temp_buffer, MEM_DEF_HEAD_FMT, mem->name->ptr, mem->width);
   push_string(temp_buffer);
   const uint32_t n_items = Array_length(mem->items);
   const MemItem *items = Array_real_addr(mem->items, 0);
@@ -220,12 +221,14 @@ void gen_context_def(Generator *generator, const Machine *machine) {
   Array *buffer = Generator_getOutputBuffer(generator, GenBuf_definitions);
 
   push_string("static const Entry Entry_EOI = { .type = enum_NONE, .value = 0x0 };\n");
-  gen_reg_sprintf(REG_ENTRY_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr, entries[i].code);
+  gen_reg_sprintf(REG_ENTRY_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr,
+                  entries[i].field->upper - entries[i].field->lower + 1, entries[i].code);
 
   push_string("const Entry *const EOI = &Entry_EOI;\n");
   gen_mem_def(context, buffer);
-  gen_imm_sprintf(IMM_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr);
-  gen_reg_sprintf(REG_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr);
+  gen_imm_sprintf(IMM_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr, entries[i].width);
+  gen_reg_sprintf(REG_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr,
+                  entries[i].field->upper - entries[i].field->lower + 1);
 }
 
 constexpr char_t SET_GRP_VAL_TABLE_HEAD_FMT[] = "static const enum ENTRY_TYPE_ENUM\n"

@@ -13,6 +13,7 @@ TERMINALS = {
         "ARITH_2_SIN_OP": 0,
         "ARITH_3_BIN_OP": 0,
         "ARITH_3_SIN_OP": 0,
+        "OP_WIDTH": "#",
         "QUESTION_MARK": "?",
         "INSTRUCTION": "instruction",
         "IMMEDIATE": "immediate",

@@ -361,17 +361,32 @@ Variable *p_Variable_0(void *argv[], GContext *context, const Allocator *allocat
   var->rhs = Array_vert2real(memory->items, item);
   return var;
 }
-
+#include <stdio.h>
 Variable *p_Variable_1(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[0];
 
   const Record *record = GContext_findRecord(context, ident);
-  if (record && record->typeid == enum_Register) {
-    const Register *reg = GContext_getRegister(context, record->offset);
+  if (record) {
     Variable *var = allocator->calloc(1, sizeof(Variable));
-    var->type = VT_CONSTANT;
-    var->lhs = nullptr;
-    var->rhs = (void *) (uint64_t) reg->code;
+    var->type = record->typeid;
+    var->lhs = ident;
+    switch (record->typeid) {
+      case enum_Register: {
+        const Register *reg = GContext_getRegister(context, record->offset);
+        var->rhs = (void *) reg;
+        break;
+      }
+      case enum_Memory: {
+        const Memory *memory = GContext_getMemory(context, record->offset);
+        var->rhs = (void *) memory;
+        break;
+      }
+      case enum_Immediate: {
+        const Immediate *immediate = GContext_getImmediate(context, record->offset);
+        var->rhs = (void *) immediate;
+        break;
+      }
+    }
     return var;
   }
   Parameter *param = (Parameter *) GContext_findParameter(context, ident);
@@ -420,15 +435,60 @@ Evaluable *p_Evaluable_0(void *argv[], GContext *context, const Allocator *alloc
 }
 
 Evaluable *p_Evaluable_1(void *argv[], GContext *, const Allocator *allocator) {
+  Variable *var = (Variable *) argv[1];
+  uint32_t width = 0;
+  switch (var->type) {
+    case VT_IDENTIFIER: {
+      Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
+      evaluable->type = enum_OP_WIDTH;
+      evaluable->lhs = var;
+      evaluable->rhs = nullptr;
+      return evaluable;
+    }
+    case VT_REGISTER:{
+      const Register *reg = var->rhs;
+      width = reg->field->upper - reg->field->lower + 1;
+      break;
+    }
+    case VT_MEMORY:{
+      const Memory *mem = var->rhs;
+      width = mem->width;
+      break;
+    }
+    case VT_IMMEDIATE: {
+      const Immediate *imm = var->rhs;
+      width = imm->width;
+      break;
+    }
+    case VT_MEM_ITEM: {
+      const MemItem *item = var->rhs;
+      width = item->width;
+      break;
+    }
+    default: { releaseVariable(var, allocator); return nullptr; }
+  }
+  releaseVariable(var, allocator);
+  Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
+  evaluable->type = enum_NUMBER;
+  evaluable->lhs = (void *) (uint64_t) width;
+  evaluable->rhs = nullptr;
+  return evaluable;
+}
+
+Evaluable *p_Evaluable_2(void *argv[], GContext *context, const Allocator *allocator) {
   Variable *var = (Variable *) argv[0];
 
-  if (var->type == VT_CONSTANT) {
+  if (var->type == VT_REGISTER) {
+    const Register *reg = var->rhs;
+    releaseVariable(var, allocator);
     Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
     evaluable->type = enum_NUMBER;
-    evaluable->lhs = (void *) var->rhs;
+    evaluable->lhs = (void *) reg->code;
     evaluable->rhs = nullptr;
     return evaluable;
   }
+  grammarAssert(var->type != VT_MEMORY && var->type != VT_IMMEDIATE,
+                "arithmetic operation with 'Memory' or 'Immediate' entity is not supported.");
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_Variable;
   evaluable->lhs = var;
@@ -436,7 +496,7 @@ Evaluable *p_Evaluable_1(void *argv[], GContext *, const Allocator *allocator) {
   return evaluable;
 }
 
-Evaluable *p_Evaluable_2(void *argv[], GContext *, const Allocator *allocator) {
+Evaluable *p_Evaluable_3(void *argv[], GContext *, const Allocator *allocator) {
   uint64_t number = (uint64_t) argv[0];
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_NUMBER;
@@ -462,7 +522,8 @@ Immediate *p_Immediate_0(void *argv[], GContext *context, const Allocator *) {
 
 InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
-  InstrParts *part_array = (InstrParts *) argv[3];
+  FormCheck *check = (FormCheck *) argv[3];
+  InstrParts *part_array = (InstrParts *) argv[4];
   uint32_t width = 0;
   const InstrPart *first = Array_first_real(part_array);
   const InstrPart *last = Array_last_real(part_array);
@@ -472,6 +533,7 @@ InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
   form->width = width;
   form->tick = 1;
   form->pattern = pattern;
+  form->check = (check == (void *) true) ? nullptr : check;
   form->parts = part_array;
 
   return form;
@@ -480,7 +542,8 @@ InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
 InstrForm *p_InstrForm_1(void *argv[], GContext *, const Allocator *allocator) {
   Pattern *pattern = (Pattern *) argv[0];
   uint32_t tick = (uint32_t) (uint64_t) argv[3];
-  InstrParts *part_array = (InstrParts *) argv[4];
+  FormCheck *check = (FormCheck *) argv[4];
+  InstrParts *part_array = (InstrParts *) argv[5];
 
   uint32_t width = 0;
   const InstrPart *first = Array_first_real(part_array);
@@ -491,6 +554,7 @@ InstrForm *p_InstrForm_1(void *argv[], GContext *, const Allocator *allocator) {
   form->width = width;
   form->tick = tick;
   form->pattern = pattern;
+  form->check = (check == (void *) true) ? nullptr : check;
   form->parts = part_array;
   return form;
 }
@@ -509,6 +573,15 @@ InstrForms *p_InstrForms_1(void *argv[], GContext *, const Allocator *allocator)
   Array_append(forms, form, 1);
   allocator->free(form);
   return forms;
+}
+FormCheck *p_FormCheck_0(void *argv[], GContext *, const Allocator *) {
+  FormCheck *check = (FormCheck *) argv[0];
+  return check;
+}
+
+FormCheck *p_FormCheck_1(void *[], GContext *, const Allocator *) {
+  FormCheck *check = (FormCheck *) (uint64_t) true;
+  return check;
 }
 
 InstrPart *p_InstrPart_0(void *argv[], GContext *context, const Allocator *allocator) {
@@ -1013,6 +1086,8 @@ void releaseToken(void *token, uint32_t type, const Allocator *allocator) {
     releaseArrayCase(SetItems, Identifier)
 
     releaseTokenCase(Entry, Entry)
+    releaseTokenCase(Condition, Condition)
+    releaseTokenCase(Variable , Variable)
     releaseTokenCase(Evaluable, Evaluable)
     releaseTokenCase(Immediate, Immediate)
     releaseTokenCase(InstrForm, InstrForm)
@@ -1028,6 +1103,17 @@ void releaseToken(void *token, uint32_t type, const Allocator *allocator) {
     releaseTokenCase(Register, Register)
     releaseTokenCase(RegisterGroup, RegisterGroup)
     releaseTokenCase(Set, Set)
+    case enum_CondExpr:
+    case enum_AndCondExpr:
+    case enum_SingleCondExpr:
+    case enum_Arith_0_Expr:
+    case enum_Arith_1_Expr:
+    case enum_Arith_2_Expr:
+    case enum_Arith_3_Expr: {
+      releaseExpr(token, allocator);
+      allocator->free(token);
+      break;
+    }
     case enum_IDENTIFIER: {
       releaseIdentifier(token, allocator);
       allocator->free(token);

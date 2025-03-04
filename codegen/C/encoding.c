@@ -109,6 +109,7 @@ const char_t INSTR_EXEC_DEC_FMT[] = "uint32_t %s(Array *buffer, ...);\n";
 const char_t INSTR_EXEC_DEF_HEAD_FMT[] = "uint32_t %s(Array *buffer, ...) {\n"
                                          "  constexpr uint32_t entry_offset = %u;\n";
 const char_t INSTR_EXEC_DEF_BODY[] = "  instrExecDefPrincipalPart();\n}\n";
+
 void gen_instr_exec(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
   const GContext *context = machine->context;
@@ -269,6 +270,9 @@ int32_t eval_to_val(const GContext *, const Evaluable *evaluable, char_t *buffer
   const Identifier *ident = variable->lhs;
 
   switch (evaluable->type) {
+    case enum_OP_WIDTH: {
+      return sprintf(buffer, "%s->width", ident->ptr);
+    }
     case enum_BIT_FIELD: {
       BitField *bf = evaluable->rhs;
       uint32_t width = bf->upper - bf->lower + 1;
@@ -515,6 +519,14 @@ int32_t codegen_layout(
   return (int32_t) (Array_length(buffer) - pre_len);
 }
 
+void codegen_form_check(const GContext *context, Array *buffer, const InstrForm *form, char_t *temp_buffer) {
+  FormCheck *check = form->check;
+  push_string("  /* __FORM_CHECK__ */\n  if (!");
+  expr_to_val(context, check->expr, form->pattern, temp_buffer);
+  push_string(temp_buffer);
+  push_string(") { return 0; }\n");
+}
+
 int32_t codegen_instr_part(
     const GContext *context, Array *buffer, const InstrForm *form, const InstrPart *part,
     char_t *temp_buffer
@@ -544,6 +556,7 @@ int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrFo
   const uint32_t pre_len = Array_length(buffer);
   const uint32_t n_parts = Array_length(form->parts);
   const InstrPart * const parts = Array_real_addr(form->parts, 0);
+  if (form->check) { codegen_form_check(context, buffer, form, temp_buffer); }
   for (uint32_t i = 0; i < n_parts; i++) {
     codegen_instr_part(context, buffer, form, &parts[i], temp_buffer);
   }

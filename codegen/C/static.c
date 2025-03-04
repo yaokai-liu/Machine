@@ -65,6 +65,7 @@ constexpr char_t MACROS[] =
     "  uint32_t n_args = 0;                        \\\n"
     "  for (; n_args < MAX_ARGS; n_args ++) {      \\\n"
     "    Entry * entry = va_arg(args, Entry *);    \\\n"
+    "    if (!entry) { return 0; }                 \\\n"
     "    if (entry->type == enum_NONE) { break; }  \\\n"
     "    entries[n_args] = entry;                  \\\n"
     "  }                                           \\\n"
@@ -76,6 +77,7 @@ constexpr char_t MACROS[] =
 
 constexpr char_t TYPEDEF_ENTRY_FMT[] = "typedef struct Entry {\n"
                                        "  enum ENTRY_TYPE_ENUM type;\n"
+                                       "  uint32_t width;\n"
                                        "  uint64_t value;\n"
                                        "  enum ENTRY_TYPE_ENUM subtypes[%u];\n"
                                        "} Entry;\n";

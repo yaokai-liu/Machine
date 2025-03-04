@@ -51,6 +51,7 @@ void gen_jump_table_def(
 );
 
 int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrForm *form);
+void codegen_form_check(const GContext *context, Array *buffer, const InstrForm *form, char_t *temp_buffer);
 int32_t codegen_instr_part(
     const GContext *context, Array *buffer, const InstrForm *form, const InstrPart *part,
     char_t *temp_buffer

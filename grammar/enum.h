@@ -38,7 +38,9 @@ enum IMMEDIATE_TYPE {
 enum VAR_TYPE {
   VT_IDENTIFIER = enum_IDENTIFIER,
   VT_MEM_ITEM = enum_MemItem,
-  VT_CONSTANT = 128,
+  VT_REGISTER = enum_Register,
+  VT_IMMEDIATE = enum_Immediate,
+  VT_MEMORY = enum_Memory,
 };
 
 enum ENUM_OP {
@@ -53,15 +55,16 @@ enum ENUM_OP {
   AB_LSH,
   AB_RSH,
   AS_INV,
-  AS_ID,
-  RECURSIVE_OP_MAX = AS_ID,
-  CB_IN,
   CB_LT,
   CB_LE,
   CB_GT,
   CB_GE,
   CB_EQ,
   CB_NE,
+  AS_ID,
+  CB_IN,
+  META_WIDTH,
+  RECURSIVE_OP_MAX = AS_ID,
 };
 
 #endif  // MACHINE_ENUM_H

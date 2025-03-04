@@ -219,10 +219,6 @@ uint64_t GContext_getLastWidth(GContext *context) {
   return width;
 }
 
-bool GContext_isCondition(GContext *context) {
-  return context->isCondition;
-}
-
 inline void GContext_addMapItem(GContext *context, MappingItem *item) {
   AVLTree_set(context->mappingTree, (uint64_t) item->field, item);
 }
@@ -340,18 +336,6 @@ void release_ctx_patterns(GContext *context, void *) {
   context->patterns = nullptr;
 }
 
-void destroy_map_item_tree_and_pop_width(GContext *context, void *) {
-  pop_context_width(context, nullptr);
-  destroy_context_map_item_tree(context, nullptr);
-}
-
-void set_condition_true(GContext *context, void *) {
-  context->isCondition = true;
-}
-void set_condition_false(GContext *context, void *) {
-  context->isCondition = false;
-}
-
 #include "action-table.gen.h"
 #define IN_MACHINE(s)     __MACHINE_IDENTIFIER_LEFT_BRACKET_##s
 #define IN_REGISTER(s)    __MACHINE_IDENTIFIER_LEFT_BRACKET_REGISTER_IDENTIFIER_WIDTH_LEFT_BRACKET_##s
@@ -359,7 +343,7 @@ void set_condition_false(GContext *context, void *) {
 #define IN_INSTR_FORM(s) \
   __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_ASSIGN_LEFT_BRACKET_##s
 #define IN_INSTR_PART(s) \
-  __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_ASSIGN_LEFT_BRACKET_IDENTIFIER_COLON_WIDTH_ASSIGN_LEFT_BRACKET_##s
+  __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_ASSIGN_LEFT_BRACKET_FormCheck_IDENTIFIER_COLON_WIDTH_ASSIGN_LEFT_BRACKET_##s
 
 fn_ctx_act *get_after_stack_actions(int32_t state) {
   switch (state) {
@@ -369,17 +353,14 @@ fn_ctx_act *get_after_stack_actions(int32_t state) {
     }
     case IN_MACHINE(REGISTER_IDENTIFIER_WIDTH):
     case IN_MACHINE(MEMORY_IDENTIFIER_WIDTH):
-    case IN_INSTR_FORM(IDENTIFIER_COLON_WIDTH): {
+    case IN_INSTR_FORM(FormCheck_IDENTIFIER_COLON_WIDTH): {
       return push_context_width;
     }
-    case IN_INSTR_FORM(IDENTIFIER_COLON_WIDTH_ASSIGN_LEFT_BRACKET): {
+    case IN_INSTR_FORM(FormCheck_IDENTIFIER_COLON_WIDTH_ASSIGN_LEFT_BRACKET): {
       return realloc_context_map_item_tree;
     }
     case IN_REGISTER(Registers_RIGHT_BRACKET): {
       return pop_context_width_and_ident;
-    }
-    case IN_INSTR_FORM(IDENTIFIER_COLON_WIDTH_ASSIGN_Layout_AT): {
-      return set_condition_true;
     }
     case IN_INSTR_PART(MappingItems_RIGHT_BRACKET): {
       return destroy_context_map_item_tree;
@@ -397,7 +378,7 @@ fn_ctx_act *get_after_reduce_actions(int32_t state) {
     case IN_MACHINE(Memory): {
       return pop_context_width_and_set_items_null;
     }
-    case IN_INSTR_FORM(InstrPart): {
+    case IN_INSTR_FORM(FormCheck_InstrPart): {
       return pop_context_width;
     }
     case IN_INSTRUCTION(InstrForms_InstrForm):
@@ -406,9 +387,6 @@ fn_ctx_act *get_after_reduce_actions(int32_t state) {
     }
     case IN_MACHINE(Instruction): {
       return release_ctx_patterns;
-    }
-    case IN_INSTR_FORM(IDENTIFIER_COLON_WIDTH_ASSIGN_Layout_Condition): {
-      return set_condition_false;
     }
     default: {
       return nullptr;

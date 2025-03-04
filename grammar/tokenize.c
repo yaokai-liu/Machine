@@ -574,12 +574,12 @@ uint32_t tokenize_arith_single_symbols(
 constexpr uint32_t TERMINAL_TYPE_LITERALS[] = {
     enum_LEFT_BRACKET, enum_RIGHT_BRACKET, enum_COLON, enum_SEMICOLON, enum_RIGHT_SQUARE_BRACKET,
     enum_RIGHT_PAREN,  enum_COMMA,         enum_DOT,   enum_AT,        enum_BOOL_NOT,
-    enum_QUESTION_MARK
+    enum_QUESTION_MARK, enum_OP_WIDTH
 };
 uint32_t tokenize_grammar_single_symbols(
     const char_t * const input, Terminal * const result, const Allocator * const
 ) {
-  constexpr char_t SINGLE_LITERAL[] = "{}:;]),.@!?";
+  constexpr char_t SINGLE_LITERAL[] = "{}:;]),.@!?#";
   uint32_t length = stridx_o(*input, SINGLE_LITERAL);
   if (length < lenof(SINGLE_LITERAL)) {
     result->type = TERMINAL_TYPE_LITERALS[length];

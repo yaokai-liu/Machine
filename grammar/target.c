@@ -63,7 +63,6 @@ void releasePattern(Pattern *pattern, const Allocator *) {
   Array_reset(pattern->args, (destruct_t *) releaseParameter);
   Array_destroy(pattern->args);
 }
-
 void releaseVariable(Variable *variable, const Allocator *allocator) {
   releaseIdentifier(variable->lhs, allocator);
   allocator->free(variable->lhs);
@@ -89,8 +88,8 @@ void releaseSwitchable(Switchable *switchable, const Allocator *allocator) {
 void releaseMappingItem(MappingItem *item, const Allocator *allocator) {
   releaseBitField(item->field, allocator);
   allocator->free(item->field);
-  if (item->type == enum_Evaluable) {
-    releaseEvaluable(item->target, allocator);
+  if (item->type == enum_Arith_0_Expr) {
+    releaseExpr(item->target, allocator);
     allocator->free(item->target);
   } else if (item->type == enum_Switchable) {
     releaseSwitchable(item->target, allocator);
@@ -110,8 +109,8 @@ void releaseMappingItems(MappingItems *items, const Allocator *allocator) {
 
 void releaseLayout(Layout *layout, const Allocator *allocator) {
   switch (layout->type) {
-    case enum_Evaluable: {
-      releaseEvaluable(layout->target, allocator);
+    case enum_Arith_0_Expr: {
+      releaseExpr(layout->target, allocator);
       break;
     }
     case enum_MappingItems: {
@@ -140,6 +139,10 @@ void releaseInstrPart(InstrPart *part, const Allocator *allocator) {
 void releaseInstrForm(InstrForm *form, const Allocator *allocator) {
   releasePattern(form->pattern, allocator);
   allocator->free(form->pattern);
+  if (form->check) {
+    releaseCondition(form->check, allocator);
+    allocator->free(form->check);
+  }
   Array_reset(form->parts, (destruct_t *) releaseInstrPart);
   Array_destroy(form->parts);
 }

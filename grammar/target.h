@@ -84,6 +84,8 @@ typedef struct Condition {
   CondExpr *expr;
 } Condition;
 
+typedef Condition FormCheck;
+
 typedef Array Options;  // Array<Evaluable>
 
 typedef struct Switchable {
@@ -122,6 +124,7 @@ typedef struct InstrForm {
   uint32_t width;
   uint32_t tick;
   Pattern *pattern;
+  FormCheck *check;
   InstrParts *parts;
 } InstrForm;
 
