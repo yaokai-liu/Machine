@@ -326,7 +326,7 @@ uint32_t tokenize_letter_u(
   }
 }
 
-uint32_t tokenize_startswith_digital(
+uint32_t tokenize_LSQUARE_startswith_digital(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
   uint32_t length = t_NUMBER_adic10(input, result, allocator);
@@ -375,6 +375,18 @@ uint32_t tokenize_startswith_digital(
   }
 }
 
+uint32_t tokenize_LSQUARE_startswith_QUES_MARK(
+    const char_t * const input, Terminal * const result, const Allocator *
+) {
+  const char_t *pText = input + 1;
+  pText += pass_whitespace(pText);
+  if (*pText != ']') { return 0; }
+  result->type = enum_WIDTH;
+  result->value = (void *) (uint64_t) -1;
+  result->length = (pText + 1 - input);
+  return result->length;
+}
+
 uint32_t tokenize_symbol_LPAREN(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
@@ -405,7 +417,13 @@ uint32_t tokenize_symbol_LSQUARE(
   const char_t *pText = input;
   pText += pass_whitespace(pText);
   if (startswithDigital(pText)) {
-    const uint32_t length = tokenize_startswith_digital(pText, result, allocator);
+    const uint32_t length = tokenize_LSQUARE_startswith_digital(pText, result, allocator);
+    if (length > 0) {
+      result->length += pText - input + 1;
+      return result->length;
+    }
+  } else if (*pText == '?') {
+    const uint32_t length = tokenize_LSQUARE_startswith_QUES_MARK(pText, result, allocator);
     if (length > 0) {
       result->length += pText - input + 1;
       return result->length;

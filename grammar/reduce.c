@@ -527,7 +527,7 @@ InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
   uint32_t width = 0;
   const InstrPart *first = Array_first_real(part_array);
   const InstrPart *last = Array_last_real(part_array);
-  for (const InstrPart *part = first; part <= last; part++) { width += part->width; }
+  for (const InstrPart *part = first; part <= last; part++) { width += part->width > 256 ? 256 : part->width;}
 
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
@@ -548,7 +548,7 @@ InstrForm *p_InstrForm_1(void *argv[], GContext *, const Allocator *allocator) {
   uint32_t width = 0;
   const InstrPart *first = Array_first_real(part_array);
   const InstrPart *last = Array_last_real(part_array);
-  for (const InstrPart *part = first; part <= last; part++) { width += part->width; }
+  for (const InstrPart *part = first; part <= last; part++) { width += part->width > 256 ? 256 : part->width;}
 
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
@@ -591,10 +591,15 @@ InstrPart *p_InstrPart_0(void *argv[], GContext *context, const Allocator *alloc
 
   grammarAssert(width != 0, "empty part.");
 
-  grammarAssert(
-      width % 8 == 0, "illegal width of parts. "
-                      "width must be an integer multiple of a byte with."
-  );
+  if (width == (uint32_t) -1) {
+    const Arith_0_Expr *expr = layout->target;
+    grammarAssert(layout->type == enum_Arith_0_Expr && expr->type == AS_ID,
+                  "target is too complex to calculate width.");
+  } else {
+    grammarAssert(width % 8 == 0,
+                  "illegal width of parts. width must be an integer multiple of a byte with."
+    );
+  }
   grammarAssertNotDeclaredInstrPart(name);
 
   InstrPart *part = allocator->calloc(1, sizeof(InstrPart));
@@ -613,10 +618,15 @@ InstrPart *p_InstrPart_1(void *argv[], GContext *context, const Allocator *alloc
 
   grammarAssert(width != 0, "empty part.");
 
-  grammarAssert(
-      width % 8 == 0, "illegal width of parts. "
-                      "width must be an integer multiple of a byte with."
-  );
+  if (width == (uint32_t) -1) {
+    const Arith_0_Expr *expr = layout->target;
+    grammarAssert(layout->type == enum_Arith_0_Expr && expr->type == AS_ID,
+                  "target is too complex to calculate width.");
+  } else {
+    grammarAssert(width % 8 == 0,
+                  "illegal width of parts. width must be an integer multiple of a byte with."
+    );
+  }
   grammarAssertNotDeclaredInstrPart(name);
 
   InstrPart *part = allocator->calloc(1, sizeof(InstrPart));

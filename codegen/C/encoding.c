@@ -271,7 +271,17 @@ int32_t eval_to_val(const GContext *, const Evaluable *evaluable, char_t *buffer
 
   switch (evaluable->type) {
     case enum_OP_WIDTH: {
-      return sprintf(buffer, "%s->width", ident->ptr);
+      switch (variable->type) {
+        case enum_IDENTIFIER: {
+          return sprintf(buffer, "%s->width", ident->ptr);
+        }
+        case enum_MemItem: {
+          const MemItem *item = variable->rhs;
+          uint32_t width = item->width;
+          return sprintf(buffer, "%u", width);
+        }
+      }
+      break;
     }
     case enum_BIT_FIELD: {
       BitField *bf = evaluable->rhs;
@@ -495,7 +505,52 @@ int32_t codegen_layout(
   switch (layout->type) {
     case enum_Arith_0_Expr: {
       expr_to_val(context, layout->target, pattern, temp_buffer);
-      pushEncodingNumberN(temp_buffer, width / 8);
+      if (width == (uint32_t) -1) {
+        const Expr *expr = layout->target;
+        const Evaluable *eval = expr->rhs;
+        switch (eval->type) {
+          case enum_OP_WIDTH: {
+            pushEncodingNumberN(temp_buffer, 1);
+            push_string("    size += 1;\n");
+            break;
+          }
+          case enum_BIT_FIELD: {
+            const BitField *bf = eval->rhs;
+            width = ((bf->upper - bf->lower) / 8) + 1;
+            pushEncodingNumberN(temp_buffer, width);
+            sprintf(temp_buffer, "    size += %u;\n", width / 8);
+            push_string(temp_buffer);
+            break;
+          }
+          case enum_NUMBER: {
+            width = 0;
+            uint64_t num = (uint64_t) eval->lhs;
+            while (num) { num >>= 3; width ++; }
+            pushEncodingNumberN(temp_buffer, width);
+            sprintf(temp_buffer, "    size += %u;\n", width / 8);
+            push_string(temp_buffer);
+            break;
+          }
+          case enum_Variable: {
+            char_t temp2_buffer[256] = {};
+            const Evaluable width_eval = {.type = enum_OP_WIDTH, .lhs = eval->lhs, .rhs = nullptr};
+            eval_to_val(context, &width_eval, temp2_buffer, pattern);
+            push_string("    pushEncodingNumber(");
+            push_string(temp_buffer);
+            push_string(", ");
+            push_string(temp2_buffer);
+            push_string(" / 8);\n");
+            sprintf(temp_buffer, "    size += %s / 8;\n", temp2_buffer);
+            push_string(temp_buffer);
+            break;
+          }
+        }
+
+      } else {
+        pushEncodingNumberN(temp_buffer, width / 8);
+        sprintf(temp_buffer, "    size += %u;\n", width / 8);
+        push_string(temp_buffer);
+      }
       break;
     }
     case enum_MappingItems: {
@@ -507,12 +562,16 @@ int32_t codegen_layout(
         sprintf(temp_buffer, "    pushInstrBytes(%d);\n", min(64, width - i) / 8);
         push_string(temp_buffer);
       }
+      sprintf(temp_buffer, "    size += %u;\n", width / 8);
+      push_string(temp_buffer);
       break;
     }
     case enum_Switchable: {
       codegen_switchable(
           context, buffer, layout->target, (void *) (uint64_t) width, pattern, temp_buffer
       );
+      sprintf(temp_buffer, "    size += %u;\n", width / 8);
+      push_string(temp_buffer);
       break;
     }
   }
@@ -546,7 +605,7 @@ int32_t codegen_instr_part(
     push_string(temp_buffer);
   }
   codegen_layout(context, buffer, layout, width, form->pattern, temp_buffer);
-  sprintf(temp_buffer, "    size += %u;\n  }\n", width / 8);
+  sprintf(temp_buffer, "  }\n", width / 8);
   push_string(temp_buffer);
   return 0;
 }
