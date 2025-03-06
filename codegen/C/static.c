@@ -169,15 +169,19 @@ constexpr char_t CONVERT_INSTR_TO_BYTES_DEF[] =
 
 void gen_static_definitions(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
-  const char_t *name = generator->outname ? generator->outname : machine->name->ptr;
+  const char_t *name = generator->outname;
+  if (name) {
+    name = strrchr(name, '/');
+    name = name ? name + 1 : generator->outname;
+  } else {
+    name = machine->name->ptr;
+  }
   sprintf(temp_buffer, INCLUDES, name);
   Array * const out_buffer = Generator_getOutputBuffer(generator, GenBuf_includes);
-  const char_t *filename;
+  const char_t *filename = "";
   if (generator->headpath) {
     filename = strrchr(generator->headpath, '/');
     filename = filename ? filename + 1 : generator->headpath;
-  } else {
-    filename = "";
   }
   gen_license(generator, out_buffer, filename);
   ctx_push_string(includes, temp_buffer);

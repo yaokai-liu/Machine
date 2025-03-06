@@ -235,7 +235,7 @@ AndCondExpr *p_AndCondExpr_1(void *argv[], GContext *, const Allocator *) {
   return (CondExpr *) argv[0];
 }
 SingleCondExpr *p_SingleCondExpr_0(void *argv[], GContext *, const Allocator *) {
-  return (CondExpr *) argv[0];
+  return (CondExpr *) argv[1];
 }
 CondExpr *p_SingleCondExpr_1(void *argv[], GContext *, const Allocator *allocator) {
   SingleCondExpr *rhs = (SingleCondExpr *) argv[1];
@@ -250,9 +250,9 @@ CondExpr *p_SingleCondExpr_1(void *argv[], GContext *, const Allocator *allocato
   return expr;
 }
 SingleCondExpr *p_SingleCondExpr_2(void *argv[], GContext *, const Allocator *allocator) {
-  Arith_0_Expr *lhs = (Arith_0_Expr *) argv[0];
+  SingleCondExpr *lhs = (SingleCondExpr *) argv[0];
   uint32_t type = (uint32_t) (uint64_t) argv[1];
-  Arith_0_Expr *rhs = (Arith_0_Expr *) argv[2];
+  SingleCondExpr *rhs = (SingleCondExpr *) argv[2];
 
   SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
   expr->type = type;
@@ -280,6 +280,9 @@ SingleCondExpr *p_SingleCondExpr_4(void *argv[], GContext *, const Allocator *al
   expr->lhs = nullptr;
   expr->rhs = rhs;
   return expr;
+}
+SingleCondExpr *p_SingleCondExpr_5(void *argv[], GContext *, const Allocator *) {
+  return (Arith_0_Expr *) argv[0];
 }
 
 Options *p_Options_0(void *argv[], GContext *, const Allocator *allocator) {

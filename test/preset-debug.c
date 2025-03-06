@@ -33,7 +33,8 @@ int main() {
   useMachine(machine);
   Array *output_array = Array_new(sizeof(uint8_t), -1, &STDAllocator);
 //  uint32_t size = add(output_array, MEM_REFv(REG_rax), REG_cx, EOI);
-  uint32_t size = addi(output_array, REG_eax, IMM_Id(0x1234), EOI);
+//  uint32_t size = test(output_array, MEM_REFb(REG_eax), REG_al, EOI);
+  uint32_t size = addi(output_array, REG_r8, IMM_Ib(0x1234), EOI);
 //  uint32_t size = addi(output_array, IMM_Ib(0x1234), EOI);
 //  uint32_t size = sub(output_array, MEM_REFv(REG_ecx), REG_ax, EOI);
 //  uint32_t size = movabs(output_array, REG_ax, IMM_Iw(0x123456789abcdef), EOI);

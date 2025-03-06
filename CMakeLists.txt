@@ -25,7 +25,7 @@ set(GENERATED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/grammar/generated")
 
 if(NOT EXISTS ${GENERATED_DIR})
     message(STATUS "${GENERATED_DIR} doesn't exist, generate grammar action table.")
-    execute_process(COMMAND /bin/sh ./codegen.sh
+    execute_process(COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/codegen.sh
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 else()
     message(STATUS "${GENERATED_DIR} exists, skip to generate grammar action table.")
@@ -76,8 +76,21 @@ target_link_libraries(test-tokenize PRIVATE check grammar)
 #target_link_libraries(test-parse PRIVATE check grammar)
 #target_link_libraries(test-all PRIVATE check grammar)
 
-# preset debug
-set(PRESET_NAME x64)
-add_executable(preset-debug test/preset-debug.c ${PRESET_NAME}.c ${PRESET_NAME}.h)
-target_link_libraries(preset-debug meman)
-target_compile_options(preset-debug PRIVATE "-Wno-unused-parameter")
+#add_custom_target(compile-preset-to-c-x64
+#        COMMAND output/machine-c preset/x64 output/x64 -y 2025 -a "Yaokai Liu"
+#        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+#        DEPENDS machine-c)
+#
+#add_library(preset-x64 output/x64.c output/x64.h)
+#add_dependencies(preset-x64 compile-preset-to-c-x64)
+#target_link_libraries(preset-x64 PRIVATE meman)
+#target_compile_options(preset-x64 PRIVATE "-Wno-unused-parameter")
+#
+#add_executable(preset-debug test/preset-debug.c )
+#target_include_directories(preset-debug PRIVATE output)
+#target_link_libraries(preset-debug PRIVATE meman preset-x64)
+#
+#aux_source_directory(test/preset/x64 TEST_PRESET_X64_SRC)
+#add_executable(test-preset-x64 test/test-preset-x64.c ${TEST_PRESET_X64_SRC})
+#target_include_directories(test-preset-x64 PRIVATE output test/preset/x64)
+#target_link_libraries(test-preset-x64 PRIVATE meman preset-x64)

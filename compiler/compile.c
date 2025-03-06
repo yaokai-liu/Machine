@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
         i++;
       }
     } else {
-      fprintf(stderr, "too many arguments.\n");
+      fprintf(stderr, "wrong count of arguments.\n");
       return -1;
     }
   }

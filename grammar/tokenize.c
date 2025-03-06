@@ -532,6 +532,21 @@ uint32_t tokenize_symbol_AND(
   result->length = 1;
   return 1;
 }
+uint32_t tokenize_symbol_NOT(
+    const char_t * const input, Terminal * const result, const Allocator * const
+) {
+  const char_t *pText = input;
+  if (*pText == '=') {
+    result->type = enum_COND_BIN_OP;
+    result->value = (void *) (uint64_t) CB_NE;
+    result->length = 2;
+    return 2;
+  }
+  result->type = enum_BOOL_NOT;
+  result->value = nullptr;
+  result->length = 1;
+  return 1;
+}
 
 uint32_t tokenize_number(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
@@ -591,13 +606,12 @@ uint32_t tokenize_arith_single_symbols(
 }
 constexpr uint32_t TERMINAL_TYPE_LITERALS[] = {
     enum_LEFT_BRACKET, enum_RIGHT_BRACKET, enum_COLON, enum_SEMICOLON, enum_RIGHT_SQUARE_BRACKET,
-    enum_RIGHT_PAREN,  enum_COMMA,         enum_DOT,   enum_AT,        enum_BOOL_NOT,
-    enum_QUESTION_MARK, enum_OP_WIDTH
+    enum_RIGHT_PAREN,  enum_COMMA,         enum_DOT,   enum_AT, enum_QUESTION_MARK, enum_OP_WIDTH
 };
 uint32_t tokenize_grammar_single_symbols(
     const char_t * const input, Terminal * const result, const Allocator * const
 ) {
-  constexpr char_t SINGLE_LITERAL[] = "{}:;]),.@!?#";
+  constexpr char_t SINGLE_LITERAL[] = "{}:;]),.@?#";
   uint32_t length = stridx_o(*input, SINGLE_LITERAL);
   if (length < lenof(SINGLE_LITERAL)) {
     result->type = TERMINAL_TYPE_LITERALS[length];
@@ -647,6 +661,9 @@ inline uint32_t single_tokenize(
     }
     case '&': {
       return tokenize_symbol_AND(input + 1, result, allocator);
+    }
+    case '!': {
+      return tokenize_symbol_NOT(input + 1, result, allocator);
     }
     default: {
     }
