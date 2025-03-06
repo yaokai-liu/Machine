@@ -37,7 +37,7 @@
 typedef struct Entry {
   uint32_t type;
   REFER(void) target;
-} Entry;
+} Entry, RealEntry, MacroApp;
 
 typedef Array Entries;  // Array<Entry>
 
@@ -150,6 +150,14 @@ typedef struct Memory {
   uint32_t width;
   MemItems *items;
 } Memory;
+
+typedef struct Array MacroParams; // Array<Identifier>
+
+typedef struct Macro {
+  Identifier  *name;
+  MacroParams *params;
+  Entry       *model;
+} Macro;
 
 typedef struct RegisterGroup RegisterGroup;
 

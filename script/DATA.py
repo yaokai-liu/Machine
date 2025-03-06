@@ -15,6 +15,7 @@ TERMINALS = {
         "ARITH_3_SIN_OP": 0,
         "OP_WIDTH": "#",
         "QUESTION_MARK": "?",
+        "MACRO": "macro",
         "INSTRUCTION": "instruction",
         "IMMEDIATE": "immediate",
         "COMMA": ",",

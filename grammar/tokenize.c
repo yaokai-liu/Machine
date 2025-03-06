@@ -48,6 +48,7 @@ uint32_t try_keyword_register(const char_t *input, Terminal *result, const Alloc
 uint32_t try_keyword_set(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_unsigned(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_signed(const char_t *input, Terminal *result, const Allocator *allocator);
+uint32_t try_keyword_macro(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t single_tokenize(const char_t *input, Terminal *result, const Allocator *allocator);
 
 uint32_t pass_whitespace(const char * const input);
@@ -232,6 +233,7 @@ fn_try_keyword(set, SET)
 fn_try_keyword(register, REGISTER)
 fn_try_keyword_val(unsigned, TYPE, IT_UNSIGNED)
 fn_try_keyword_val(signed, TYPE, IT_SIGNED)
+fn_try_keyword(macro, MACRO)
 #define fn_fall_through()                                           \
   do {                                                              \
     uint32_t length = t_IDENTIFIER(input - 1, result, allocator);   \
@@ -275,13 +277,29 @@ uint32_t tokenize_letter_i(
     default: fn_fall_through();
   }
 }
-
+uint32_t tokenize_letter_ma(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
+  if (*input != 'c') {
+    fn_fall_through();
+  }
+  const char_t *pText = input + 1;
+  switch (*pText) {
+    case 'r': {
+      return try_keyword_macro(input, result, allocator);
+    }
+    case 'h': {
+      return try_keyword_machine(input, result, allocator);
+    }
+    default: fn_fall_through();
+  }
+}
 uint32_t tokenize_letter_m(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
   switch (*input) {
     case 'a': {
-      return try_keyword_machine(input + 1, result, allocator);
+      return tokenize_letter_ma(input + 1, result, allocator);
     }
     case 'e': {
       return try_keyword_memory(input + 1, result, allocator);

@@ -49,28 +49,28 @@
 int main() {
   uint32_t cost = 0, n_tokens = 0;
   uint32_t lineno = 0, column = 0;
-  const char_t *filepath = "/mnt/d/Codelib/machine/preset/x64";
-  FILE *pFile = fopen(filepath, "r");
-  if (!pFile) { return -1; }
-  fseek(pFile, 0, SEEK_END);
-  uint32_t length = ftell(pFile);
-  fseek(pFile, 0, SEEK_SET);
-  char_t *testString = STDAllocator.malloc(sizeof(char_t) * (length + 1));
-  fread(testString, sizeof(char_t), length, pFile);
-  printf("read %u characters from file.\n\n", length);
-  if (fclose(pFile)) {
-    printf("failed to close file.\n");
-    return -2;
-  }
-  clock_t start = clock();
+//  const char_t *filepath = "/mnt/d/Codelib/machine/preset/x64";
+//  FILE *pFile = fopen(filepath, "r");
+//  if (!pFile) { return -1; }
+//  fseek(pFile, 0, SEEK_END);
+//  uint32_t length = ftell(pFile);
+//  fseek(pFile, 0, SEEK_SET);
+//  char_t *testString = STDAllocator.malloc(sizeof(char_t) * (length + 1));
+//  fread(testString, sizeof(char_t), length, pFile);
+//  printf("read %u characters from file.\n\n", length);
+//  if (fclose(pFile)) {
+//    printf("failed to close file.\n");
+//    return -2;
+//  }
+//  clock_t start = clock();
 
-  //    const char_t * str = string_t("[23-12]");
+      const char_t * str = string_t("machine macro masdafa");
   const Terminal *terminals =
-      tokenize(testString, &cost, &n_tokens, &lineno, &column, &STDAllocator);
+      tokenize(str, &cost, &n_tokens, &lineno, &column, &STDAllocator);
   if (terminals[n_tokens - 1].type != enum_TERMINATOR) {
-    printf("failed to lex %s:%u:%u\n", filepath, lineno, column);
-    printf("unknown character '%c'\n", testString[cost]);
-    STDAllocator.free((void *) terminals);
+//    printf("failed to lex %s:%u:%u\n", filepath, lineno, column);
+    printf("unknown character '%c'\n", str[cost]);
+//    STDAllocator.free((void *) terminals);
     return -3;
   }
   //  for (uint32_t i = 0; i < n_tokens; i++) {
@@ -82,46 +82,46 @@ int main() {
   //        get_name(terminals[i].type), terminals[i].value
   //    );
   //  }
-  const char_t *err_msg = nullptr;
-  const Machine *machine = parse(terminals, &cost, &err_msg, &STDAllocator);
-  if (!machine) {
-    printf("failed to parse. %s\n", err_msg);
-    for (uint32_t i = cost; i < n_tokens; i++) {
-      releaseToken(terminals[i].value, terminals[i].type, &STDAllocator);
-    }
-    STDAllocator.free((void *) terminals);
-    return -4;
-  }
-  Generator *generator = Generator_new(&STDAllocator);
-  codegen(generator, machine);
-  clock_t end = clock();
+//  const char_t *err_msg = nullptr;
+//  const Machine *machine = parse(terminals, &cost, &err_msg, &STDAllocator);
+//  if (!machine) {
+//    printf("failed to parse. %s\n", err_msg);
+//    for (uint32_t i = cost; i < n_tokens; i++) {
+//      releaseToken(terminals[i].value, terminals[i].type, &STDAllocator);
+//    }
+//    STDAllocator.free((void *) terminals);
+//    return -4;
+//  }
+//  Generator *generator = Generator_new(&STDAllocator);
+//  codegen(generator, machine);
+//  clock_t end = clock();
 
   //  char_t string[512] = {};
   //  memcpy(string, machine->name->ptr, machine->name->len);
   //  string[machine->name->len] = '\0';
   //  printf("machine %s\n", string);
 
-  pFile = fopen("machine-x64.h", "w");
-  if (!pFile) { return -1; }
-  print(GenBuf_exports);
-  fclose(pFile);
-
-  pFile = fopen("machine-x64.c", "w");
-  if (!pFile) { return -1; }
-  print(GenBuf_includes);
-  print(GenBuf_macros);
-  print(GenBuf_enums);
-  print(GenBuf_types);
-  print(GenBuf_declares);
-  print(GenBuf_definitions);
-  print(GenBuf_tables);
-  fclose(pFile);
-
-  printf("time cost: %fms\n", (double) (end - start) / CLOCKS_PER_SEC * 1000);
-
-  releaseMachine((Machine *) machine, &STDAllocator);
-  STDAllocator.free((void *) machine);
-  STDAllocator.free((void *) terminals);
-  Generator_destroy(generator);
+//  pFile = fopen("machine-x64.h", "w");
+//  if (!pFile) { return -1; }
+//  print(GenBuf_exports);
+//  fclose(pFile);
+//
+//  pFile = fopen("machine-x64.c", "w");
+//  if (!pFile) { return -1; }
+//  print(GenBuf_includes);
+//  print(GenBuf_macros);
+//  print(GenBuf_enums);
+//  print(GenBuf_types);
+//  print(GenBuf_declares);
+//  print(GenBuf_definitions);
+//  print(GenBuf_tables);
+//  fclose(pFile);
+//
+//  printf("time cost: %fms\n", (double) (end - start) / CLOCKS_PER_SEC * 1000);
+//
+//  releaseMachine((Machine *) machine, &STDAllocator);
+//  STDAllocator.free((void *) machine);
+//  STDAllocator.free((void *) terminals);
+//  Generator_destroy(generator);
   return 0;
 }
