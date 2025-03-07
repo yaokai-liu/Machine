@@ -70,7 +70,6 @@ add_test_for(MEMORY, "memory")
 add_test_for(SET, "set")
 add_test_for(TYPE, "unsigned")
 add_test_for(REGISTER, "register")
-add_test_for(MACRO, "macro")
 
 Suite *keyword_suite() {
   Suite *suite = suite_create("Keywords");
@@ -82,7 +81,6 @@ Suite *keyword_suite() {
   tcase_add_test(tc_keywords, test_SET);
   tcase_add_test(tc_keywords, test_TYPE);
   tcase_add_test(tc_keywords, test_REGISTER);
-  tcase_add_test(tc_keywords, test_MACRO);
   suite_add_tcase(suite, tc_keywords);
   return suite;
 }

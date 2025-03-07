@@ -337,36 +337,8 @@ Entry *p_Entry_3(void *[], GContext *, const Allocator *) {
   return (REFER(Entry))(uint64_t) (enum_Entry);
 }
 
-RealEntry *p_RealEntry_0(void *argv[], GContext *, const Allocator *allocator) {
-  RegisterGroup *grp = (RegisterGroup *)argv[0];
-  RealEntry *entry = allocator->calloc(1, sizeof(RealEntry));
-  entry->type = enum_RegisterGroup;
-  entry->target = grp;
-  return entry;
-}
-
-RealEntry *p_RealEntry_1(void *argv[], GContext *, const Allocator *allocator) {
-  Instruction *instr = (Instruction *)argv[0];
-  RealEntry *entry = allocator->calloc(1, sizeof(RealEntry));
-  entry->type = enum_Instruction;
-  entry->target = instr;
-  return entry;
-}
-
-RealEntry *p_RealEntry_2(void *argv[], GContext *, const Allocator *allocator) {
-  Memory *mem      = (Memory *)argv[0];
-  RealEntry *entry = allocator->calloc(1, sizeof(RealEntry));
-  entry->type = enum_Memory;
-  entry->target = mem;
-  return entry;
-}
-
-RealEntry *p_RealEntry_3(void *argv[], GContext *, const Allocator *allocator) {
-  Immediate *imm   = (Immediate *)argv[0];
-  RealEntry *entry = allocator->calloc(1, sizeof(RealEntry));
-  entry->type = enum_Immediate;
-  entry->target = imm;
-  return entry;
+Entry *p_Entry_4(void *[], GContext *, const Allocator *) {
+  return (REFER(Entry))(uint64_t) (enum_Entry);
 }
 
 Variable *p_Variable_0(void *argv[], GContext *context, const Allocator *allocator) {
@@ -392,7 +364,7 @@ Variable *p_Variable_0(void *argv[], GContext *context, const Allocator *allocat
   var->rhs = Array_vert2real(memory->items, item);
   return var;
 }
-#include <stdio.h>
+
 Variable *p_Variable_1(void *argv[], GContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[0];
 
@@ -564,7 +536,7 @@ InstrForm *p_InstrForm_0(void *argv[], GContext *, const Allocator *allocator) {
   form->width = width;
   form->tick = 1;
   form->pattern = pattern;
-  form->check = (check == (void *) true) ? nullptr : check;
+  form->check = (check == (void *) enum_FormCheck) ? nullptr : check;
   form->parts = part_array;
 
   return form;
@@ -585,7 +557,7 @@ InstrForm *p_InstrForm_1(void *argv[], GContext *, const Allocator *allocator) {
   form->width = width;
   form->tick = tick;
   form->pattern = pattern;
-  form->check = (check == (void *) true) ? nullptr : check;
+  form->check = (check == (void *) enum_FormCheck) ? nullptr : check;
   form->parts = part_array;
   return form;
 }
@@ -605,14 +577,14 @@ InstrForms *p_InstrForms_1(void *argv[], GContext *, const Allocator *allocator)
   allocator->free(form);
   return forms;
 }
+
 FormCheck *p_FormCheck_0(void *argv[], GContext *, const Allocator *) {
   FormCheck *check = (FormCheck *) argv[0];
   return check;
 }
 
 FormCheck *p_FormCheck_1(void *[], GContext *, const Allocator *) {
-  FormCheck *check = (FormCheck *) (uint64_t) true;
-  return check;
+  return (FormCheck *) (uint64_t) enum_FormCheck;
 }
 
 InstrPart *p_InstrPart_0(void *argv[], GContext *context, const Allocator *allocator) {
@@ -694,11 +666,8 @@ Instruction *p_Instruction_0(void *argv[], GContext *context, const Allocator *)
   grammarAssertNotDeclaredOpcode(identifier);
 
   Instruction instruction = {.name = identifier, .forms = forms};
-
   REFER(Instruction) instr = GContext_addInstruction(context, &instruction);
-
   GContext_dump_instruction(context, instr);
-
   return instr;
 }
 
@@ -724,44 +693,6 @@ Layout *p_Layout_2(void *argv[], GContext *, const Allocator *allocator) {
   layout->type = enum_MappingItems;
   layout->target = items;
   return layout;
-}
-
-Macro * p_Macro_0(void * argv[], GContext *, const Allocator * allocator) {
-  Identifier *ident = (Identifier *) argv[1];
-  MacroParams *params = (MacroParams *) argv[3];
-  RealEntry *model = (RealEntry *)argv[5];
-
-  Macro *macro = allocator->calloc(1, sizeof(Macro));
-  macro->name = ident;
-  macro->params = params;
-  macro->model = model;
-
-  return macro;
-}
-
-MacroApp * p_MacroApp_0(void * [], GContext *, const Allocator *) {
-  return nullptr;
-}
-
-MacroParams * p_MacroParams_0(void * argv[], GContext *, const Allocator * allocator) {
-  MacroParams *params = (MacroParams *) argv[0];
-  Identifier *ident = (Identifier *) argv[2];
-
-  Array_append(params, ident, 1);
-  releaseIdentifier(ident, allocator);
-  allocator->free(ident);
-
-  return params;
-}
-MacroParams * p_MacroParams_1(void * argv[], GContext *, const Allocator * allocator) {
-  Identifier *ident = (Identifier *) argv[0];
-
-  MacroParams *params = Array_new(sizeof(Identifier), enum_IDENTIFIER, allocator);
-  Array_append(params, ident, 1);
-  releaseIdentifier(ident, allocator);
-  allocator->free(ident);
-
-  return params;
 }
 
 Machine *p_Machine_0(void *argv[], GContext *context, const Allocator *allocator) {

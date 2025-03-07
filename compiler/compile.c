@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
   clock_t start = clock();
   const Terminal *terminals = tokenize(text, &cost, &n_tokens, &lineno, &column, &STDAllocator);
   STDAllocator.free(text);
-  if (terminals[n_tokens - 1].type != enum_TERMINATOR) {
+  if (!terminals || terminals[n_tokens - 1].type != enum_TERMINATOR) {
     fprintf(stderr, "failed to lex %s:%u:%u\n", srcpath, lineno, column);
     fprintf(stderr, "unknown character '%c'\n", text[cost]);
     STDAllocator.free((void *) terminals);

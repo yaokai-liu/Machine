@@ -63,7 +63,6 @@ typedef struct GContext {
   uint32_t maxArgCount;
   uint32_t maxFieldCount;
   const char_t *errorMessage;
-  bool isCondition;
 } GContext;
 
 typedef struct GContext GContext;
@@ -118,7 +117,6 @@ Trie /*<REFER(Record), uint64_t>*/ *
 void GContext_dump_instruction(GContext *context, Instruction *instr);
 
 uint64_t GContext_getLastWidth(GContext *context);
-bool GContext_isCondition(GContext *context);
 
 void GContext_setErrorMessage(GContext *context, const char_t *msg);
 const char_t *GContext_getErrorMessage(GContext *context);
