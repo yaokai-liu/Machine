@@ -28,7 +28,7 @@
 #ifndef MACHINE_ENUM_H
 #define MACHINE_ENUM_H
 
-#include "tokens.gen.h"
+#include "generated/machine/tokens.gen.h"
 
 enum IMMEDIATE_TYPE {
   IT_UNSIGNED,

@@ -18,7 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * Project Name: machine
- * Module Name: grammar
+ * Module Name: grammar/parse
  * Filename: parse.c
  * Creator: Yaokai Liu
  * Create Date: 2024-10-27
@@ -45,7 +45,7 @@ Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocat
 
 #define MAX_ARGC 0x10
 Machine *parse(
-    const Terminal *tokens, uint32_t *cost, const char_t **err_msg, const Allocator *allocator
+    const Terminal *const tokens, uint32_t *cost, const char_t **err_msg, const Allocator *allocator
 ) {
   void *result;
   int32_t state = 0;
@@ -60,7 +60,6 @@ Machine *parse(
   while (true) {
     const struct grammar_action *act = getAction(state, tp->type);
     if (!act) {
-      *cost = (uint32_t) (uint64_t) (tp - tokens);
       *err_msg = "unexpected token.";
       GContext_destroy(context);
       return clean_parse_stack(state_stack, token_stack, allocator);
@@ -71,7 +70,7 @@ Machine *parse(
       Stack_push(state_stack, &state, sizeof(int32_t));
       fn_ctx_act *ctx_act = get_after_stack_actions(state);
       if (ctx_act) { ctx_act(context, tp->value); }
-      tp++;
+      tp++, (*cost) ++;
     } else if (act->action == reduce) {
       Stack_pop(token_stack, args, act->count * sizeof(void *));
       Stack_pop(state_stack, states, act->count * sizeof(int32_t));
@@ -79,14 +78,12 @@ Machine *parse(
       fn_reduce *reduce = PRODUCTS[act->offset];
       result = reduce(args, context, allocator);
       if (!result) {
-        *cost = (uint32_t) (uint64_t) (tp - tokens);
         GContext_destroy(context);
         *err_msg = GContext_getErrorMessage(context);
         return failed_to_produce(state_stack, token_stack, args, states, act->count, allocator);
       }
       state = jump(state, act->type);
       if (state < 0) {
-        *cost = (uint32_t) (uint64_t) (tp - tokens);
         GContext_destroy(context);
         *err_msg = "unexpected token.";
         return failed_to_get_next_state(state_stack, token_stack, result, act->type, allocator);
@@ -104,7 +101,6 @@ Machine *parse(
   Stack_clear(state_stack);
   allocator->free(token_stack);
   allocator->free(state_stack);
-  *cost = (uint32_t) (uint64_t) (tp - tokens);
   Machine *machine = result;
   return machine;
 }

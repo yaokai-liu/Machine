@@ -29,9 +29,9 @@
 #include "define.h"
 #include "encoding.h"
 #include "generator.h"
+#include "target.h"
 #include "pattern_match.h"
 #include "static.h"
-#include "target.h"
 #include <stdint.h>
 
 int32_t codegen(Generator *generator, const Machine *machine) {

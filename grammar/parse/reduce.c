@@ -18,7 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * Project Name: machine
- * Module Name: grammar
+ * Module Name: grammar/parse
  * Filename: reduce.c
  * Creator: Yaokai Liu
  * Create Date: 2024-09-15
@@ -29,12 +29,12 @@
 #include "array.h"
 #include "avl-tree.h"
 #include "context.h"
+#include "enum.h"
 #include "expr-reduce.h"
+#include "tokens.gen.h"
 #include "semantic.h"
 #include "target.h"
 #include "terminal.h"
-#include "tokens.gen.h"
-#include <enum.h>
 #include <stdint.h>
 
 #define min(a, b) ((a) < (b)) ? (a) : (b)

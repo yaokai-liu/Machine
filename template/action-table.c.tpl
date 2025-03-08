@@ -23,8 +23,8 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "action-table.h"
 #include "action-table.gen.h"
+#include "machine/action-table.h"
 #include "reduce.gen.h"
 #include "tokens.gen.h"
 

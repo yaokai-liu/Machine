@@ -23,7 +23,7 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "parse.h"
+#include "machine/parse.h"
 #include "reduce.gen.h"
 
 fn_reduce * const PRODUCTS[] = {

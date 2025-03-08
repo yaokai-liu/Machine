@@ -30,9 +30,9 @@
 #include "generate.h"
 #include "parse.h"
 #include "target.h"
+#include "tokens.gen.h"
 #include "terminal.h"
 #include "tokenize.h"
-#include "tokens.gen.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

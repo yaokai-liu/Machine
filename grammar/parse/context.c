@@ -18,7 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * Project Name: machine
- * Module Name: grammar
+ * Module Name: grammar/parse
  * Filename: context.c
  * Creator: Yaokai Liu
  * Create Date: 2024-12-05

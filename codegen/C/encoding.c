@@ -28,11 +28,11 @@
 #include "encoding.h"
 #include "array.h"
 #include "char_t.h"
-#include "context.h"
 #include "enum.h"
+#include "context.h"
+#include "tokens.gen.h"
 #include "stdint.h"
 #include "terminal.h"
-#include "tokens.gen.h"
 #include "trie-dump.h"
 #include <stdio.h>
 #include <string.h>

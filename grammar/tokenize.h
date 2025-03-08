@@ -32,6 +32,10 @@
 #include "terminal.h"
 #include <stdint.h>
 
+uint32_t pass_space(const char *input, uint32_t *lineno, uint32_t *column);
+
+uint32_t single_tokenize(const char_t *input, Terminal *result, const Allocator *allocator);
+
 const Terminal *tokenize(
     const char_t *input, uint32_t *cost, uint32_t *n_tokens, uint32_t *lineno, uint32_t *column,
     const Allocator *allocator

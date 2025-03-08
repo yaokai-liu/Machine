@@ -29,7 +29,7 @@
 #include "char_t.h"
 #include "terminal.h"
 #include "tokenize.h"
-#include "tokens.gen.h"
+#include "machine/tokens.gen.h"
 #include <check.h>
 #include <stdint.h>
 

@@ -42,4 +42,5 @@ TERMINALS = {
         "REGISTER": "register",
         "IN": "in",
         "TERMINATOR": 0,
+        "TOKEN": 0
 }

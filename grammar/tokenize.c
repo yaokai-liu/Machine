@@ -27,9 +27,10 @@
 #include "tokenize.h"
 #include "array.h"
 #include "enum.h"
+#include "generated/machine/tokens.gen.h"
+#include "preprocess.h"
 #include "string_t.h"
 #include "terminal.h"
-#include "tokens.gen.h"
 
 #define lenof(str_literal) ((sizeof str_literal) - 1)
 #define max(a, b)          ((a) > (b) ? (a) : (b))
@@ -46,12 +47,11 @@ uint32_t try_keyword_machine(const char_t *input, Terminal *result, const Alloca
 uint32_t try_keyword_memory(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_register(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_set(const char_t *input, Terminal *result, const Allocator *allocator);
+uint32_t try_keyword_macro(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_unsigned(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_signed(const char_t *input, Terminal *result, const Allocator *allocator);
-uint32_t single_tokenize(const char_t *input, Terminal *result, const Allocator *allocator);
 
-uint32_t pass_whitespace(const char * const input);
-uint32_t pass_space(const char * const input, uint32_t * const lineno, uint32_t * const column);
+uint32_t pass_whitespace(const char *input);
 
 #define startswithDigital(pText) ('0' <= (pText)[0] && (pText)[0] <= '9')
 #define startswithLetter(pText) \
@@ -229,6 +229,7 @@ fn_try_keyword(instruction, INSTRUCTION)
 fn_try_keyword(machine, MACHINE)
 fn_try_keyword(memory, MEMORY)
 fn_try_keyword(set, SET)
+fn_try_keyword(macro, MACRO)
 fn_try_keyword(register, REGISTER)
 fn_try_keyword_val(unsigned, TYPE, IT_UNSIGNED)
 fn_try_keyword_val(signed, TYPE, IT_SIGNED)
@@ -276,12 +277,26 @@ uint32_t tokenize_letter_i(
   }
 }
 
+uint32_t tokenize_startswith_ma(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
+  switch (*input) {
+    case 'c': {
+      return try_keyword_machine(input, result, allocator);
+    }
+    case 'r': {
+      return try_keyword_macro(input, result, allocator);
+    }
+    default: fn_fall_through();
+  }
+}
+
 uint32_t tokenize_letter_m(
     const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
   switch (*input) {
     case 'a': {
-      return try_keyword_machine(input + 1, result, allocator);
+      return tokenize_startswith_ma(input + 1, result, allocator);
     }
     case 'e': {
       return try_keyword_memory(input + 1, result, allocator);

@@ -18,7 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * Project Name: machine
- * Module Name: grammar
+ * Module Name: grammar/parse
  * Filename: optimize.h
  * Creator: Yaokai Liu
  * Create Date: 2025-02-13
@@ -28,7 +28,7 @@
 #ifndef MACHINE_EXPR_REDUCE_H
 #define MACHINE_EXPR_REDUCE_H
 
-#include <target.h>
+#include "target.h"
 
 CondExpr *optimize_not_expr(CondExpr *, const Allocator *allocator);
 

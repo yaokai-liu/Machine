@@ -30,8 +30,8 @@
 
 #include "array.h"
 #include "char_t.h"
-#include "context.h"
 #include "generator.h"
+#include "context.h"
 #include <stdbool.h>
 #include <stdint.h>
 

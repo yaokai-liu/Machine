@@ -26,8 +26,8 @@
  **/
 
 #include "char_t.h"
-#include "context.h"
 #include "generate.h"
+#include "context.h"
 #include "tokens.gen.h"
 #include "trie-dump.h"
 #include <stdint.h>
