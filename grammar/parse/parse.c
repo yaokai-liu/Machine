@@ -26,7 +26,8 @@
  **/
 
 #include "parse.h"
-#include "action-table.h"
+#include "action.h"
+#include "action-table.gen.h"
 #include "context.h"
 #include "reduce.gen.h"
 #include "stack.h"
@@ -58,7 +59,7 @@ Machine *parse(
   GContext *context = GContext_new(allocator);
 
   while (true) {
-    const struct grammar_action *act = getAction(state, tp->type);
+    const struct grammar_action *act = getParseAction(state, tp->type);
     if (!act) {
       *err_msg = "unexpected token.";
       GContext_destroy(context);
@@ -75,14 +76,14 @@ Machine *parse(
       Stack_pop(token_stack, args, act->count * sizeof(void *));
       Stack_pop(state_stack, states, act->count * sizeof(int32_t));
       Stack_top(state_stack, (int32_t *) &state, sizeof(int32_t));
-      fn_reduce *reduce = PRODUCTS[act->offset];
+      fn_reduce *reduce = MACHINE_PRODUCTS[act->offset];
       result = reduce(args, context, allocator);
       if (!result) {
         GContext_destroy(context);
         *err_msg = GContext_getErrorMessage(context);
         return failed_to_produce(state_stack, token_stack, args, states, act->count, allocator);
       }
-      state = jump(state, act->type);
+      state = parseJumpState(state, act->type);
       if (state < 0) {
         GContext_destroy(context);
         *err_msg = "unexpected token.";

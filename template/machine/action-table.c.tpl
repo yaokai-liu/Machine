@@ -24,7 +24,7 @@
  **/
 
 #include "action-table.gen.h"
-#include "machine/action-table.h"
+#include "action.h"
 #include "reduce.gen.h"
 #include "tokens.gen.h"
 
@@ -39,36 +39,36 @@ struct unit {
   uint8_t offset;
 };
 
-const struct grammar_action ACTIONS[];
-const uint16_t JUMPS[];
-const struct unit UNITS[];
-const struct state STATES[];
-const uint32_t CURRENT_TOKENS[];
+const struct grammar_action MACHINE_ACTIONS[];
+const uint16_t MACHINE_JUMPS[];
+const struct unit MACHINE_UNITS[];
+const struct state MACHINE_STATES[];
+const uint32_t MACHINE_CURRENT_TOKENS[];
 
-const struct unit *getUnit(const state *state, uint32_t look);
+const struct unit *getParseUnit(const state *state, uint32_t look);
 
-const struct grammar_action ACTIONS[] = {
+const struct grammar_action MACHINE_ACTIONS[] = {
   ${actions}
 };
 
-const uint16_t JUMPS[] = {
+const uint16_t MACHINE_JUMPS[] = {
   ${jumps}
 };
 
-const struct unit UNITS[] = {
+const struct unit MACHINE_UNITS[] = {
   ${units}
 };
 
-const struct state STATES[] = {
+const struct state MACHINE_STATES[] = {
   ${states}
 };
 
-const uint32_t CURRENT_TOKENS[] = {
+const uint32_t MACHINE_CURRENT_TOKENS[] = {
   ${currents}
 };
 
-inline const struct unit *getUnit(const state *state, uint32_t look) {
-    const struct unit *unit, *base = &UNITS[state->token_base];
+inline const struct unit *getParseUnit(const state *state, uint32_t look) {
+    const struct unit *unit, *base = &MACHINE_UNITS[state->token_base];
     uint32_t left = 0, right = state->n_tokens - 1;
     uint32_t u_idx = (left + right) / 2;
     unit = &base[u_idx];
@@ -86,21 +86,21 @@ inline const struct unit *getUnit(const state *state, uint32_t look) {
 }
 
 
-inline const struct grammar_action *getAction(uint32_t index, uint32_t ahead) {
-    const state *state = &STATES[index];
-    const struct unit *unit = getUnit(state, ahead);
+inline const struct grammar_action *getParseAction(uint32_t index, uint32_t ahead) {
+    const state *state = &MACHINE_STATES[index];
+    const struct unit *unit = getParseUnit(state, ahead);
     if (!unit) { return nullptr; }
-    const struct grammar_action *act = &ACTIONS[state->ndx_base + unit->offset];
+    const struct grammar_action *act = &MACHINE_ACTIONS[state->ndx_base + unit->offset];
     return act;
 }
 
-inline int32_t jump(uint32_t index, uint32_t current) {
-    const state *state = &STATES[index];
-    const struct unit *unit = getUnit(state, current);
+inline int32_t parseJumpState(uint32_t index, uint32_t current) {
+    const state *state = &MACHINE_STATES[index];
+    const struct unit *unit = getParseUnit(state, current);
     if (!unit) { return -1; }
-    return JUMPS[state->goto_base + unit->offset];
+    return MACHINE_JUMPS[state->goto_base + unit->offset];
 }
 
-inline uint32_t stateCurrentTokenType(int32_t state) {
-  return CURRENT_TOKENS[state];
+inline uint32_t getParseStateCurrentTokenType(int32_t state) {
+  return MACHINE_CURRENT_TOKENS[state];
 }

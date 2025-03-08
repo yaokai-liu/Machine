@@ -25,6 +25,6 @@
 
 #include "tokens.gen.h"
 
-const char_t *MACHINE_TOKEN_NAMES[] = {
+const char_t *TOKEN_NAMES[] = {
   ${names}
 };

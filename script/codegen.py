@@ -5,6 +5,7 @@ import json
 from string import Template as Tp
 from DATA import *
 import re
+from functools import cmp_to_key as c2k
 
 
 class Rule:
@@ -73,6 +74,9 @@ class Generator:
         self.status, self.reflect = dict(), dict()
         for s, p in enumerate(self.table.keys()):
             self.status[s], self.reflect[p] = self.table[p], s
+        self.extend_tokens = self.tokens
+    def set_extend_tokens(self, tokens):
+        self.extend_tokens = tokens
 
     def get_json_from(self, filename: str):
         with open(self.JSON_DIR / filename, 'r') as fp:
@@ -81,23 +85,6 @@ class Generator:
     def get_temp_from(self, filename: str):
         with open(self.TEMPLATE_DIR / filename, 'r') as fp:
             return fp.read()
-
-
-    def gen_token_enum(self):
-        template = Tp(self.get_temp_from("tokens.h.tpl"))
-        enums = ',\n  '.join([f"enum_{t} = {i + 1}" for i, t in enumerate(self.tokens)])
-        enums_entry = template.substitute(enums=enums)
-        with open(self.OUT_DIR / "tokens.gen.h", 'w') as fp:
-            fp.write(enums_entry)
-
-
-    def gen_token_name(self):
-        template = Tp(self.get_temp_from("tokens.c.tpl"))
-        names = ',\n  '.join([f'[enum_{t}] = string_t("{t}")' for t in self.tokens])
-        names_entry = template.substitute(names=names)
-        with open(self.OUT_DIR / "tokens.gen.c", 'w') as fp:
-            fp.write(names_entry)
-
 
     def gen_terminals(self):
         template = Tp(self.get_temp_from("terminal.c.tpl"))
@@ -140,13 +127,17 @@ class Generator:
 
 
     def gen_action_table(self):
+        def token_cmp(t1, t2):
+            a = self.extend_tokens.index(t1)
+            b = self.extend_tokens.index(t2)
+            return 1 if a > b else 0 if a == b else -1
         state_enum, states, actions, jumps, units, currents = [], [], [], [], [], []
         for p, q in self.table.items():
             _state, current = self.state_to_enum(p)
             state_enum.append(f'{_state} = {len(state_enum)}')
             _tokens = q.keys()
-            _terminals = sorted(_tokens & set(self.terminals))
-            _targets = sorted(_tokens & set(self.targets))
+            _terminals = sorted(_tokens & set(self.terminals), key=c2k(token_cmp))
+            _targets = sorted(_tokens & set(self.targets), key=c2k(token_cmp))
             state = {
                 "ndx_base": len(actions),
                 "goto_base": len(jumps),
@@ -187,11 +178,27 @@ class Generator:
             fp.write(content_h)
 
     def generate(self):
-        self.gen_token_enum()
-        self.gen_token_name()
         self.gen_terminals()
         self.gen_reduces()
         self.gen_action_table()
+
+def gen_token_enum(template, tokens, out):
+    with open(template, 'r') as fp:
+        temp = fp.read()
+    template = Tp(temp)
+    enums = ',\n  '.join([f"enum_{t} = {i + 1}" for i, t in enumerate(tokens)])
+    enums_entry = template.substitute(enums=enums)
+    with open(out, 'w') as fp:
+        fp.write(enums_entry)
+def gen_token_name(template, tokens, out):
+    with open(template, 'r') as fp:
+        temp = fp.read()
+    template = Tp(temp)
+    names = ',\n  '.join([f'[enum_{t}] = string_t("{t}")' for t in tokens])
+    names_entry = template.substitute(names=names)
+    with open(out, 'w') as fp:
+        fp.write(names_entry)
+
 
 
 if __name__ == '__main__':
@@ -200,12 +207,25 @@ if __name__ == '__main__':
     OUT_DIR = Path(sys.argv[3])
 
     GMachine = Generator(json_dir=JSON_DIR / "machine",
-                         template_dir=TEMPLATE_DIR,
+                         template_dir=TEMPLATE_DIR / "machine",
                          out_dir=OUT_DIR / "machine",
                          target="Machine")
     GMacro = Generator(json_dir=JSON_DIR / "macro",
-                       template_dir=TEMPLATE_DIR,
+                       template_dir=TEMPLATE_DIR / "macro",
                        out_dir=OUT_DIR / "macro",
                        target="Entry")
+
+    tokens = sorted(set(GMachine.tokens) | set(GMacro.tokens))
+    GMachine.set_extend_tokens(tokens)
+    GMacro.set_extend_tokens(tokens)
+
+    gen_token_enum(TEMPLATE_DIR / "tokens.h.tpl",
+                   tokens,
+                   OUT_DIR / "tokens.gen.h")
+
+    gen_token_name(TEMPLATE_DIR / "tokens.c.tpl",
+                   tokens,
+                   OUT_DIR / "tokens.gen.c")
+
     GMachine.generate()
     GMacro.generate()

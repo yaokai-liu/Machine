@@ -27,7 +27,7 @@
 #include "tokenize.h"
 #include "array.h"
 #include "enum.h"
-#include "generated/machine/tokens.gen.h"
+#include "generated/tokens.gen.h"
 #include "preprocess.h"
 #include "string_t.h"
 #include "terminal.h"
@@ -775,5 +775,5 @@ const Terminal *tokenize(
 }
 
 inline const char_t *get_name(uint16_t type) {
-  return MACHINE_TOKEN_NAMES[type];
+  return TOKEN_NAMES[type];
 }

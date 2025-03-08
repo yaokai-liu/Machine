@@ -23,16 +23,15 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef MACHINE_REDUCES_H
-#define MACHINE_REDUCES_H
+#ifndef MACRO_REDUCES_H
+#define MACRO_REDUCES_H
 
-#include "machine/parse.h"
-#include "machine/target.h"
+#include "target.h"
 
-enum __PRODUCT_RULE_ENUM__ {
+enum __MACRO_PRODUCT_RULE_ENUM__ {
   ${enum_reduces}
 };
 
 ${reduces}
 
-#endif  // MACHINE_REDUCES_H
+#endif  // MACRO_REDUCES_H

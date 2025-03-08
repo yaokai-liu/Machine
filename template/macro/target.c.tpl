@@ -18,34 +18,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * Project Name: machine
- * Module Name: grammar/parse
- * Filename: action-table.h
- * Creator: Yaokai Liu
- * Create Date: 2024-08-26
+ * Module Name: template
+ * Filename: target.gen.c
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef MACHINE_ACTION_TABLE_H
-#define MACHINE_ACTION_TABLE_H
+#include "reduce.gen.h"
 
-#include <stdint.h>
+typedef void *fn_reduce(void **,GContext *,const Allocator *);
 
-typedef struct state state;
-struct grammar_action {
-  enum : uint8_t {
-    reject = 0,
-    stack = 1,
-    reduce = 2
-  } action      : 4;
-  uint8_t count : 4;
-  uint8_t type;
-  const int16_t offset;
+fn_reduce * const MACRO_PRODUCTS[] = {
+  ${assign_reduces}
 };
-
-const struct grammar_action *getAction(uint32_t index, uint32_t ahead);
-
-int32_t jump(uint32_t index, uint32_t current);
-
-uint32_t stateCurrentTokenType(int32_t state);
-
-#endif  // MACHINE_ACTION_TABLE_H

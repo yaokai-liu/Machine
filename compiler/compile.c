@@ -30,9 +30,9 @@
 #include "generate.h"
 #include "parse.h"
 #include "target.h"
-#include "tokens.gen.h"
 #include "terminal.h"
 #include "tokenize.h"
+#include "tokens.gen.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -131,8 +131,9 @@ int main(int argc, char *argv[]) {
     return -2;
   }
   clock_t start = clock();
+//  Tokenizer *tokenizer = Tokenizer_new(text, &STDAllocator);
   const Terminal *terminals = tokenize(text, &cost, &n_tokens, &lineno, &column, &STDAllocator);
-  STDAllocator.free(text);
+//  Terminal *terminals = Tokenizer_next();
   if (!terminals || terminals[n_tokens - 1].type != enum_TERMINATOR) {
     fprintf(stderr, "failed to lex %s:%u:%u\n", srcpath, lineno, column);
     fprintf(stderr, "unknown character '%c'\n", text[cost]);
@@ -149,9 +150,11 @@ int main(int argc, char *argv[]) {
     for (uint32_t j = cost; j < n_tokens; j++) {
       releaseToken(terminals[j].value, terminals[j].type, &STDAllocator);
     }
+    STDAllocator.free(text);
     STDAllocator.free((void *) terminals);
     return -4;
   }
+  STDAllocator.free(text);
   Generator *generator = Generator_new(&STDAllocator);
   Generator_setCopyright(generator, outname, headpath, libpath, cr_holder, year);
   codegen(generator, machine);

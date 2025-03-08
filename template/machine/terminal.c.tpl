@@ -18,25 +18,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * Project Name: machine
- * Module Name: grammar/parse
- * Filename: parse.h
- * Creator: Yaokai Liu
- * Create Date: 2024-10-27
+ * Module Name: template
+ * Filename: terminals.gen.c
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
+#include "terminal.h"
+#include "tokens.gen.h"
+const char_t MACHINE_TERMINALS[] = {
+  ${terminals}
+};
 
-#ifndef MACHINE_PARSE_H
-#define MACHINE_PARSE_H
+const char_t * MACHINE_TERMINAL_STRINGS[] = {
+  ${strings}
+};
 
-#include "context.h"
-#include "target.h"
+const uint32_t MACHINE_TERMINAL_STRING_LENS[] = {
+  ${string_lens}
+};
 
-typedef void *fn_reduce(void *argv[], GContext *context, const Allocator *allocator);
-
-extern fn_reduce * const MACHINE_PRODUCTS[];
-
-Machine *parse(
-    const Terminal *tokens, uint32_t *cost, const char_t **err_msg, const Allocator *allocator
-);
-
-#endif  // MACHINE_PARSE_H
+const int32_t N_MACHINE_TERMINAL = sizeof(MACHINE_TERMINALS);

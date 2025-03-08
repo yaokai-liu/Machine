@@ -18,25 +18,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * Project Name: machine
- * Module Name: grammar/parse
- * Filename: parse.h
- * Creator: Yaokai Liu
- * Create Date: 2024-10-27
+ * Module Name: template
+ * Filename: action-table.gen.h
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef MACHINE_PARSE_H
-#define MACHINE_PARSE_H
+#ifndef MACRO_ACTION_TABLE_GEN_H
+#define MACRO_ACTION_TABLE_GEN_H
 
-#include "context.h"
-#include "target.h"
+#include <stdint.h>
 
-typedef void *fn_reduce(void *argv[], GContext *context, const Allocator *allocator);
+enum __MACRO_STATE_ENUM__ {
+  ${state_enum}
+};
 
-extern fn_reduce * const MACHINE_PRODUCTS[];
+const struct grammar_action *getMacroParseAction(uint32_t index, uint32_t ahead);
 
-Machine *parse(
-    const Terminal *tokens, uint32_t *cost, const char_t **err_msg, const Allocator *allocator
-);
+int32_t macroParseJumpState(uint32_t index, uint32_t current);
 
-#endif  // MACHINE_PARSE_H
+uint32_t getMacroParseStateCurrentTokenType(int32_t state);
+
+#endif  // MACRO_ACTION_TABLE_GEN_H

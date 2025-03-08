@@ -25,16 +25,16 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "action-table.h"
+#include "action-table.gen.h"
 #include "array.h"
 #include "avl-tree.h"
 #include "context.h"
 #include "enum.h"
 #include "expr-reduce.h"
-#include "tokens.gen.h"
 #include "semantic.h"
 #include "target.h"
 #include "terminal.h"
+#include "tokens.gen.h"
 #include <stdint.h>
 
 #define min(a, b) ((a) < (b)) ? (a) : (b)
@@ -1052,7 +1052,7 @@ Machine *failed_to_produce(
     const Allocator *allocator
 ) {
   for (uint32_t i = 0; i < argc; i++) {
-    uint32_t type = stateCurrentTokenType(states[i]);
+    uint32_t type = getParseStateCurrentTokenType(states[i]);
     releaseToken(args[i], type, allocator);
   }
   return clean_parse_stack(state_stack, token_stack, allocator);
@@ -1064,7 +1064,7 @@ Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocat
   while (!Stack_empty(token_stack)) {
     Stack_pop(token_stack, &token, sizeof(void *));
     Stack_pop(state_stack, &state, sizeof(int32_t));
-    uint32_t type = stateCurrentTokenType(state);
+    uint32_t type = getParseStateCurrentTokenType(state);
     releaseToken(token, type, allocator);
   }
   Stack_clear(token_stack);

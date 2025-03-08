@@ -19,15 +19,21 @@
  *
  * Project Name: machine
  * Module Name: template
- * Filename: action-table.gen.h
+ * Filename: terminals.gen.c
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
-
-#ifndef MACHINE_ACTION_TABLE_GEN_H
-#define MACHINE_ACTION_TABLE_GEN_H
-
-enum __STATE_ENUM__ {
-  ${state_enum}
+#include "terminal.h"
+#include "tokens.gen.h"
+const char_t MACRO_TERMINALS[] = {
+  ${terminals}
 };
 
-#endif  // MACHINE_ACTION_TABLE_GEN_H
+const char_t * MACRO_TERMINAL_STRINGS[] = {
+  ${strings}
+};
+
+const uint32_t MACRO_TERMINAL_STRING_LENS[] = {
+  ${string_lens}
+};
+
+const int32_t N_MACRO_TERMINAL = sizeof(MACRO_TERMINALS);

@@ -38,19 +38,29 @@ add_library(meman SHARED ${CTR_SRC})
 link_libraries(meman)
 
 aux_source_directory(grammar GRAMMAR_SRC)
-add_library(grammar ${GRAMMAR_SRC})
-aux_source_directory(grammar/parse GRAMMAR_MACHINE_SRC)
+aux_source_directory(grammar/generated GRAMMAR_GENERATED_SRC)
+add_library(grammar ${GRAMMAR_SRC} ${GRAMMAR_GENERATED_SRC})
+
+aux_source_directory(grammar/parse GRAMMAR_PARSE_SRC)
 aux_source_directory(grammar/generated/machine GRAMMAR_GENERATED_MACHINE_SRC)
-add_library(grammar-machine ${GRAMMAR_MACHINE_SRC} ${GRAMMAR_GENERATED_MACHINE_SRC})
-target_include_directories(grammar-machine PRIVATE
-        grammar/parse grammar/generated/machine)
+add_library(grammar-parse ${GRAMMAR_PARSE_SRC} ${GRAMMAR_GENERATED_MACHINE_SRC})
+target_include_directories(grammar-parse PRIVATE
+        grammar/parse grammar/generated grammar/generated/machine)
+
+aux_source_directory(grammar/tokenize GRAMMAR_TOKENIZE_SRC)
+aux_source_directory(grammar/generated/macro GRAMMAR_GENERATED_MACRO_SRC)
+add_library(grammar-tokenize ${GRAMMAR_TOKENIZE_SRC} ${GRAMMAR_GENERATED_MACRO_SRC})
+target_include_directories(grammar-tokenize PRIVATE
+        grammar/tokenize grammar/generated grammar/generated/macro)
 
 aux_source_directory(codegen CODEGEN_SRC)
 
 aux_source_directory(codegen/C CODEGEN_C_SRC)
 add_library(codegen_C ${CODEGEN_SRC} ${CODEGEN_C_SRC})
 target_include_directories(codegen_C PRIVATE codegen codegen/C
-        grammar/parse grammar/generated/machine)
+        grammar/generated
+        grammar/parse grammar/generated/machine
+        grammar/tokenize grammar/generated/macro)
 
 aux_source_directory(codegen/elf CODEGEN_ELF_SRC)
 add_library(codegen_elf ${CODEGEN_SRC} ${CODEGEN_ELF_SRC})
@@ -58,12 +68,12 @@ target_include_directories(codegen_elf PRIVATE codegen codegen/elf
         grammar/parse grammar/generated/machine)
 
 add_executable(machine-c compiler/compile.c)
-target_link_libraries(machine-c PRIVATE grammar grammar-machine codegen_C)
+target_link_libraries(machine-c PRIVATE grammar grammar-parse codegen_C)
 target_include_directories(machine-c PRIVATE codegen codegen/C
-        grammar/parse grammar/generated/machine)
+        grammar/parse grammar/generated grammar/generated/machine)
 
 add_executable(machine-elf compiler/compile.c)
-target_link_libraries(machine-elf PRIVATE grammar grammar-machine codegen_elf)
+target_link_libraries(machine-elf PRIVATE grammar grammar-parse codegen_elf)
 target_include_directories(machine-elf PRIVATE codegen codegen/elf
         grammar/parse grammar/generated/machine)
 

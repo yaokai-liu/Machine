@@ -32,6 +32,8 @@
 #include "char_t.h"
 #include <stdint.h>
 
+#include "generated/tokens.gen.h"
+
 typedef struct Terminal {
   uint32_t type;
   uint32_t length;

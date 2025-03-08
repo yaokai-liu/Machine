@@ -28,8 +28,8 @@
 
 #include "char_t.h"
 
-enum __MACHINE_TOKEN_TYPE_ENUM__ {
+enum __TOKEN_TYPE_ENUM__ {
   ${enums}
 };
-extern const char_t *MACHINE_TOKEN_NAMES[];
+extern const char_t *TOKEN_NAMES[];
 #endif  // MACHINE_TOKENS_H

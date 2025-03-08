@@ -19,13 +19,20 @@
  *
  * Project Name: machine
  * Module Name: template
- * Filename: target.gen.c
+ * Filename: reduces.gen.h
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "machine/parse.h"
-#include "reduce.gen.h"
+#ifndef MACHINE_REDUCES_H
+#define MACHINE_REDUCES_H
 
-fn_reduce * const PRODUCTS[] = {
-  ${assign_reduces}
+#include "parse.h"
+#include "target.h"
+
+enum __MACHINE_PRODUCT_RULE_ENUM__ {
+  ${enum_reduces}
 };
+
+${reduces}
+
+#endif  // MACHINE_REDUCES_H
