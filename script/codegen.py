@@ -75,8 +75,13 @@ class Generator:
         for s, p in enumerate(self.table.keys()):
             self.status[s], self.reflect[p] = self.table[p], s
         self.extend_tokens = self.tokens
+        self.context = "void"
+
     def set_extend_tokens(self, tokens):
         self.extend_tokens = tokens
+
+    def set_context(self, context: str):
+        self.context = context
 
     def get_json_from(self, filename: str):
         with open(self.JSON_DIR / filename, 'r') as fp:
@@ -105,13 +110,15 @@ class Generator:
 
     def gen_reduces(self):
         rule_names = self.rules.keys()
-        args = "(void * argv[], GContext *, const Allocator * allocator);"
+        args = f"(void * argv[], {self.context} *, const Allocator * allocator);"
         enum_reduces = sorted(f"{r} = {i}" for i, r in enumerate(rule_names))
         reduces = sorted(f"{re.sub(r'_\d+$', '', r)} * p_{r}" + args
                          if r != '__EXTEND_RULE__'
-                         else f"{self.GRAMMAR_TARGET} * p_{r}" + args
+                         else f"{self.GRAMMAR_TARGET} * p__{self.GRAMMAR_TARGET}__" + args
                          for r in rule_names)
-        assign_reduces = sorted([f"[{r}] = (fn_reduce *) p_{r}" for r in rule_names])
+        assign_reduces = sorted([f"[{r}] = (fn_reduce *) p_{r}" if r != '__EXTEND_RULE__'
+                                 else f"[{r}] = (fn_reduce *) p__{self.GRAMMAR_TARGET}__"
+                                 for r in rule_names])
         template = Tp(self.get_temp_from("reduce.h.tpl"))
         content = template.substitute(
             enum_reduces=',\n  '.join(enum_reduces),
@@ -187,6 +194,7 @@ def gen_token_enum(template, tokens, out):
         temp = fp.read()
     template = Tp(temp)
     enums = ',\n  '.join([f"enum_{t} = {i + 1}" for i, t in enumerate(tokens)])
+    enums += ',\n  ' + f'MAX_REAL_TOKEN = {len(tokens) + 1}'
     enums_entry = template.substitute(enums=enums)
     with open(out, 'w') as fp:
         fp.write(enums_entry)
@@ -227,5 +235,7 @@ if __name__ == '__main__':
                    tokens,
                    OUT_DIR / "tokens.gen.c")
 
+    GMachine.set_context("ParseContext")
+    GMacro.set_context("MacroContext")
     GMachine.generate()
     GMacro.generate()

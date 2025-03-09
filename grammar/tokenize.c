@@ -27,8 +27,7 @@
 #include "tokenize.h"
 #include "array.h"
 #include "enum.h"
-#include "generated/tokens.gen.h"
-#include "preprocess.h"
+#include "tokens.gen.h"
 #include "string_t.h"
 #include "terminal.h"
 
@@ -203,6 +202,8 @@ inline uint32_t t_IDENTIFIER(
     for (uint32_t i = 2; i < sizeof(pattern) - 1; i++) {                                     \
       if (input[i - 2] != pattern[i]) { goto __failed_kw_##_kw; }                            \
     }                                                                                        \
+    const char_t * const tail = &input[sizeof(pattern) - 3];                                 \
+    if (startswithLetter(tail) || *tail == '_') { goto __failed_kw_##_kw; }                  \
     result->type = enum_##_type;                                                             \
     result->value = nullptr;                                                                 \
     result->length = lenof(#_kw);                                                            \
@@ -217,6 +218,8 @@ inline uint32_t t_IDENTIFIER(
     for (uint32_t i = 2; i < sizeof(pattern) - 1; i++) {                                     \
       if (input[i - 2] != pattern[i]) { goto __failed_kw_##_kw; }                            \
     }                                                                                        \
+    const char_t * const tail = &input[sizeof(pattern) - 3];                                 \
+    if (startswithLetter(tail) || *tail == '_') { goto __failed_kw_##_kw; }                  \
     result->type = enum_##_type;                                                             \
     result->value = (void *) val;                                                            \
     result->length = lenof(#_kw);                                                            \
@@ -277,11 +280,12 @@ uint32_t tokenize_letter_i(
   }
 }
 
-uint32_t tokenize_startswith_ma(
-    const char_t * const input, Terminal * const result, const Allocator * const allocator
+uint32_t tokenize_startswith_mac(
+    const char_t *const input, Terminal *const result, const Allocator *const allocator
 ) {
-  switch (*input) {
-    case 'c': {
+  const char_t *pText = input + 1;
+  switch (*pText) {
+    case 'h': {
       return try_keyword_machine(input, result, allocator);
     }
     case 'r': {
@@ -296,7 +300,9 @@ uint32_t tokenize_letter_m(
 ) {
   switch (*input) {
     case 'a': {
-      return tokenize_startswith_ma(input + 1, result, allocator);
+      const char_t *pText = input + 1;
+      if (*pText == 'c') { return tokenize_startswith_mac(input + 1, result, allocator); }
+      else { fn_fall_through(); }
     }
     case 'e': {
       return try_keyword_memory(input + 1, result, allocator);

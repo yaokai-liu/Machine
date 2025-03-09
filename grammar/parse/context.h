@@ -39,7 +39,7 @@ typedef struct Record {
   uint32_t offset;
 } Record;
 
-typedef struct GContext {
+typedef struct ParseContext {
   const Allocator *allocator;
   Array /*<Register>*/ *regArray;
   Array /*<Immediate>*/ *immArray;
@@ -63,67 +63,71 @@ typedef struct GContext {
   uint32_t maxArgCount;
   uint32_t maxFieldCount;
   const char_t *errorMessage;
-} GContext;
+} ParseContext;
 
-typedef struct GContext GContext;
+typedef struct ParseContext ParseContext;
 
-GContext *GContext_new(const Allocator *allocator);
+ParseContext *GContext_new(const Allocator *allocator);
 
-const Allocator *GContext_getAllocator(const GContext *context);
+const Allocator *GContext_getAllocator(const ParseContext *context);
 
-void GContext_addOpcode(GContext *context, const Identifier *ident, Instruction *instr);
+void GContext_addOpcode(ParseContext *context, const Identifier *ident, Instruction *instr);
 
-Instruction *GContext_findOpcode(GContext *context, const Identifier *ident);
+Instruction *GContext_findOpcode(ParseContext *context, const Identifier *ident);
 
-void GContext_addRecord(GContext *context, const Identifier *ident, Record *record);
+void GContext_addRecord(ParseContext *context, const Identifier *ident, Record *record);
 
-const Record *GContext_findRecord(const GContext *context, const Identifier *ident);
-const Parameter *GContext_findParameter(GContext *context, Identifier *ident);
+const Record *GContext_findRecord(const ParseContext *context, const Identifier *ident);
+const Parameter *GContext_findParameter(ParseContext *context, Identifier *ident);
 
-REFER(Immediate) GContext_addImmediate(GContext *context, const Immediate *imm);
-REFER(Register) GContext_addRegister(GContext *context, const Register *reg);
-REFER(Memory) GContext_addMemory(GContext *context, const Memory *mem);
-REFER(RegisterGroup) GContext_addRegisterGroup(GContext *context, const RegisterGroup *grp);
-REFER(Set) GContext_addSet(GContext *context, const Set *set);
-REFER(Instruction) GContext_addInstruction(GContext *context, const Instruction *instr);
+REFER(Immediate) GContext_addImmediate(ParseContext *context, const Immediate *imm);
+REFER(Register) GContext_addRegister(ParseContext *context, const Register *reg);
+REFER(Memory) GContext_addMemory(ParseContext *context, const Memory *mem);
+REFER(RegisterGroup) GContext_addRegisterGroup(ParseContext *context, const RegisterGroup *grp);
+REFER(Set) GContext_addSet(ParseContext *context, const Set *set);
+REFER(Instruction) GContext_addInstruction(ParseContext *context, const Instruction *instr);
 
-const Immediate *GContext_getImmediate(const GContext *context, uint32_t offset);
-const Register *GContext_getRegister(const GContext *context, uint32_t offset);
-const Memory *GContext_getMemory(const GContext *context, uint32_t offset);
-const RegisterGroup *GContext_getRegisterGroup(const GContext *context, uint32_t offset);
-const Instruction *GContext_getInstruction(const GContext *context, uint32_t index);
-const Set *GContext_getSet(const GContext *context, uint32_t offset);
+const Immediate *GContext_getImmediate(const ParseContext *context, uint32_t offset);
+const Register *GContext_getRegister(const ParseContext *context, uint32_t offset);
+const Memory *GContext_getMemory(const ParseContext *context, uint32_t offset);
+const RegisterGroup *GContext_getRegisterGroup(const ParseContext *context, uint32_t offset);
+const Instruction *GContext_getInstruction(const ParseContext *context, uint32_t index);
+const Set *GContext_getSet(const ParseContext *context, uint32_t offset);
 
-void *GContext_findIdentInStack(GContext *context, Identifier *ident);
+Register *GContext_referToRegister(const ParseContext *context, REFER(Register) v_reg);
 
-void Gcontext_setParts(GContext *context, InstrParts *parts);
+Array *GContext_getPatternArray(const ParseContext *context);
 
-void Gcontext_setItems(GContext *context, MemItems *items);
+void *GContext_findIdentInStack(ParseContext *context, Identifier *ident);
 
-const InstrPart *GContext_findInstrPart(GContext *context, Identifier *ident);
+void Gcontext_setParts(ParseContext *context, InstrParts *parts);
 
-const MemItem *GContext_findMemItem(GContext *context, Identifier *ident);
+void Gcontext_setItems(ParseContext *context, MemItems *items);
 
-void GContext_addPattern(GContext *context, Pattern *pattern);
+const InstrPart *GContext_findInstrPart(ParseContext *context, Identifier *ident);
 
-bool GContext_testPattern(GContext *context, PatternArgs *patternArgs);
+const MemItem *GContext_findMemItem(ParseContext *context, Identifier *ident);
 
-void GContext_addMapItem(GContext *context, MappingItem *item);
+void GContext_addPattern(ParseContext *context, Pattern *pattern);
 
-MappingItem *GContext_getMapItem(GContext *context, BitField *bf);
+bool GContext_testPattern(ParseContext *context, PatternArgs *patternArgs);
+
+void GContext_addMapItem(ParseContext *context, MappingItem *item);
+
+MappingItem *GContext_getMapItem(ParseContext *context, BitField *bf);
 
 Trie /*<REFER(Record), uint64_t>*/ *
-    GContext_build_args_trie(GContext *context, const Instruction *instr);
-void GContext_dump_instruction(GContext *context, Instruction *instr);
+    GContext_build_args_trie(ParseContext *context, const Instruction *instr);
+void GContext_dump_instruction(ParseContext *context, Instruction *instr);
 
-uint64_t GContext_getLastWidth(GContext *context);
+uint64_t GContext_getLastWidth(ParseContext *context);
 
-void GContext_setErrorMessage(GContext *context, const char_t *msg);
-const char_t *GContext_getErrorMessage(GContext *context);
+void GContext_setErrorMessage(ParseContext *context, const char_t *msg);
+const char_t *GContext_getErrorMessage(ParseContext *context);
 
-void GContext_destroy(GContext *context);
+void GContext_destroy(ParseContext *context);
 
-typedef void fn_ctx_act(GContext *context, void *token);
+typedef void fn_ctx_act(ParseContext *context, void *token);
 
 fn_ctx_act *get_after_stack_actions(int32_t state);
 fn_ctx_act *get_after_reduce_actions(int32_t state);

@@ -24,7 +24,7 @@
  **/
 
 #include "action-table.gen.h"
-#include "macro-action.h"
+#include "action.h"
 #include "reduce.gen.h"
 #include "tokens.gen.h"
 

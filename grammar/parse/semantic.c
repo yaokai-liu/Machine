@@ -30,10 +30,10 @@
 #include "tokens.gen.h"
 
 int32_t check_mapping_item_evaluable(
-    GContext *context, BitField *bit_field, const Evaluable *evaluable
+    ParseContext *context, BitField *bit_field, const Evaluable *evaluable
 );
 
-int32_t check_mapping_item(GContext *context, BitField *bit_field, const Arith_0_Expr *expr) {
+int32_t check_mapping_item(ParseContext *context, BitField *bit_field, const Arith_0_Expr *expr) {
   if (expr->type == AS_ID) { return check_mapping_item_evaluable(context, bit_field, expr->rhs); }
   int32_t result = 0;
   if (expr->lhs) { result = check_mapping_item(context, bit_field, expr->lhs); }
@@ -42,7 +42,7 @@ int32_t check_mapping_item(GContext *context, BitField *bit_field, const Arith_0
 }
 
 int32_t check_mapping_item_evaluable(
-    GContext *context, BitField *bit_field, const Evaluable *evaluable
+    ParseContext *context, BitField *bit_field, const Evaluable *evaluable
 ) {
   if (!bit_field) { return (evaluable->type == enum_NUMBER) ? 0 : -1; }
   const uint32_t l_width = (bit_field->upper - bit_field->lower + 1);

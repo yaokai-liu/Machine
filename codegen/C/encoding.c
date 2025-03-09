@@ -65,7 +65,7 @@ constexpr char_t ENCODING_NAME_FMT[] = "encoding_%s_%u";
   do { Array_append(buffer, s, strlen(s)); } while (false)
 
 int32_t online_gen_instr_encoding_dec(
-    const GContext *, Array *buffer, const char_t *instr_op, const InstrForm[], uint32_t n_forms
+    const ParseContext *, Array *buffer, const char_t *instr_op, const InstrForm[], uint32_t n_forms
 ) {
   char_t head_buffer[sizeof(ENCODING_DEF_FMT_HEAD) + 256];
   for (uint32_t i = 0; i < n_forms; ++i) {
@@ -77,7 +77,7 @@ int32_t online_gen_instr_encoding_dec(
 }
 
 int32_t online_gen_instr_encoding_def(
-    const GContext *context, Array *buffer, const char_t *instr_op, const InstrForm forms[],
+    const ParseContext *context, Array *buffer, const char_t *instr_op, const InstrForm forms[],
     uint32_t n_forms
 ) {
   char_t head_buffer[sizeof(ENCODING_DEF_FMT_HEAD) + 256];
@@ -112,7 +112,7 @@ const char_t INSTR_EXEC_DEF_BODY[] = "  instrExecDefPrincipalPart();\n}\n";
 
 void gen_instr_exec(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
-  const GContext *context = machine->context;
+  const ParseContext *context = machine->context;
   Array *dec_buffer = Generator_getOutputBuffer(generator, GenBuf_declares);
   Array *def_buffer = Generator_getOutputBuffer(generator, GenBuf_definitions);
   Array *encoding_dec_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
@@ -171,7 +171,7 @@ void gen_jump_table_def(
   char_t temp_buffer[512] = {};
   char_t temp2_buffer[256] = {};
 
-  const GContext *context = machine->context;
+  const ParseContext *context = machine->context;
 
   _push_string(key_buffer, JUMP_KEY_HEADER_FMT);
   _push_string(state_buffer, JUMP_STATE_HEADER_FMT);
@@ -261,7 +261,7 @@ void gen_jump_table_def(
   )
 
 #define MAX_IDENT_LEN 64
-int32_t eval_to_val(const GContext *, const Evaluable *evaluable, char_t *buffer, const Pattern *) {
+int32_t eval_to_val(const ParseContext *, const Evaluable *evaluable, char_t *buffer, const Pattern *) {
   if (enum_NUMBER == evaluable->type) {
     uint64_t number = (uint64_t) evaluable->lhs;
     return sprintf(buffer, "0x%lX", number);
@@ -333,7 +333,7 @@ constexpr char_t TYPE_ENUM_FMT[] = "enum_%s_%s";
     sprintf(buffer, TYPE_ENUM_FMT, PREFIX, var->name->ptr);                 \
     break;                                                                  \
   }
-void type_to_val(const GContext *context, const Identifier *ident, char_t *buffer) {
+void type_to_val(const ParseContext *context, const Identifier *ident, char_t *buffer) {
   const Record *record = GContext_findRecord(context, ident);
   switch (record->typeid) {
     type_case_item(Memory, mem, "MEM")
@@ -355,7 +355,7 @@ void type_to_val(const GContext *context, const Identifier *ident, char_t *buffe
     break;                              \
   }
 int32_t
-    expr_to_val(const GContext *context, const Expr *expr, const Pattern *pattern, char_t *buffer) {
+    expr_to_val(const ParseContext *context, const Expr *expr, const Pattern *pattern, char_t *buffer) {
   char_t temp_buffer1[512] = {};
   char_t temp_buffer2[512] = {};
   if (expr->type < RECURSIVE_OP_MAX) {
@@ -422,7 +422,7 @@ int32_t
 // TODO: codegen_mapping_item is in a recursive call chain,
 //  maybe it will cause a out of memory, please solve it.
 int32_t codegen_mapping_item(
-    const GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field,
+    const ParseContext *context, Array *buffer, MappingItems *items, const BitField *bit_field,
     const Pattern *pattern, char_t *temp_buffer
 ) {
   const uint32_t pre_len = Array_length(buffer);
@@ -478,7 +478,7 @@ int32_t codegen_mapping_item(
   } while (false)
 
 int32_t codegen_switchable(
-    const GContext *context, Array *buffer, const Switchable *switchable, BitField *bf,
+    const ParseContext *context, Array *buffer, const Switchable *switchable, BitField *bf,
     const Pattern *pattern, char_t *temp_buffer
 ) {
   char_t temp_buffer1[512] = {};
@@ -498,7 +498,7 @@ int32_t codegen_switchable(
 }
 
 int32_t codegen_layout(
-    const GContext *context, Array *buffer, const Layout *layout, uint32_t width,
+    const ParseContext *context, Array *buffer, const Layout *layout, uint32_t width,
     const Pattern *pattern, char_t *temp_buffer
 ) {
   const uint32_t pre_len = Array_length(buffer);
@@ -578,7 +578,7 @@ int32_t codegen_layout(
   return (int32_t) (Array_length(buffer) - pre_len);
 }
 
-void codegen_form_check(const GContext *context, Array *buffer, const InstrForm *form, char_t *temp_buffer) {
+void codegen_form_check(const ParseContext *context, Array *buffer, const InstrForm *form, char_t *temp_buffer) {
   FormCheck *check = form->check;
   push_string("  /* __FORM_CHECK__ */\n  if (!");
   expr_to_val(context, check->expr, form->pattern, temp_buffer);
@@ -587,7 +587,7 @@ void codegen_form_check(const GContext *context, Array *buffer, const InstrForm 
 }
 
 int32_t codegen_instr_part(
-    const GContext *context, Array *buffer, const InstrForm *form, const InstrPart *part,
+    const ParseContext *context, Array *buffer, const InstrForm *form, const InstrPart *part,
     char_t *temp_buffer
 ) {
   const Identifier *name = part->name;
@@ -610,7 +610,7 @@ int32_t codegen_instr_part(
   return 0;
 }
 
-int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrForm *form) {
+int32_t codegen_instr_form(const ParseContext *context, Array *buffer, const InstrForm *form) {
   char_t temp_buffer[512] = {};
   const uint32_t pre_len = Array_length(buffer);
   const uint32_t n_parts = Array_length(form->parts);

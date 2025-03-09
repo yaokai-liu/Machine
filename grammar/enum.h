@@ -28,7 +28,7 @@
 #ifndef MACHINE_ENUM_H
 #define MACHINE_ENUM_H
 
-#include "generated/tokens.gen.h"
+#include "tokens.gen.h"
 
 enum IMMEDIATE_TYPE {
   IT_UNSIGNED,
@@ -63,7 +63,6 @@ enum ENUM_OP {
   CB_NE,
   AS_ID,
   CB_IN,
-  META_WIDTH,
   RECURSIVE_OP_MAX = AS_ID,
 };
 

@@ -25,17 +25,14 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "../codegen/generate.h"
 #include "allocator.h"
 #include "char_t.h"
-#include "machine/parse.h"
-#include "machine/target.h"
 #include "terminal.h"
 #include "tokenize.h"
+#include "tokenize/tokenizer.h"
 #include "tokens.gen.h"
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h>
 #include <time.h>
 
 #define print(ndx)                                                                   \
@@ -47,41 +44,51 @@
   } while (0)
 
 int main() {
-  uint32_t cost = 0, n_tokens = 0;
-  uint32_t lineno = 0, column = 0;
-//  const char_t *filepath = "/mnt/d/Codelib/machine/preset/x64";
-//  FILE *pFile = fopen(filepath, "r");
-//  if (!pFile) { return -1; }
-//  fseek(pFile, 0, SEEK_END);
-//  uint32_t length = ftell(pFile);
-//  fseek(pFile, 0, SEEK_SET);
-//  char_t *testString = STDAllocator.malloc(sizeof(char_t) * (length + 1));
-//  fread(testString, sizeof(char_t), length, pFile);
-//  printf("read %u characters from file.\n\n", length);
-//  if (fclose(pFile)) {
-//    printf("failed to close file.\n");
-//    return -2;
-//  }
+//  uint32_t cost = 0, n_tokens = 0;
+//  uint32_t lineno = 0, column = 0;
+  const char_t *filepath = "/mnt/d/Codelib/machine/macro";
+  FILE *pFile = fopen(filepath, "r");
+  if (!pFile) { return -1; }
+  fseek(pFile, 0, SEEK_END);
+  uint32_t length = ftell(pFile);
+  fseek(pFile, 0, SEEK_SET);
+  char_t *testString = STDAllocator.malloc(sizeof(char_t) * (length + 1));
+  fread(testString, sizeof(char_t), length, pFile);
+  printf("read %u characters from file.\n\n", length);
+  if (fclose(pFile)) {
+    printf("failed to close file.\n");
+    return -2;
+  }
 //  clock_t start = clock();
 
-      const char_t * str = string_t("machine macro masdafa");
-  const Terminal *terminals =
-      tokenize(str, &cost, &n_tokens, &lineno, &column, &STDAllocator);
-  if (terminals[n_tokens - 1].type != enum_TERMINATOR) {
-//    printf("failed to lex %s:%u:%u\n", filepath, lineno, column);
-    printf("unknown character '%c'\n", str[cost]);
-//    STDAllocator.free((void *) terminals);
-    return -3;
+//      const char_t * str = string_t("machine macro masdafa");
+  Terminal terminal = {};
+  Tokenizer *tokenizer = Tokenizer_new(testString, &STDAllocator);
+  while (terminal.type != enum_TERMINATOR) {
+    Tokenizer_next(tokenizer, &terminal);
+    uint32_t t_line = terminal.lineno;
+    uint32_t t_start = terminal.column;
+    uint32_t t_end = (terminal.length > 0) ? terminal.column + terminal.length - 1 : 0;
+    printf("(line: %u, col: %u-%u, type: %s, value: %p)\n",
+           t_line, t_start, t_end, get_name(terminal.type), terminal.value);
   }
-  //  for (uint32_t i = 0; i < n_tokens; i++) {
-  //    uint32_t t_line = terminals[i].lineno;
-  //    uint32_t t_start = terminals[i].column;
-  //    uint32_t t_end = (terminals[i].length > 0) ? terminals[i].column + terminals[i].length - 1 :
-  //    0; printf(
-  //        "(line: %u, col: %u-%u, type: %s, value: %p)\n", t_line, t_start, t_end,
-  //        get_name(terminals[i].type), terminals[i].value
-  //    );
-  //  }
+
+//  const Terminal *terminals = tokenize(testString, &cost, &n_tokens, &lineno, &column, &STDAllocator);
+//  if (terminals[n_tokens - 1].type != enum_TERMINATOR) {
+//    printf("failed to lex %s:%u:%u\n", filepath, lineno, column);
+//    printf("unknown character '%c'\n", str[cost]);
+//    STDAllocator.free((void *) terminals);
+//    return -3;
+//  }
+//  for (uint32_t i = 0; i < n_tokens; i++) {
+//    uint32_t t_line = terminals[i].lineno;
+//    uint32_t t_start = terminals[i].column;
+//    uint32_t t_end = (terminals[i].length > 0) ? terminals[i].column + terminals[i].length - 1 :
+//    0; printf(
+//        "(line: %u, col: %u-%u, type: %s, value: %p)\n", t_line, t_start, t_end,
+//        get_name(terminals[i].type), terminals[i].value
+//    );
+//  }
 //  const char_t *err_msg = nullptr;
 //  const Machine *machine = parse(terminals, &cost, &err_msg, &STDAllocator);
 //  if (!machine) {
@@ -96,10 +103,10 @@ int main() {
 //  codegen(generator, machine);
 //  clock_t end = clock();
 
-  //  char_t string[512] = {};
-  //  memcpy(string, machine->name->ptr, machine->name->len);
-  //  string[machine->name->len] = '\0';
-  //  printf("machine %s\n", string);
+//  char_t string[512] = {};
+//  memcpy(string, machine->name->ptr, machine->name->len);
+//  string[machine->name->len] = '\0';
+//  printf("machine %s\n", string);
 
 //  pFile = fopen("machine-x64.h", "w");
 //  if (!pFile) { return -1; }

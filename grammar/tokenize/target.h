@@ -1,0 +1,64 @@
+/* License
+ *
+ * ${PROJ_DESCRIPTION}
+ * Copyright (C) 2025 Yaokai Liu
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ *
+ * Project Name: machine
+ * Module Name: grammar/tokenize
+ * Filename: target.h
+ * Creator: Yaokai Liu
+ * Create Date: 2025-03-09
+ * Copyright (c) 2025 Yaokai Liu. All rights reserved.
+ **/
+
+#ifndef MACHINE_TARGET_H
+#define MACHINE_TARGET_H
+
+#include "array.h"
+#include "terminal.h"
+
+enum __TOKEN_TYPE_ENUM_MACRO_EXTEND__ {
+  enum_PLACE_HOLDER = MAX_REAL_TOKEN + 1
+};
+
+typedef struct Entry Entry;
+typedef struct Macro Macro;
+typedef struct MacroArg MacroArg;
+typedef Array MacroArgs; // Array<MacroArg>
+typedef struct MacroCall MacroCall;
+typedef struct Array MacroParams; //Array<IDENTIFIER>
+typedef struct Token Token;
+typedef Array Tokens; // Array<Token>
+
+struct MacroArg {
+  uint32_t type;
+  void *target;
+};
+
+struct MacroCall {
+  Identifier *name;
+  MacroArgs *args;
+};
+
+struct Macro {
+  Identifier *name;
+  MacroParams *params;
+  Tokens    *tokens;
+};
+
+
+#endif  // MACHINE_TARGET_H

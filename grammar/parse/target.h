@@ -41,11 +41,11 @@ typedef struct Entry {
 
 typedef Array Entries;  // Array<Entry>
 
-typedef struct GContext GContext;
+typedef struct ParseContext ParseContext;
 
 typedef struct Machine {
   Identifier *name;
-  GContext *context;
+  ParseContext *context;
 } Machine;
 
 typedef struct Immediate {
@@ -200,8 +200,6 @@ void releaseSet(Set *set, const Allocator *allocator);
 void releaseCondition(Condition *condition, const Allocator *allocator);
 void releaseExpr(CondExpr *expr, const Allocator *allocator);
 
-int32_t Identifier_cmp(const Identifier *ident1, const Identifier *ident2);
 int32_t PatternArgs_cmp(PatternArgs *args1, PatternArgs *args2);
-int32_t BitField_cmp(BitField *bf1, BitField *bf2);
 
 #endif  // MACHINE_TARGET_H

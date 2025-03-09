@@ -36,11 +36,11 @@
 #include <stdint.h>
 
 int32_t online_gen_instr_encoding_dec(
-    const GContext *, Array *buffer, const char_t *instr_op, const InstrForm forms[],
+    const ParseContext *, Array *buffer, const char_t *instr_op, const InstrForm forms[],
     uint32_t n_forms
 );
 int32_t online_gen_instr_encoding_def(
-    const GContext *context, Array *buffer, const char_t *instr_op, const InstrForm forms[],
+    const ParseContext *context, Array *buffer, const char_t *instr_op, const InstrForm forms[],
     uint32_t n_forms
 );
 void gen_instr_exec(Generator *generator, const Machine *machine);
@@ -50,30 +50,30 @@ void gen_jump_table_def(
     Generator *generator, const Machine *machine, Array *key_buffer, Array *state_buffer
 );
 
-int32_t codegen_instr_form(const GContext *context, Array *buffer, const InstrForm *form);
-void codegen_form_check(const GContext *context, Array *buffer, const InstrForm *form, char_t *temp_buffer);
+int32_t codegen_instr_form(const ParseContext *context, Array *buffer, const InstrForm *form);
+void codegen_form_check(const ParseContext *context, Array *buffer, const InstrForm *form, char_t *temp_buffer);
 int32_t codegen_instr_part(
-    const GContext *context, Array *buffer, const InstrForm *form, const InstrPart *part,
+    const ParseContext *context, Array *buffer, const InstrForm *form, const InstrPart *part,
     char_t *temp_buffer
 );
 int32_t codegen_layout(
-    const GContext *context, Array *buffer, const Layout *layout, uint32_t width,
+    const ParseContext *context, Array *buffer, const Layout *layout, uint32_t width,
     const Pattern *pattern, char_t *temp_buffer
 );
 int32_t codegen_switchable(
-    const GContext *context, Array *buffer, const Switchable *switchable, BitField *bf,
+    const ParseContext *context, Array *buffer, const Switchable *switchable, BitField *bf,
     const Pattern *pattern, char_t *temp_buffer
 );
 int32_t codegen_mapping_item(
-    const GContext *context, Array *buffer, MappingItems *items, const BitField *bit_field,
+    const ParseContext *context, Array *buffer, MappingItems *items, const BitField *bit_field,
     const Pattern *pattern, char_t *temp_buffer
 );
 
 int32_t expr_to_val(
-    const GContext *context, const CondExpr *expr, const Pattern *pattern, char_t *buffer
+    const ParseContext *context, const CondExpr *expr, const Pattern *pattern, char_t *buffer
 );
 int32_t eval_to_val(
-    const GContext *context, const Evaluable *evaluable, char_t *buffer, const Pattern *pattern
+    const ParseContext *context, const Evaluable *evaluable, char_t *buffer, const Pattern *pattern
 );
 
 #endif  // MACHINE_ENCODING_H

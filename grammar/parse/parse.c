@@ -56,7 +56,7 @@ Machine *parse(
   Stack *state_stack = Stack_new(allocator);
   Stack *token_stack = Stack_new(allocator);
   Stack_push(state_stack, &state, sizeof(int32_t));
-  GContext *context = GContext_new(allocator);
+  ParseContext *context = GContext_new(allocator);
 
   while (true) {
     const struct grammar_action *act = getParseAction(state, tp->type);

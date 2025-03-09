@@ -37,15 +37,12 @@
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
-uint64_t getchar(const void *key) {
-  return *(const char_t *) key;
-}
 uint64_t get_record_ndx(const void *ndx_ptr) {
   return *(const uint64_t *) ndx_ptr;
 }
 
-inline GContext *GContext_new(const Allocator *allocator) {
-  GContext *context = allocator->calloc(1, sizeof(GContext));
+inline ParseContext *GContext_new(const Allocator *allocator) {
+  ParseContext *context = allocator->calloc(1, sizeof(ParseContext));
   context->allocator = allocator;
   context->regArray = Array_new(sizeof(Register), enum_Register, allocator);
   context->immArray = Array_new(sizeof(Immediate), enum_Immediate, allocator);
@@ -78,7 +75,7 @@ inline GContext *GContext_new(const Allocator *allocator) {
     Array_destroy(context->array);                          \
   } while (false)
 
-inline void GContext_destroy(GContext *context) {
+inline void GContext_destroy(ParseContext *context) {
   if (context->mappingTree) { AVLTree_destroy(context->mappingTree, nullptr); }
   if (context->patterns) { releasePrimeArray(context->patterns); }
   contextReleaseArray(regArray, releaseRegister);
@@ -97,31 +94,31 @@ inline void GContext_destroy(GContext *context) {
   context->allocator->free(context);
 }
 
-inline const Allocator *GContext_getAllocator(const GContext *context) {
+inline const Allocator *GContext_getAllocator(const ParseContext *context) {
   return context->allocator;
 }
 
-inline void GContext_addOpcode(GContext *context, const Identifier *ident, Instruction *instr) {
+inline void GContext_addOpcode(ParseContext *context, const Identifier *ident, Instruction *instr) {
   Trie_set(context->opcodeMap, ident->ptr, instr);
 }
-inline Instruction *GContext_findOpcode(GContext *context, const Identifier *ident) {
+inline Instruction *GContext_findOpcode(ParseContext *context, const Identifier *ident) {
   return Trie_get(context->opcodeMap, ident->ptr);
 }
 
-inline void GContext_addRecord(GContext *context, const Identifier *ident, Record *record) {
+inline void GContext_addRecord(ParseContext *context, const Identifier *ident, Record *record) {
   Array_append(context->recordArray, record, 1);
   void *ndx = (void *) (uint64_t) Array_length(context->recordArray);
   Trie_set(context->objectMap, ident->ptr, ndx);
 }
 
-inline const Record *GContext_findRecord(const GContext *context, const Identifier *ident) {
+inline const Record *GContext_findRecord(const ParseContext *context, const Identifier *ident) {
   uint32_t ndx = (uint64_t) Trie_get(context->objectMap, ident->ptr);
   if (!ndx) { return nullptr; }
   return Array_real_addr(context->recordArray, ndx - 1);
 }
 
 #define contextAddRecord_DEF(type, array, obj)                                \
-  inline REFER(type) GContext_add##type(GContext *context, const type *obj) { \
+  inline REFER(type) GContext_add##type(ParseContext *context, const type *obj) { \
     uint32_t offset = Array_length(context->array);                           \
     Record record = {enum_##type, offset};                                    \
     Array_append(context->array, obj, 1);                                     \
@@ -134,7 +131,7 @@ contextAddRecord_DEF(Memory, memArray, mem);
 contextAddRecord_DEF(RegisterGroup, grpArray, grp);
 contextAddRecord_DEF(Set, setArray, set);
 
-inline REFER(Instruction) GContext_addInstruction(GContext *context, const Instruction *instr) {
+inline REFER(Instruction) GContext_addInstruction(ParseContext *context, const Instruction *instr) {
   uint32_t ndx = Array_length(context->instrArray);
   Array_append(context->instrArray, instr, 1);
   REFER(Instruction) v_instr = Array_virt_addr(context->instrArray, ndx);
@@ -143,7 +140,7 @@ inline REFER(Instruction) GContext_addInstruction(GContext *context, const Instr
 }
 
 #define contextGetFromOffset_DEF(type, array)                                       \
-  inline const type *GContext_get##type(const GContext *context, uint32_t offset) { \
+  inline const type *GContext_get##type(const ParseContext *context, uint32_t offset) { \
     return Array_real_addr(context->array, offset);                                 \
   }
 
@@ -153,11 +150,19 @@ contextGetFromOffset_DEF(Memory, memArray)
 contextGetFromOffset_DEF(RegisterGroup, grpArray)
 contextGetFromOffset_DEF(Set, setArray)
 
-inline const Instruction *GContext_getInstruction(const GContext *context, uint32_t index) {
+inline Register *GContext_referToRegister(const ParseContext *context, REFER(Register) v_reg) {
+  return Array_vert2real(context->regArray, v_reg);
+}
+
+inline Array *GContext_getPatternArray(const ParseContext *context) {
+  return context->patterns;
+}
+
+inline const Instruction *GContext_getInstruction(const ParseContext *context, uint32_t index) {
   return Array_real_addr(context->instrArray, index);
 }
 
-inline void *GContext_findIdentInStack(GContext *context, Identifier *ident) {
+inline void *GContext_findIdentInStack(ParseContext *context, Identifier *ident) {
   const uint32_t length = Stack_size(context->identStack) / sizeof(Identifier *);
   const Identifier * const * const idents = Stack_get(context->identStack, 0);
   for (uint32_t i = 0; i < length; i++) {
@@ -167,15 +172,15 @@ inline void *GContext_findIdentInStack(GContext *context, Identifier *ident) {
   return nullptr;
 }
 
-void Gcontext_setParts(GContext *context, InstrParts *parts) {
+void Gcontext_setParts(ParseContext *context, InstrParts *parts) {
   context->parts = parts;
 }
 
-void Gcontext_setItems(GContext *context, MemItems *items) {
+void Gcontext_setItems(ParseContext *context, MemItems *items) {
   context->items = items;
 }
 
-const InstrPart *GContext_findInstrPart(GContext *context, Identifier *ident) {
+const InstrPart *GContext_findInstrPart(ParseContext *context, Identifier *ident) {
   if (!context->parts) { return nullptr; }
   const uint32_t length = Array_length(context->parts);
   const InstrPart * const parts = Array_real_addr(context->parts, 0);
@@ -185,7 +190,7 @@ const InstrPart *GContext_findInstrPart(GContext *context, Identifier *ident) {
   return nullptr;
 }
 
-const MemItem *GContext_findMemItem(GContext *context, Identifier *ident) {
+const MemItem *GContext_findMemItem(ParseContext *context, Identifier *ident) {
   if (!context->items) { return nullptr; }
   const uint32_t length = Array_length(context->items);
   const MemItem * const items = Array_real_addr(context->items, 0);
@@ -195,14 +200,14 @@ const MemItem *GContext_findMemItem(GContext *context, Identifier *ident) {
   return nullptr;
 }
 
-inline void GContext_addPattern(GContext *context, Pattern *pattern) {
+inline void GContext_addPattern(ParseContext *context, Pattern *pattern) {
   if (!context->patterns) {
     context->patterns = Array_new(sizeof(Pattern *), enum_Pattern, context->allocator);
   }
   Array_append(context->patterns, &pattern, 1);
 }
 
-bool GContext_testPattern(GContext *context, PatternArgs *patternArgs) {
+bool GContext_testPattern(ParseContext *context, PatternArgs *patternArgs) {
   if (!context->patterns) { return false; }
   const uint32_t length = Array_length(context->patterns);
   const Pattern * const * const patterns = Array_real_addr(context->patterns, 0);
@@ -213,21 +218,21 @@ bool GContext_testPattern(GContext *context, PatternArgs *patternArgs) {
   return false;
 }
 
-uint64_t GContext_getLastWidth(GContext *context) {
+uint64_t GContext_getLastWidth(ParseContext *context) {
   uint64_t width = 0;
   Stack_top(context->widthStack, &width, sizeof(uint64_t));
   return width;
 }
 
-inline void GContext_addMapItem(GContext *context, MappingItem *item) {
+inline void GContext_addMapItem(ParseContext *context, MappingItem *item) {
   AVLTree_set(context->mappingTree, (uint64_t) item->field, item);
 }
 
-inline MappingItem *GContext_getMapItem(GContext *context, BitField *bf) {
+inline MappingItem *GContext_getMapItem(ParseContext *context, BitField *bf) {
   return AVLTree_get(context->mappingTree, (uint64_t) bf);
 }
 
-inline const Parameter *GContext_findParameter(GContext *context, Identifier *ident) {
+inline const Parameter *GContext_findParameter(ParseContext *context, Identifier *ident) {
   if (!context->patterns) { return nullptr; }
   uint32_t n_patterns = Array_length(context->patterns);
   if (n_patterns == 0) { return nullptr; }
@@ -242,7 +247,7 @@ inline const Parameter *GContext_findParameter(GContext *context, Identifier *id
 
 #define instrFormNdx(instr, i) ((void *) (((uint64_t) (instr_ndx)) << 32) + ((i) + 1))
 Trie /*<REFER(Record), uint64_t>*/ *
-    GContext_build_args_trie(GContext *context, const Instruction *instr) {
+    GContext_build_args_trie(ParseContext *context, const Instruction *instr) {
   Trie /*<REFER(Record), uint64_t>*/ *args_trie =
       Trie_new(sizeof(void *), get_record_ndx, context->allocator);
   const uint32_t n_forms = Array_length(instr->forms);
@@ -277,7 +282,7 @@ Trie /*<REFER(Record), uint64_t>*/ *
   return args_trie;
 }
 
-void GContext_dump_instruction(GContext *context, Instruction *instr) {
+void GContext_dump_instruction(ParseContext *context, Instruction *instr) {
   instr = Array_vert2real(context->instrArray, instr);
   Trie /*<REFER(Record), uint64_t>*/ *args_trie = GContext_build_args_trie(context, instr);
   if (!args_trie) { return; }
@@ -286,52 +291,52 @@ void GContext_dump_instruction(GContext *context, Instruction *instr) {
   Trie_destroy(args_trie);
 }
 
-inline void GContext_setErrorMessage(GContext *context, const char_t *msg) {
+inline void GContext_setErrorMessage(ParseContext *context, const char_t *msg) {
   context->errorMessage = msg;
 }
-const char_t *GContext_getErrorMessage(GContext *context) {
+const char_t *GContext_getErrorMessage(ParseContext *context) {
   return context->errorMessage;
 }
 
-void realloc_context_map_item_tree(GContext *context, void *) {
+void realloc_context_map_item_tree(ParseContext *context, void *) {
   context->mappingTree = AVLTree_new(context->allocator, (compare_t *) BitField_cmp);
 }
 
-void destroy_context_map_item_tree(GContext *context, void *) {
+void destroy_context_map_item_tree(ParseContext *context, void *) {
   if (context->mappingTree) { AVLTree_destroy(context->mappingTree, nullptr); }
   context->mappingTree = nullptr;
 }
 
-void push_context_ident(GContext *context, void *token) {
+void push_context_ident(ParseContext *context, void *token) {
   Identifier *ident = (Identifier *) token;
   Stack_push(context->identStack, &ident, sizeof(Identifier *));
 }
 
-void pop_context_ident(GContext *context, void *) {
+void pop_context_ident(ParseContext *context, void *) {
   Stack_pop(context->identStack, nullptr, sizeof(Identifier *));
 }
 
-void push_context_width(GContext *context, void *token) {
+void push_context_width(ParseContext *context, void *token) {
   uint64_t width = (uint64_t) token;
   Stack_push(context->widthStack, &width, sizeof(uint64_t));
 }
-void pop_context_width(GContext *context, void *) {
+void pop_context_width(ParseContext *context, void *) {
   Stack_pop(context->widthStack, nullptr, sizeof(uint64_t));
 }
 
-void pop_context_width_and_ident(GContext *context, void *) {
+void pop_context_width_and_ident(ParseContext *context, void *) {
   pop_context_width(context, nullptr);
   pop_context_ident(context, nullptr);
 }
-void set_parts_null(GContext *context, void *) {
+void set_parts_null(ParseContext *context, void *) {
   Gcontext_setParts(context, nullptr);
 }
-void pop_context_width_and_set_items_null(GContext *context, void *) {
+void pop_context_width_and_set_items_null(ParseContext *context, void *) {
   pop_context_width(context, nullptr);
   Gcontext_setItems(context, nullptr);
 }
 
-void release_ctx_patterns(GContext *context, void *) {
+void release_ctx_patterns(ParseContext *context, void *) {
   releasePrimeArray(context->patterns);
   context->patterns = nullptr;
 }

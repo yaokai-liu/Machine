@@ -26,8 +26,8 @@
 #ifndef MACHINE_REDUCES_H
 #define MACHINE_REDUCES_H
 
-#include "parse.h"
 #include "target.h"
+#include "context.h"
 
 enum __MACHINE_PRODUCT_RULE_ENUM__ {
   ${enum_reduces}

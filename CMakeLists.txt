@@ -31,7 +31,7 @@ else()
     message(STATUS "${GENERATED_DIR} exists, skip to generate grammar action table.")
 endif()
 
-include_directories(meman grammar)
+include_directories(meman grammar grammar/generated)
 
 aux_source_directory(meman CTR_SRC)
 add_library(meman SHARED ${CTR_SRC})
@@ -45,22 +45,22 @@ aux_source_directory(grammar/parse GRAMMAR_PARSE_SRC)
 aux_source_directory(grammar/generated/machine GRAMMAR_GENERATED_MACHINE_SRC)
 add_library(grammar-parse ${GRAMMAR_PARSE_SRC} ${GRAMMAR_GENERATED_MACHINE_SRC})
 target_include_directories(grammar-parse PRIVATE
-        grammar/parse grammar/generated grammar/generated/machine)
+        grammar/parse grammar/generated/machine)
+target_link_libraries(grammar-parse grammar)
 
 aux_source_directory(grammar/tokenize GRAMMAR_TOKENIZE_SRC)
 aux_source_directory(grammar/generated/macro GRAMMAR_GENERATED_MACRO_SRC)
 add_library(grammar-tokenize ${GRAMMAR_TOKENIZE_SRC} ${GRAMMAR_GENERATED_MACRO_SRC})
 target_include_directories(grammar-tokenize PRIVATE
-        grammar/tokenize grammar/generated grammar/generated/macro)
+        grammar/tokenize grammar/generated/macro)
+target_link_libraries(grammar-tokenize grammar)
 
 aux_source_directory(codegen CODEGEN_SRC)
 
 aux_source_directory(codegen/C CODEGEN_C_SRC)
 add_library(codegen_C ${CODEGEN_SRC} ${CODEGEN_C_SRC})
 target_include_directories(codegen_C PRIVATE codegen codegen/C
-        grammar/generated
-        grammar/parse grammar/generated/machine
-        grammar/tokenize grammar/generated/macro)
+        grammar/parse grammar/generated/machine)
 
 aux_source_directory(codegen/elf CODEGEN_ELF_SRC)
 add_library(codegen_elf ${CODEGEN_SRC} ${CODEGEN_ELF_SRC})
@@ -70,7 +70,7 @@ target_include_directories(codegen_elf PRIVATE codegen codegen/elf
 add_executable(machine-c compiler/compile.c)
 target_link_libraries(machine-c PRIVATE grammar grammar-parse codegen_C)
 target_include_directories(machine-c PRIVATE codegen codegen/C
-        grammar/parse grammar/generated grammar/generated/machine)
+        grammar/parse grammar/generated/machine)
 
 add_executable(machine-elf compiler/compile.c)
 target_link_libraries(machine-elf PRIVATE grammar grammar-parse codegen_elf)
@@ -78,8 +78,8 @@ target_include_directories(machine-elf PRIVATE codegen codegen/elf
         grammar/parse grammar/generated/machine)
 
 add_executable(debug test/debug.c)
-target_link_libraries(debug PRIVATE grammar codegen_C)
-target_include_directories(debug PRIVATE codegen/C)
+target_link_libraries(debug PRIVATE grammar grammar-tokenize)
+target_include_directories(debug PRIVATE grammar grammar/generated/macro)
 
 aux_source_directory(test/common TEST_COMMON_SRC)
 #aux_source_directory(test/parse TEST_PARSE_SRC)

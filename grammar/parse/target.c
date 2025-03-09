@@ -29,13 +29,8 @@
 #include "avl-tree.h"
 #include "context.h"
 #include "enum.h"
+#include "terminal.h"
 #include "tokens.gen.h"
-
-void releaseIdentifier(Identifier *ident, const Allocator *allocator) {
-  allocator->free(ident->ptr);
-}
-
-void releaseBitField(BitField *, const Allocator *) {}
 
 void releaseEntry(Entry *, const Allocator *) {}
 
@@ -227,16 +222,6 @@ void releaseExpr(CondExpr *expr, const Allocator *allocator) {
 
 #include "string_t.h"
 
-inline int32_t Identifier_cmp(const Identifier *ident1, const Identifier *ident2) {
-  if (ident1 == ident2) { return 0; }
-  if (!ident1) { return 1; }
-  if (!ident2) { return -1; }
-  if (ident1->len < ident2->len) { return -1; }
-  if (ident1->len > ident2->len) { return 1; }
-  uint32_t cmp_len = strcmp_o(ident1->ptr, ident2->ptr);
-  return (int32_t) (ident1->len < cmp_len) ? -1 : (ident1->len > cmp_len) ? 1 : 0;
-}
-
 inline int32_t PatternArgs_cmp(PatternArgs *args1, PatternArgs *args2) {
   if (args1 == args2) { return 0; }
   if (!args1) { return 1; }
@@ -255,14 +240,5 @@ inline int32_t PatternArgs_cmp(PatternArgs *args1, PatternArgs *args2) {
         !Identifier_cmp(param1->type, param2->type) && !Identifier_cmp(param1->name, param2->name);
     if (!b) { return 1; }
   }
-  return 0;
-}
-
-inline int32_t BitField_cmp(BitField *bf1, BitField *bf2) {
-  if (bf1 == bf2) { return 0; }
-  if (!bf1) { return -1; }
-  if (!bf2) { return 1; }
-  if (bf1->upper < bf2->lower) { return -1; }
-  if (bf1->lower > bf2->upper) { return 1; }
   return 0;
 }

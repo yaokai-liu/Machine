@@ -87,7 +87,7 @@ constexpr char_t REG_DEF_FMT[] = "const Entry * const REG_%s = &Entry_REG_%s;\n"
 
 void gen_enum_item(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256] = {};
-  const GContext *context = machine->context;
+  const ParseContext *context = machine->context;
   Array *buffer = Generator_getOutputBuffer(generator, GenBuf_enums);
   push_string("enum ENTRY_TYPE_ENUM {\n");
   push_string("  enum_NONE,\n");
@@ -101,7 +101,7 @@ void gen_enum_item(Generator *generator, const Machine *machine) {
 }
 
 void gen_mem_dec_sprintf(
-    const Memory *mem, const GContext *context, char_t *temp_buffer, Array *buffer
+    const Memory *mem, const ParseContext *context, char_t *temp_buffer, Array *buffer
 ) {
   sprintf(temp_buffer, MEM_DEC_NAME_FMT, mem->name->ptr);
   push_string(temp_buffer);
@@ -128,7 +128,7 @@ void gen_mem_dec_sprintf(
   }
 }
 
-void gen_mem_dec(const GContext *context, Array *buffer) {
+void gen_mem_dec(const ParseContext *context, Array *buffer) {
   char_t temp_buffer[512] = {};
   const uint32_t count = Array_length(context->memArray);
   const Memory *memories = Array_real_addr(context->memArray, 0);
@@ -155,7 +155,7 @@ constexpr char_t ENTRY_TYPE_ADD_FMT[] = "  entry->subtypes[%u] = %s->type;\n";
 constexpr char_t ENTRY_VALUE_SET_FMT[] = "  number = numSetBits(number, %d, %d, %s->value);\n";
 constexpr char_t VALUE_SET_FMT[] = "  number = numSetBits(number, %d, %d, %s);\n";
 void gen_mem_def_sprintf(
-    const Memory *mem, const GContext *context, char_t *temp_buffer, Array *buffer
+    const Memory *mem, const ParseContext *context, char_t *temp_buffer, Array *buffer
 ) {
   gen_mem_dec_sprintf(mem, context, temp_buffer, buffer);
   sprintf(temp_buffer, MEM_DEF_HEAD_FMT, mem->name->ptr, mem->width);
@@ -186,7 +186,7 @@ void gen_mem_def_sprintf(
   }
   push_string(MEM_DEF_TAIL);
 }
-void gen_mem_def(const GContext *context, Array *buffer) {
+void gen_mem_def(const ParseContext *context, Array *buffer) {
   char_t temp_buffer[512] = {};
   const uint32_t count = Array_length(context->memArray);
   const Memory *memories = Array_real_addr(context->memArray, 0);
@@ -204,7 +204,7 @@ constexpr char_t SET_GRP_STATE_TABLE_DEC_FMT[] = "static const struct set_grp_ju
 #define gen_reg_sprintf(...) gen_type_sprintf(Register, reg, __VA_ARGS__)
 void gen_context_dec(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
-  const GContext *context = machine->context;
+  const ParseContext *context = machine->context;
   Array *buffer = Generator_getOutputBuffer(generator, GenBuf_exports);
   push_string("extern const Entry *const EOI;\n");
   gen_mem_dec(context, buffer);
@@ -217,7 +217,7 @@ void gen_context_dec(Generator *generator, const Machine *machine) {
 
 void gen_context_def(Generator *generator, const Machine *machine) {
   char_t temp_buffer[1024] = {};
-  const GContext *context = machine->context;
+  const ParseContext *context = machine->context;
   Array *buffer = Generator_getOutputBuffer(generator, GenBuf_definitions);
 
   push_string("static const Entry Entry_EOI = { .type = enum_NONE, .value = 0x0 };\n");
@@ -246,7 +246,7 @@ constexpr char_t SET_GRP_STATE_TABLE_HEAD_FMT[] = "static const struct set_grp_j
 #define gen_set_sprintf(...) gen_type_sprintf(Set, set, __VA_ARGS__)
 void gen_set_grp_jump_table(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
-  const GContext *context = machine->context;
+  const ParseContext *context = machine->context;
   Array *val_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
   Array *sta_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
 

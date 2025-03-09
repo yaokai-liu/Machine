@@ -30,7 +30,7 @@
 #include "generate.h"
 
 void gen_pattern_match(Generator *generator, const Machine *machine) {
-  GContext *context = machine->context;
+  ParseContext *context = machine->context;
   gen_jump_table_dec(generator, machine);
   Array *key_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
   Array *state_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));

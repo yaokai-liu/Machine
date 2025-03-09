@@ -31,7 +31,7 @@
 #include "context.h"
 #include "target.h"
 
-typedef void *fn_reduce(void *argv[], GContext *context, const Allocator *allocator);
+typedef void *fn_reduce(void *argv[], ParseContext *context, const Allocator *allocator);
 
 extern fn_reduce * const MACHINE_PRODUCTS[];
 
