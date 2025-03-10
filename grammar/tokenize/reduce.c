@@ -66,6 +66,17 @@ MacroArg *p_MacroArg_1(void *argv[], MacroContext *, const Allocator *allocator)
 
   return arg;
 }
+
+MacroArg *p_MacroArg_2(void *argv[], MacroContext *, const Allocator *allocator) {
+  uint64_t num = (uint64_t) argv[0];
+
+  MacroArg *arg = allocator->calloc(1, sizeof(MacroArg));
+  arg->type = enum_NUMBER;
+  arg->target = (void *) num;
+
+  return arg;
+}
+
 MacroArgs *p_MacroArgs_0(void *argv[], MacroContext *, const Allocator *allocator) {
   MacroArgs *args = (MacroArgs *) argv[0];
   MacroArg *arg = (MacroArg *) argv[2];

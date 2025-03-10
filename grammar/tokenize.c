@@ -722,7 +722,7 @@ uint32_t pass_space(const char * const input, uint32_t * const lineno, uint32_t 
     switch (*pText) {
       case '\n': {
         l++;
-        c = 0;
+        c = 1;
         break;
       }
       case '\f':

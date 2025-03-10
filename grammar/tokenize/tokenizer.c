@@ -60,20 +60,41 @@ Tokenizer *Tokenizer_new(const char_t *src, const Allocator *allocator) {
   tokenizer->frame.tokens = nullptr;
   tokenizer->frame.args = nullptr;
   tokenizer->frame.index = 0;
+  tokenizer->lineno = 1;
+  tokenizer->column = 1;
   tokenizer->src = src;
   tokenizer->cost = 0;
   return tokenizer;
 }
 
 #define pText (tokenizer->src + tokenizer->cost)
-uint32_t Tokenizer_next(Tokenizer *tokenizer, Terminal * const terminal) {
+uint32_t Tokenizer_eat(Tokenizer *tokenizer, Terminal * const terminal) {
   const uint32_t old_cost = tokenizer->cost;
+  uint32_t cost = pass_space(pText, &tokenizer->lineno, &tokenizer->column);
+  tokenizer->cost += cost;
+  if ('\0' == *pText) {
+    terminal->type = enum_TERMINATOR;
+    terminal->value = nullptr;
+    terminal->length = 0;
+    return 0;
+  }
+  terminal->lineno = tokenizer->lineno;
+  terminal->column = tokenizer->column;
+  cost = single_tokenize(pText, terminal, tokenizer->allocator);
+  if (0 == cost) { return 0; }
+  tokenizer->cost += cost;
+  tokenizer->column += cost;
+  return tokenizer->cost - old_cost;
+}
+
+uint32_t Tokenizer_next(Tokenizer *tokenizer, Terminal * const terminal) {
+  uint32_t cost = 0;
   if (tokenizer->frame.tokens) {
     const Terminal *token = Array_real_addr(tokenizer->frame.tokens, tokenizer->frame.index++);
     if (token->type == enum_PLACE_HOLDER) {
       const uint32_t index = (uint32_t) (uint64_t) token->value;
       const MacroArg *arg = Array_real_addr(tokenizer->frame.args, index);
-      if (arg->type == enum_IDENTIFIER) {
+      if (arg->type != enum_Tokens) {
         terminal->type = arg->type;
         terminal->value = arg->target;
         return 0;
@@ -90,19 +111,7 @@ uint32_t Tokenizer_next(Tokenizer *tokenizer, Terminal * const terminal) {
       Stack_pop(tokenizer->call_stack, &tokenizer->frame, sizeof(MacroCallFrame));
     }
   } else {
-    uint32_t cost = 0;
-    tokenizer->cost += pass_space(pText, &tokenizer->lineno, &tokenizer->column);
-    terminal->lineno = tokenizer->lineno;
-    terminal->column = tokenizer->column;
-    if ('\0' == *pText) {
-      terminal->type = enum_TERMINATOR;
-      terminal->value = nullptr;
-      terminal->length = 0;
-      return 0;
-    }
-    cost = single_tokenize(pText, terminal, tokenizer->allocator);
-    if (0 == cost) { return 0; }
-    tokenizer->cost += cost;
+    cost = Tokenizer_eat(tokenizer, terminal);
   }
   if (terminal->type == enum_MACRO) {
     Tokenizer_parse(tokenizer, terminal);
@@ -118,12 +127,14 @@ uint32_t Tokenizer_next(Tokenizer *tokenizer, Terminal * const terminal) {
       return Tokenizer_next(tokenizer, terminal);
     }
   }
-  return tokenizer->cost - old_cost;
+  return cost;
 }
+
 Macro *Tokenizer_hasMacro(Tokenizer *tokenizer, Identifier *ident) {
   const MacroContext * const context = tokenizer->context;
   return Trie_get(context->macroTrie, ident->ptr);
 }
+
 typedef void *fn_reduce(void *argv[], MacroContext *context, const Allocator *allocator);
 
 extern fn_reduce * const MACRO_PRODUCTS[];
@@ -135,19 +146,7 @@ uint32_t Tokenizer_macro_next(Tokenizer *tokenizer, Terminal * const terminal) {
     return 0;
   }
 
-  tokenizer->cost += pass_space(pText, &tokenizer->lineno, &tokenizer->column);
-  terminal->lineno = tokenizer->lineno;
-  terminal->column = tokenizer->column;
-  if ('\0' == *pText) {
-    terminal->type = enum_TERMINATOR;
-    terminal->value = nullptr;
-    terminal->length = 0;
-    return 0;
-  }
-
-  const uint32_t cost = single_tokenize(pText, terminal, tokenizer->allocator);
-  if (0 == cost) { return 0; }
-  tokenizer->cost += cost;
+  uint32_t cost = Tokenizer_eat(tokenizer, terminal);
   switch (terminal->type) {
     case enum_LEFT_BRACKET: {
       if (tokenizer->context->depth++ == 0) { return cost; }
@@ -158,6 +157,7 @@ uint32_t Tokenizer_macro_next(Tokenizer *tokenizer, Terminal * const terminal) {
       break;
     }
     case enum_COMMA:
+    case enum_NUMBER:
     case enum_LEFT_PAREN:
     case enum_RIGHT_PAREN:
     case enum_IDENTIFIER: {
@@ -192,7 +192,9 @@ uint32_t Tokenizer_parse(Tokenizer *tokenizer, Terminal * const tp) {
 
   while (true) {
     const struct grammar_action *act = getMacroParseAction(state, tp->type);
-    if (!act) { return 0; }
+    if (!act) {
+      return 0;
+    }
     if (act->action == stack) {
       state = act->offset;
       Stack_push(token_stack, &(tp->value), sizeof(void *));
@@ -206,9 +208,11 @@ uint32_t Tokenizer_parse(Tokenizer *tokenizer, Terminal * const tp) {
       Stack_top(state_stack, (int32_t *) &state, sizeof(int32_t));
       fn_reduce *reduce = MACRO_PRODUCTS[act->offset];
       result = reduce(args, context, allocator);
-      if (!result) { return 0; }
+      if (!result) {
+        return 0; }
       state = macroParseJumpState(state, act->type);
-      if (state < 0) { return 0; }
+      if (state < 0) {
+        return 0; }
       fn_ctx_act *ctx_act = macro_get_after_reduce_action(state);
       if (ctx_act) { ctx_act(context, result); }
       Stack_push(token_stack, &result, sizeof(void *));
