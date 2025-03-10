@@ -1,6 +1,6 @@
 /* License
  *
- * ${PROJ_DESCRIPTION}
+ * xMachine - A Backend Generator for Compilers
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,20 +29,21 @@
 #define MACHINE_TARGET_H
 
 #include "array.h"
+#include "generated/tokens.gen.h"
 #include "terminal.h"
 
 enum __TOKEN_TYPE_ENUM_MACRO_EXTEND__ {
   enum_PLACE_HOLDER = MAX_REAL_TOKEN + 1
 };
 
-typedef struct Entry Entry;
+typedef void MacroEntry;
 typedef struct Macro Macro;
 typedef struct MacroArg MacroArg;
-typedef Array MacroArgs; // Array<MacroArg>
+typedef Array MacroArgs;  // Array<MacroArg>
 typedef struct MacroCall MacroCall;
-typedef struct Array MacroParams; //Array<IDENTIFIER>
-typedef struct Token Token;
-typedef Array Tokens; // Array<Token>
+typedef struct Array MacroParams;  // Array<IDENTIFIER>
+typedef Terminal Token;
+typedef Array Tokens;  // Array<Token>
 
 struct MacroArg {
   uint32_t type;
@@ -57,8 +58,13 @@ struct MacroCall {
 struct Macro {
   Identifier *name;
   MacroParams *params;
-  Tokens    *tokens;
+  Tokens *tokens;
 };
 
+typedef struct MacroCallFrame {
+  const Tokens *tokens;
+  uint32_t index;
+  const MacroArgs *args;
+} MacroCallFrame;
 
 #endif  // MACHINE_TARGET_H

@@ -27,7 +27,7 @@
 #include "tokenize.h"
 #include "array.h"
 #include "enum.h"
-#include "tokens.gen.h"
+#include "generated/tokens.gen.h"
 #include "string_t.h"
 #include "terminal.h"
 
@@ -281,7 +281,7 @@ uint32_t tokenize_letter_i(
 }
 
 uint32_t tokenize_startswith_mac(
-    const char_t *const input, Terminal *const result, const Allocator *const allocator
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
 ) {
   const char_t *pText = input + 1;
   switch (*pText) {
@@ -301,8 +301,11 @@ uint32_t tokenize_letter_m(
   switch (*input) {
     case 'a': {
       const char_t *pText = input + 1;
-      if (*pText == 'c') { return tokenize_startswith_mac(input + 1, result, allocator); }
-      else { fn_fall_through(); }
+      if (*pText == 'c') {
+        return tokenize_startswith_mac(input + 1, result, allocator);
+      } else {
+        fn_fall_through();
+      }
     }
     case 'e': {
       return try_keyword_memory(input + 1, result, allocator);
@@ -396,9 +399,8 @@ uint32_t tokenize_LSQUARE_startswith_digital(
   }
 }
 
-uint32_t tokenize_LSQUARE_startswith_QUES_MARK(
-    const char_t * const input, Terminal * const result, const Allocator *
-) {
+uint32_t
+    tokenize_LSQUARE_startswith_QUES_MARK(const char_t * const input, Terminal * const result, const Allocator *) {
   const char_t *pText = input + 1;
   pText += pass_whitespace(pText);
   if (*pText != ']') { return 0; }
@@ -627,7 +629,8 @@ uint32_t tokenize_arith_single_symbols(
 }
 constexpr uint32_t TERMINAL_TYPE_LITERALS[] = {
     enum_LEFT_BRACKET, enum_RIGHT_BRACKET, enum_COLON, enum_SEMICOLON, enum_RIGHT_SQUARE_BRACKET,
-    enum_RIGHT_PAREN,  enum_COMMA,         enum_DOT,   enum_AT, enum_QUESTION_MARK, enum_OP_WIDTH
+    enum_RIGHT_PAREN,  enum_COMMA,         enum_DOT,   enum_AT,        enum_QUESTION_MARK,
+    enum_OP_WIDTH
 };
 uint32_t tokenize_grammar_single_symbols(
     const char_t * const input, Terminal * const result, const Allocator * const

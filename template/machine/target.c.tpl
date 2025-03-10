@@ -23,8 +23,7 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "parse.h"
-#include "reduce.gen.h"
+#include "generated/machine/reduce.gen.h"
 
 fn_reduce * const MACHINE_PRODUCTS[] = {
   ${assign_reduces}

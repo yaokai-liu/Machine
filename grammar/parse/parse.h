@@ -30,13 +30,10 @@
 
 #include "context.h"
 #include "target.h"
-
-typedef void *fn_reduce(void *argv[], ParseContext *context, const Allocator *allocator);
+#include "tokenize/tokenizer.h"
 
 extern fn_reduce * const MACHINE_PRODUCTS[];
 
-Machine *parse(
-    const Terminal *tokens, uint32_t *cost, const char_t **err_msg, const Allocator *allocator
-);
+Machine *parse(Tokenizer *tokenizer, const char_t **err_msg, const Allocator *allocator);
 
 #endif  // MACHINE_PARSE_H

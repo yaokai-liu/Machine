@@ -27,9 +27,9 @@
 
 #include "parse.h"
 #include "action.h"
-#include "action-table.gen.h"
 #include "context.h"
-#include "reduce.gen.h"
+#include "generated/machine/action-table.gen.h"
+#include "generated/machine/reduce.gen.h"
 #include "stack.h"
 #include "target.h"
 
@@ -45,12 +45,10 @@ Machine *failed_to_produce(
 Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocator *allocator);
 
 #define MAX_ARGC 0x10
-Machine *parse(
-    const Terminal *const tokens, uint32_t *cost, const char_t **err_msg, const Allocator *allocator
-) {
+Machine *parse(Tokenizer *tokenizer, const char_t **err_msg, const Allocator *allocator) {
   void *result;
   int32_t state = 0;
-  const Terminal *tp = tokens;
+  Terminal terminal = {};
   void *args[MAX_ARGC] = {};
   int32_t states[MAX_ARGC] = {};
   Stack *state_stack = Stack_new(allocator);
@@ -58,8 +56,9 @@ Machine *parse(
   Stack_push(state_stack, &state, sizeof(int32_t));
   ParseContext *context = GContext_new(allocator);
 
+  Tokenizer_next(tokenizer, &terminal);
   while (true) {
-    const struct grammar_action *act = getParseAction(state, tp->type);
+    const struct grammar_action *act = getParseAction(state, terminal.type);
     if (!act) {
       *err_msg = "unexpected token.";
       GContext_destroy(context);
@@ -67,11 +66,11 @@ Machine *parse(
     }
     if (act->action == stack) {
       state = act->offset;
-      Stack_push(token_stack, &(tp->value), sizeof(void *));
+      Stack_push(token_stack, &(terminal.value), sizeof(void *));
       Stack_push(state_stack, &state, sizeof(int32_t));
       fn_ctx_act *ctx_act = get_after_stack_actions(state);
-      if (ctx_act) { ctx_act(context, tp->value); }
-      tp++, (*cost) ++;
+      if (ctx_act) { ctx_act(context, terminal.value); }
+      Tokenizer_next(tokenizer, &terminal);
     } else if (act->action == reduce) {
       Stack_pop(token_stack, args, act->count * sizeof(void *));
       Stack_pop(state_stack, states, act->count * sizeof(int32_t));
@@ -92,7 +91,7 @@ Machine *parse(
       Stack_push(token_stack, &result, sizeof(void *));
       Stack_push(state_stack, &state, sizeof(int32_t));
       fn_ctx_act *ctx_act = get_after_reduce_actions(state);
-      if (ctx_act) { ctx_act(context, tp->value); }
+      if (ctx_act) { ctx_act(context, terminal.value); }
       if (act->offset == __EXTEND_RULE__) { break; }
     } else {
       // never be touched

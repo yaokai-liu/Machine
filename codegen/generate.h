@@ -31,7 +31,7 @@
 #include "array.h"
 #include "char_t.h"
 #include "generator.h"
-#include "context.h"
+#include "parse/context.h"
 #include <stdbool.h>
 #include <stdint.h>
 

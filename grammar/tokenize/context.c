@@ -1,6 +1,6 @@
 /* License
  *
- * ${PROJ_DESCRIPTION}
+ * xMachine - A Backend Generator for Compilers
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,14 +26,14 @@
  **/
 
 #include "context.h"
+#include "generated/macro/action-table.gen.h"
 #include "terminal.h"
-#include "action-table.gen.h"
-
 
 MacroContext *MacroContext_new(const Allocator *allocator) {
   MacroContext *context = allocator->calloc(1, sizeof(MacroContext));
+  context->allocator = allocator;
   context->macroArray = Array_new(sizeof(Macro), enum_Macro, allocator);
-  context->macroTrie = Trie_new(sizeof(char_t), getchar, allocator);
+  context->macroTrie = Trie_new(sizeof(char_t), get_char, allocator);
   context->call_stack = Stack_new(allocator);
   context->current_params = nullptr;
   context->current_args = nullptr;
@@ -50,43 +50,35 @@ REFER(Macro) MacroContext_addMacro(MacroContext *context, Macro *macro) {
   return v_macro;
 }
 
-
 uint32_t MacroContext_getIdentParamIndex(MacroContext *context, Identifier *ident) {
   if (!context->current_params) { return 0; }
   const Identifier *idents = Array_first_real(context->current_params);
   const uint32_t count = Array_length(context->current_params);
-  for (uint32_t i = 0; i < count; i ++) {
-    if (Identifier_cmp(&idents[i], ident) == 0) {
-      return i + 1;
-    }
+  for (uint32_t i = 0; i < count; i++) {
+    if (Identifier_cmp(&idents[i], ident) == 0) { return i + 1; }
   }
   return 0;
 }
 
-inline void MacroContext_pushCallStack(MacroContext *context, MacroCall *call) {
-  Stack_push(context -> call_stack, call, sizeof(MacroCall));
+inline MacroCallFrame *
+    MacroContext_makeFrame(MacroContext *context, MacroCallFrame *frame, REFER(Macro) v_macro) {
+  const Macro *macro = Array_vert2real(context->macroArray, v_macro);
+  frame->args = context->current_args;
+  frame->tokens = macro->tokens;
+  frame->index = 0;
+  return frame;
 }
-
-inline void MacroContext_popCallStack(MacroContext *context, MacroCall *call) {
-  Stack_pop(context -> call_stack, call, sizeof(MacroCall));
-}
-
 
 void set_in_parse_true(MacroContext *context, void *) {
   context->in_parse = true;
 }
 
+void set_in_parse_false(MacroContext *context, void *) {
+  context->in_parse = false;
+}
+
 void set_end_parse_true(MacroContext *context, void *) {
   context->end_parse = true;
-}
-
-void set_current_params(MacroContext *context, MacroParams *params) {
-  params = (params == (void *) enum_MacroParams) ? nullptr : params;
-  context->current_params = params;
-}
-
-void push_macro_call(MacroContext *context, MacroCall *call) {
-  MacroContext_pushCallStack(context, call);
 }
 
 fn_ctx_act *macro_get_after_stack_action(uint32_t state) {
@@ -95,24 +87,23 @@ fn_ctx_act *macro_get_after_stack_action(uint32_t state) {
     case __MACRO_IDENTIFIER_LEFT_PAREN_MacroParams_RIGHT_PAREN_LEFT_BRACKET: {
       return set_in_parse_true;
     }
+    case __IDENTIFIER_LEFT_PAREN_LEFT_BRACKET_Tokens_RIGHT_BRACKET: {
+      return set_in_parse_false;
+    }
     case __IDENTIFIER_LEFT_PAREN_MacroArgs_RIGHT_PAREN:
     case __MACRO_IDENTIFIER_LEFT_PAREN_MacroParams_RIGHT_PAREN_LEFT_BRACKET_Tokens_RIGHT_BRACKET: {
       return set_end_parse_true;
     }
-    default:{}
+    default: {
+    }
   }
   return nullptr;
 }
 
 fn_ctx_act *macro_get_after_reduce_action(uint32_t state) {
   switch (state) {
-    case __MACRO_IDENTIFIER_LEFT_PAREN_MacroParams_RIGHT_PAREN: {
-      return (fn_ctx_act *) set_current_params;
+    default: {
     }
-    case __MacroCall: {
-      return (fn_ctx_act *) push_macro_call;
-    }
-    default:{}
   }
   return nullptr;
 }

@@ -3,7 +3,7 @@ Language: Cpp
 ColumnLimit: 100
 AlignAfterOpenBracket: BlockIndent
 AlignArrayOfStructures: Left
-AlignConsecutiveAssignments: true
+AlignConsecutiveAssignments: false
 AlignConsecutiveBitFields: Consecutive
 AlignConsecutiveDeclarations: false
 AlignConsecutiveMacros: AcrossEmptyLinesAndComments

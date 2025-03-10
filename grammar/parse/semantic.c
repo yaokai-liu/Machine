@@ -27,7 +27,7 @@
 
 #include "semantic.h"
 #include "enum.h"
-#include "tokens.gen.h"
+#include "generated/tokens.gen.h"
 
 int32_t check_mapping_item_evaluable(
     ParseContext *context, BitField *bit_field, const Evaluable *evaluable

@@ -23,7 +23,7 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "reduce.gen.h"
+#include "generated/macro/reduce.gen.h"
 
 typedef void *fn_reduce(void **, MacroContext *, const Allocator *);
 

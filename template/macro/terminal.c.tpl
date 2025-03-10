@@ -23,7 +23,7 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 #include "terminal.h"
-#include "tokens.gen.h"
+#include "generated/tokens.gen.h"
 const char_t MACRO_TERMINALS[] = {
   ${terminals}
 };

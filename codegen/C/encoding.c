@@ -29,8 +29,8 @@
 #include "array.h"
 #include "char_t.h"
 #include "enum.h"
-#include "context.h"
-#include "tokens.gen.h"
+#include "generated/tokens.gen.h"
+#include "parse/context.h"
 #include "stdint.h"
 #include "terminal.h"
 #include "trie-dump.h"
@@ -83,8 +83,7 @@ int32_t online_gen_instr_encoding_def(
   char_t head_buffer[sizeof(ENCODING_DEF_FMT_HEAD) + 256];
   for (uint32_t i = 0; i < n_forms; ++i) {
     const PatternArgs *arg_array = forms[i].pattern->args;
-    const char_t * const encoding_dec_fmt =
-        arg_array ? ENCODING_DEC_FMT : ENCODING_DEC_NO_ARGS_FMT;
+    const char_t * const encoding_dec_fmt = arg_array ? ENCODING_DEC_FMT : ENCODING_DEC_NO_ARGS_FMT;
     sprintf(head_buffer, encoding_dec_fmt, instr_op, i);
     push_string(head_buffer);
     const uint32_t n_bytes = forms[i].width / 8;
@@ -261,7 +260,8 @@ void gen_jump_table_def(
   )
 
 #define MAX_IDENT_LEN 64
-int32_t eval_to_val(const ParseContext *, const Evaluable *evaluable, char_t *buffer, const Pattern *) {
+int32_t
+    eval_to_val(const ParseContext *, const Evaluable *evaluable, char_t *buffer, const Pattern *) {
   if (enum_NUMBER == evaluable->type) {
     uint64_t number = (uint64_t) evaluable->lhs;
     return sprintf(buffer, "0x%lX", number);
@@ -354,8 +354,9 @@ void type_to_val(const ParseContext *context, const Identifier *ident, char_t *b
     sprintf(buffer, fmt, temp_buffer2); \
     break;                              \
   }
-int32_t
-    expr_to_val(const ParseContext *context, const Expr *expr, const Pattern *pattern, char_t *buffer) {
+int32_t expr_to_val(
+    const ParseContext *context, const Expr *expr, const Pattern *pattern, char_t *buffer
+) {
   char_t temp_buffer1[512] = {};
   char_t temp_buffer2[512] = {};
   if (expr->type < RECURSIVE_OP_MAX) {
@@ -525,7 +526,10 @@ int32_t codegen_layout(
           case enum_NUMBER: {
             width = 0;
             uint64_t num = (uint64_t) eval->lhs;
-            while (num) { num >>= 3; width ++; }
+            while (num) {
+              num >>= 3;
+              width++;
+            }
             pushEncodingNumberN(temp_buffer, width);
             sprintf(temp_buffer, "    size += %u;\n", width / 8);
             push_string(temp_buffer);
@@ -578,7 +582,9 @@ int32_t codegen_layout(
   return (int32_t) (Array_length(buffer) - pre_len);
 }
 
-void codegen_form_check(const ParseContext *context, Array *buffer, const InstrForm *form, char_t *temp_buffer) {
+void codegen_form_check(
+    const ParseContext *context, Array *buffer, const InstrForm *form, char_t *temp_buffer
+) {
   FormCheck *check = form->check;
   push_string("  /* __FORM_CHECK__ */\n  if (!");
   expr_to_val(context, check->expr, form->pattern, temp_buffer);

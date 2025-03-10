@@ -28,8 +28,8 @@
 #ifndef MACHINE_TOKENIZER_H
 #define MACHINE_TOKENIZER_H
 
-#include "char_t.h"
 #include "allocator.h"
+#include "char_t.h"
 #include "terminal.h"
 
 typedef struct Tokenizer Tokenizer;

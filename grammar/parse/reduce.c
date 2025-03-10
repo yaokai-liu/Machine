@@ -25,16 +25,16 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "action-table.gen.h"
 #include "array.h"
 #include "avl-tree.h"
 #include "context.h"
 #include "enum.h"
 #include "expr-reduce.h"
+#include "generated/machine/action-table.gen.h"
+#include "generated/tokens.gen.h"
 #include "semantic.h"
 #include "target.h"
 #include "terminal.h"
-#include "tokens.gen.h"
 #include <stdint.h>
 
 #define min(a, b) ((a) < (b)) ? (a) : (b)
@@ -260,7 +260,8 @@ SingleCondExpr *p_SingleCondExpr_2(void *argv[], ParseContext *, const Allocator
   expr->rhs = rhs;
   return expr;
 }
-SingleCondExpr *p_SingleCondExpr_3(void *argv[], ParseContext *context, const Allocator *allocator) {
+SingleCondExpr *
+    p_SingleCondExpr_3(void *argv[], ParseContext *context, const Allocator *allocator) {
   Variable *lhs = (Variable *) argv[0];
   Identifier *rhs = (Identifier *) argv[2];
 
@@ -448,12 +449,12 @@ Evaluable *p_Evaluable_1(void *argv[], ParseContext *, const Allocator *allocato
       evaluable->rhs = nullptr;
       return evaluable;
     }
-    case VT_REGISTER:{
+    case VT_REGISTER: {
       const Register *reg = var->rhs;
       width = reg->field->upper - reg->field->lower + 1;
       break;
     }
-    case VT_MEMORY:{
+    case VT_MEMORY: {
       const Memory *mem = var->rhs;
       width = mem->width;
       break;
@@ -468,7 +469,10 @@ Evaluable *p_Evaluable_1(void *argv[], ParseContext *, const Allocator *allocato
       width = item->width;
       break;
     }
-    default: { releaseVariable(var, allocator); return nullptr; }
+    default: {
+      releaseVariable(var, allocator);
+      return nullptr;
+    }
   }
   releaseVariable(var, allocator);
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
@@ -490,8 +494,10 @@ Evaluable *p_Evaluable_2(void *argv[], ParseContext *context, const Allocator *a
     evaluable->rhs = nullptr;
     return evaluable;
   }
-  grammarAssert(var->type != VT_MEMORY && var->type != VT_IMMEDIATE,
-                "arithmetic operation with 'Memory' or 'Immediate' entity is not supported.");
+  grammarAssert(
+      var->type != VT_MEMORY && var->type != VT_IMMEDIATE,
+      "arithmetic operation with 'Memory' or 'Immediate' entity is not supported."
+  );
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_Variable;
   evaluable->lhs = var;
@@ -530,7 +536,9 @@ InstrForm *p_InstrForm_0(void *argv[], ParseContext *, const Allocator *allocato
   uint32_t width = 0;
   const InstrPart *first = Array_first_real(part_array);
   const InstrPart *last = Array_last_real(part_array);
-  for (const InstrPart *part = first; part <= last; part++) { width += part->width > 256 ? 256 : part->width;}
+  for (const InstrPart *part = first; part <= last; part++) {
+    width += part->width > 256 ? 256 : part->width;
+  }
 
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
@@ -551,7 +559,9 @@ InstrForm *p_InstrForm_1(void *argv[], ParseContext *, const Allocator *allocato
   uint32_t width = 0;
   const InstrPart *first = Array_first_real(part_array);
   const InstrPart *last = Array_last_real(part_array);
-  for (const InstrPart *part = first; part <= last; part++) { width += part->width > 256 ? 256 : part->width;}
+  for (const InstrPart *part = first; part <= last; part++) {
+    width += part->width > 256 ? 256 : part->width;
+  }
 
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
@@ -596,11 +606,13 @@ InstrPart *p_InstrPart_0(void *argv[], ParseContext *context, const Allocator *a
 
   if (width == (uint32_t) -1) {
     const Arith_0_Expr *expr = layout->target;
-    grammarAssert(layout->type == enum_Arith_0_Expr && expr->type == AS_ID,
-                  "target is too complex to calculate width.");
+    grammarAssert(
+        layout->type == enum_Arith_0_Expr && expr->type == AS_ID,
+        "target is too complex to calculate width."
+    );
   } else {
-    grammarAssert(width % 8 == 0,
-                  "illegal width of parts. width must be an integer multiple of a byte with."
+    grammarAssert(
+        width % 8 == 0, "illegal width of parts. width must be an integer multiple of a byte with."
     );
   }
   grammarAssertNotDeclaredInstrPart(name);
@@ -623,11 +635,13 @@ InstrPart *p_InstrPart_1(void *argv[], ParseContext *context, const Allocator *a
 
   if (width == (uint32_t) -1) {
     const Arith_0_Expr *expr = layout->target;
-    grammarAssert(layout->type == enum_Arith_0_Expr && expr->type == AS_ID,
-                  "target is too complex to calculate width.");
+    grammarAssert(
+        layout->type == enum_Arith_0_Expr && expr->type == AS_ID,
+        "target is too complex to calculate width."
+    );
   } else {
-    grammarAssert(width % 8 == 0,
-                  "illegal width of parts. width must be an integer multiple of a byte with."
+    grammarAssert(
+        width % 8 == 0, "illegal width of parts. width must be an integer multiple of a byte with."
     );
   }
   grammarAssertNotDeclaredInstrPart(name);
@@ -1097,7 +1111,7 @@ void releaseToken(void *token, uint32_t type, const Allocator *allocator) {
 
     releaseTokenCase(Entry, Entry)
     releaseTokenCase(Condition, Condition)
-    releaseTokenCase(Variable , Variable)
+    releaseTokenCase(Variable, Variable)
     releaseTokenCase(Evaluable, Evaluable)
     releaseTokenCase(Immediate, Immediate)
     releaseTokenCase(InstrForm, InstrForm)

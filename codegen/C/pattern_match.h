@@ -29,7 +29,7 @@
 #define MACHINE_PATTERN_MATCH_H
 
 #include "generate.h"
-#include "context.h"
+#include "parse/context.h"
 void gen_pattern_match(Generator *generator, const Machine *machine);
 
 #endif  // MACHINE_PATTERN_MATCH_H

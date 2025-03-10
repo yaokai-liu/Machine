@@ -31,7 +31,7 @@
 #include "array.h"
 #include "char_t.h"
 #include "generate.h"
-#include "target.h"
+#include "parse/target.h"
 #include "terminal.h"
 #include <stdint.h>
 
@@ -51,7 +51,9 @@ void gen_jump_table_def(
 );
 
 int32_t codegen_instr_form(const ParseContext *context, Array *buffer, const InstrForm *form);
-void codegen_form_check(const ParseContext *context, Array *buffer, const InstrForm *form, char_t *temp_buffer);
+void codegen_form_check(
+    const ParseContext *context, Array *buffer, const InstrForm *form, char_t *temp_buffer
+);
 int32_t codegen_instr_part(
     const ParseContext *context, Array *buffer, const InstrForm *form, const InstrPart *part,
     char_t *temp_buffer

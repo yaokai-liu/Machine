@@ -1,6 +1,6 @@
 /* License
  *
- * ${PROJ_DESCRIPTION}
+ * xMachine - A Backend Generator for Compilers
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,6 @@
 #include "terminal.h"
 #include "string_t.h"
 
-
 inline int32_t Identifier_cmp(const Identifier *ident1, const Identifier *ident2) {
   if (ident1 == ident2) { return 0; }
   if (!ident1) { return 1; }
@@ -48,13 +47,12 @@ inline int32_t BitField_cmp(BitField *bf1, BitField *bf2) {
   return 0;
 }
 
-
 inline void releaseIdentifier(Identifier *ident, const Allocator *allocator) {
   allocator->free(ident->ptr);
 }
 
 inline void releaseBitField(BitField *, const Allocator *) {}
 
-uint64_t getchar(const void *key) {
+uint64_t get_char(const void *key) {
   return *(const char_t *) key;
 }

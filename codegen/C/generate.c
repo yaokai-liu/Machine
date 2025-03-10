@@ -29,7 +29,7 @@
 #include "define.h"
 #include "encoding.h"
 #include "generator.h"
-#include "target.h"
+#include "parse/target.h"
 #include "pattern_match.h"
 #include "static.h"
 #include <stdint.h>

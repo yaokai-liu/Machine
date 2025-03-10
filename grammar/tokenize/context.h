@@ -1,6 +1,6 @@
 /* License
  *
- * ${PROJ_DESCRIPTION}
+ * xMachine - A Backend Generator for Compilers
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -35,15 +35,16 @@
 #define REFER(T) T *
 
 typedef struct MacroContext {
-  Array *macroArray; // Array<Macro>
-  Trie *macroTrie; // Trie<char_t, Macro>
-  Stack *call_stack; // Stack<MacroCall>
+  const Allocator *allocator;
+  Array *macroArray;  // Array<Macro>
+  Trie *macroTrie;    // Trie<char_t, Macro>
+  Stack *call_stack;  // Stack<MacroCall>
 
   MacroParams *current_params;
   MacroArgs *current_args;
-  bool      end_parse;
-  bool      in_parse;
-  uint32_t  depth;
+  bool end_parse;
+  bool in_parse;
+  uint32_t depth;
 } MacroContext;
 
 MacroContext *MacroContext_new(const Allocator *allocator);
@@ -52,9 +53,13 @@ REFER(Macro) MacroContext_addMacro(MacroContext *context, Macro *macro);
 uint32_t MacroContext_getIdentParamIndex(MacroContext *context, Identifier *ident);
 void MacroContext_pushCallStack(MacroContext *context, MacroCall *call);
 void MacroContext_popCallStack(MacroContext *context, MacroCall *call);
+MacroCallFrame *
+    MacroContext_makeFrame(MacroContext *context, MacroCallFrame *frame, REFER(Macro) v_macro);
+
+void MacroContext_destroy(MacroContext *context);
+
 typedef void fn_ctx_act(MacroContext *context, void *token);
 fn_ctx_act *macro_get_after_stack_action(uint32_t state);
 fn_ctx_act *macro_get_after_reduce_action(uint32_t state);
-
 
 #endif  // MACHINE_CONTEXT_H

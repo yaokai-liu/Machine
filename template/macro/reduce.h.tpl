@@ -26,8 +26,8 @@
 #ifndef MACRO_REDUCES_H
 #define MACRO_REDUCES_H
 
-#include "target.h"
-#include "context.h"
+#include "tokenize/target.h"
+#include "tokenize/context.h"
 
 enum __MACRO_PRODUCT_RULE_ENUM__ {
   ${enum_reduces}

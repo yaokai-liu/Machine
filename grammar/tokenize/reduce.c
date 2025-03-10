@@ -1,6 +1,6 @@
 /* License
  *
- * ${PROJ_DESCRIPTION}
+ * xMachine - A Backend Generator for Compilers
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,30 +25,30 @@
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
+#include "generated/macro/reduce.gen.h"
 #include "target.h"
-#include "reduce.gen.h"
 
-Entry * p_Entry_0(void *[], MacroContext *, const Allocator *) {
-  return (Entry *) (uint64_t) (enum_Entry);
+MacroEntry *p_MacroEntry_0(void *argv[], MacroContext *, const Allocator *) {
+  return (MacroEntry *) argv[0];
 }
-Entry * p_Entry_1(void *[], MacroContext *, const Allocator *) {
-  return (Entry *) (uint64_t) (enum_Entry);
+MacroEntry *p_MacroEntry_1(void *argv[], MacroContext *, const Allocator *) {
+  return (MacroEntry *) argv[0];
 }
-Entry * p__Entry__(void * argv[], MacroContext *, const Allocator *) {
+MacroEntry *p__MacroEntry__(void *argv[], MacroContext *, const Allocator *) {
   return argv[0];
 }
-Macro * p_Macro_0(void * argv[], MacroContext *context, const Allocator *) {
-    Identifier *ident = (Identifier *) argv[1];
-    MacroParams *params = (MacroParams *) argv[3];
-    Tokens *tokens = (Tokens *) argv[6];
+Macro *p_Macro_0(void *argv[], MacroContext *context, const Allocator *) {
+  Identifier *ident = (Identifier *) argv[1];
+  MacroParams *params = (MacroParams *) argv[3];
+  Tokens *tokens = (Tokens *) argv[6];
 
-    params = (params == (void *) enum_MacroParams) ? nullptr : params;
+  params = (params == (void *) enum_MacroParams) ? nullptr : params;
 
-    Macro macro = { .name = ident, .params = params, .tokens = tokens };
-    return MacroContext_addMacro(context, &macro);
+  Macro macro = {.name = ident, .params = params, .tokens = tokens};
+  return MacroContext_addMacro(context, &macro);
 }
 
-MacroArg * p_MacroArg_0(void * argv[], MacroContext *, const Allocator * allocator) {
+MacroArg *p_MacroArg_0(void *argv[], MacroContext *, const Allocator *allocator) {
   Tokens *tokens = (Tokens *) argv[1];
 
   MacroArg *arg = allocator->calloc(1, sizeof(MacroArg));
@@ -57,7 +57,7 @@ MacroArg * p_MacroArg_0(void * argv[], MacroContext *, const Allocator * allocat
 
   return arg;
 }
-MacroArg * p_MacroArg_1(void * argv[], MacroContext *, const Allocator * allocator) {
+MacroArg *p_MacroArg_1(void *argv[], MacroContext *, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[0];
 
   MacroArg *arg = allocator->calloc(1, sizeof(MacroArg));
@@ -66,7 +66,7 @@ MacroArg * p_MacroArg_1(void * argv[], MacroContext *, const Allocator * allocat
 
   return arg;
 }
-MacroArgs * p_MacroArgs_0(void * argv[], MacroContext *, const Allocator * allocator) {
+MacroArgs *p_MacroArgs_0(void *argv[], MacroContext *, const Allocator *allocator) {
   MacroArgs *args = (MacroArgs *) argv[0];
   MacroArg *arg = (MacroArg *) argv[2];
 
@@ -75,9 +75,8 @@ MacroArgs * p_MacroArgs_0(void * argv[], MacroContext *, const Allocator * alloc
 
   return args;
 }
-MacroArgs * p_MacroArgs_1(void * argv[], MacroContext *, const Allocator * allocator) {
+MacroArgs *p_MacroArgs_1(void *argv[], MacroContext *, const Allocator *allocator) {
   MacroArg *arg = (MacroArg *) argv[0];
-
 
   MacroArgs *args = Array_new(sizeof(MacroArg), enum_MacroArg, allocator);
   Array_append(args, arg, 1);
@@ -86,11 +85,11 @@ MacroArgs * p_MacroArgs_1(void * argv[], MacroContext *, const Allocator * alloc
   return args;
 }
 
-MacroArgs * p_MacroArgs_2(void *[], MacroContext *, const Allocator *) {
+MacroArgs *p_MacroArgs_2(void *[], MacroContext *, const Allocator *) {
   return (MacroArgs *) (uint64_t) enum_MacroArgs;
 }
 
-MacroCall * p_MacroCall_0(void * argv[], MacroContext *context, const Allocator * allocator) {
+MacroCall *p_MacroCall_0(void *argv[], MacroContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[0];
   MacroArgs *args = (MacroArgs *) argv[2];
 
@@ -99,14 +98,15 @@ MacroCall * p_MacroCall_0(void * argv[], MacroContext *context, const Allocator 
   const MacroParams *params = macro->params;
   if (Array_length(args) != Array_length(params)) { return nullptr; }
 
-  MacroCall *macro_call = allocator->calloc(1, sizeof(MacroCall));
-  macro_call->name = ident;
-  macro_call->args = args;
+  context->current_args = args;
 
-  return macro_call;
+  releaseIdentifier(ident, allocator);
+  allocator->free(ident);
+
+  return (void *) enum_MacroParams;
 }
 
-MacroParams * p_MacroParams_0(void * argv[], MacroContext *, const Allocator * allocator) {
+MacroParams *p_MacroParams_0(void *argv[], MacroContext *, const Allocator *allocator) {
   MacroParams *params = (MacroParams *) argv[0];
   Identifier *ident = (Identifier *) argv[2];
 
@@ -116,22 +116,23 @@ MacroParams * p_MacroParams_0(void * argv[], MacroContext *, const Allocator * a
   return params;
 }
 
-MacroParams * p_MacroParams_1(void * argv[], MacroContext *, const Allocator * allocator) {
+MacroParams *p_MacroParams_1(void *argv[], MacroContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[0];
-
 
   MacroParams *params = Array_new(sizeof(Identifier), enum_IDENTIFIER, allocator);
   Array_append(params, ident, 1);
   allocator->free(ident);
 
+  context->current_params = params;
+
   return params;
 }
 
-MacroParams * p_MacroParams_2(void *[], MacroContext *, const Allocator *) {
+MacroParams *p_MacroParams_2(void *[], MacroContext *, const Allocator *) {
   return (MacroParams *) (uint64_t) enum_MacroParams;
 }
 
-Tokens * p_Tokens_0(void *argv[], MacroContext *context, const Allocator *allocator) {
+Tokens *p_Tokens_0(void *argv[], MacroContext *context, const Allocator *allocator) {
   Tokens *tokens = (Tokens *) argv[0];
   Terminal *token = (Terminal *) argv[1];
 
@@ -144,12 +145,13 @@ Tokens * p_Tokens_0(void *argv[], MacroContext *context, const Allocator *alloca
       token->value = (void *) (uint64_t) index - 1;
     }
   }
-
   Array_append(tokens, token, 1);
+  allocator->free(token);
+
   return tokens;
 }
 
-Tokens * p_Tokens_1(void * argv[], MacroContext *context, const Allocator *allocator) {
+Tokens *p_Tokens_1(void *argv[], MacroContext *context, const Allocator *allocator) {
   Terminal *token = (Terminal *) argv[0];
   if (token->type == enum_IDENTIFIER) {
     uint32_t index = MacroContext_getIdentParamIndex(context, token->value);
@@ -160,9 +162,9 @@ Tokens * p_Tokens_1(void * argv[], MacroContext *context, const Allocator *alloc
       token->value = (void *) (uint64_t) index - 1;
     }
   }
-
   Tokens *tokens = Array_new(sizeof(Terminal), enum_TOKEN, allocator);
   Array_append(tokens, token, 1);
+  allocator->free(token);
 
   return tokens;
 }

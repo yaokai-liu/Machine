@@ -221,7 +221,7 @@ if __name__ == '__main__':
     GMacro = Generator(json_dir=JSON_DIR / "macro",
                        template_dir=TEMPLATE_DIR / "macro",
                        out_dir=OUT_DIR / "macro",
-                       target="Entry")
+                       target="MacroEntry")
 
     tokens = sorted(set(GMachine.tokens) | set(GMacro.tokens))
     GMachine.set_extend_tokens(tokens)

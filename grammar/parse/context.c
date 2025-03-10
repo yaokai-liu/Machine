@@ -27,10 +27,10 @@
 
 #include "context.h"
 #include "avl-tree.h"
+#include "generated/tokens.gen.h"
 #include "stack.h"
 #include "target.h"
 #include "terminal.h"
-#include "tokens.gen.h"
 #include "trie-dump.h"
 #include "trie.h"
 #include <stdint.h>
@@ -53,8 +53,8 @@ inline ParseContext *GContext_new(const Allocator *allocator) {
   context->recordArray = Array_new(sizeof(Record), INT32_MAX - 1, allocator);
   context->keyArray = Array_new(sizeof(TrieKeyItem), INT32_MAX - 2, allocator);
   context->stateArray = Array_new(sizeof(TrieNodeItem), INT32_MAX - 3, allocator);
-  context->objectMap = Trie_new(sizeof(char_t), getchar, allocator);
-  context->opcodeMap = Trie_new(sizeof(char_t), getchar, allocator);
+  context->objectMap = Trie_new(sizeof(char_t), get_char, allocator);
+  context->opcodeMap = Trie_new(sizeof(char_t), get_char, allocator);
   context->widthStack = Stack_new(allocator);
   context->identStack = Stack_new(allocator);
   context->mappingTree = nullptr;
@@ -117,13 +117,13 @@ inline const Record *GContext_findRecord(const ParseContext *context, const Iden
   return Array_real_addr(context->recordArray, ndx - 1);
 }
 
-#define contextAddRecord_DEF(type, array, obj)                                \
+#define contextAddRecord_DEF(type, array, obj)                                    \
   inline REFER(type) GContext_add##type(ParseContext *context, const type *obj) { \
-    uint32_t offset = Array_length(context->array);                           \
-    Record record = {enum_##type, offset};                                    \
-    Array_append(context->array, obj, 1);                                     \
-    GContext_addRecord(context, obj->name, &record);                          \
-    return Array_virt_addr(context->array, offset);                           \
+    uint32_t offset = Array_length(context->array);                               \
+    Record record = {enum_##type, offset};                                        \
+    Array_append(context->array, obj, 1);                                         \
+    GContext_addRecord(context, obj->name, &record);                              \
+    return Array_virt_addr(context->array, offset);                               \
   }
 contextAddRecord_DEF(Immediate, immArray, imm);
 contextAddRecord_DEF(Register, regArray, reg);
@@ -139,9 +139,9 @@ inline REFER(Instruction) GContext_addInstruction(ParseContext *context, const I
   return v_instr;
 }
 
-#define contextGetFromOffset_DEF(type, array)                                       \
+#define contextGetFromOffset_DEF(type, array)                                           \
   inline const type *GContext_get##type(const ParseContext *context, uint32_t offset) { \
-    return Array_real_addr(context->array, offset);                                 \
+    return Array_real_addr(context->array, offset);                                     \
   }
 
 contextGetFromOffset_DEF(Immediate, immArray)
@@ -341,7 +341,7 @@ void release_ctx_patterns(ParseContext *context, void *) {
   context->patterns = nullptr;
 }
 
-#include "action-table.gen.h"
+#include "generated/machine/action-table.gen.h"
 #define IN_MACHINE(s)     __MACHINE_IDENTIFIER_LEFT_BRACKET_##s
 #define IN_REGISTER(s)    __MACHINE_IDENTIFIER_LEFT_BRACKET_REGISTER_IDENTIFIER_WIDTH_LEFT_BRACKET_##s
 #define IN_INSTRUCTION(s) __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_##s

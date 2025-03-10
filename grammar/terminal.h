@@ -30,9 +30,8 @@
 
 #include "allocator.h"
 #include "char_t.h"
+#include "generated/tokens.gen.h"
 #include <stdint.h>
-
-#include "tokens.gen.h"
 
 typedef struct Terminal {
   uint32_t type;
@@ -52,17 +51,11 @@ typedef struct BitField {
   uint32_t lower;
 } BitField;
 
-extern const char_t TERMINALS[];
-extern const char_t *TERMINAL_STRINGS[];
-extern const uint32_t TERMINAL_STRING_LENS[];
-extern const int32_t N_TERMINAL;
-
 int32_t Identifier_cmp(const Identifier *ident1, const Identifier *ident2);
 int32_t BitField_cmp(BitField *bf1, BitField *bf2);
 
 void releaseIdentifier(Identifier *ident, const Allocator *allocator);
 void releaseBitField(BitField *bf, const Allocator *allocator);
 
-
-uint64_t getchar(const void *key);
+uint64_t get_char(const void *key);
 #endif  // MACHINE_TERMINAL_H

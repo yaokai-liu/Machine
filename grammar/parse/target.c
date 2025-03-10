@@ -29,8 +29,8 @@
 #include "avl-tree.h"
 #include "context.h"
 #include "enum.h"
+#include "generated/tokens.gen.h"
 #include "terminal.h"
-#include "tokens.gen.h"
 
 void releaseEntry(Entry *, const Allocator *) {}
 

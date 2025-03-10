@@ -27,8 +27,8 @@
 
 #include "expr-reduce.h"
 #include "enum.h"
+#include "generated/tokens.gen.h"
 #include "target.h"
-#include "tokens.gen.h"
 
 #define bool_inverse_case_item(a, b)                        \
   case a: {                                                 \

@@ -27,8 +27,8 @@
 
 #include "char_t.h"
 #include "generate.h"
-#include "context.h"
-#include "tokens.gen.h"
+#include "generated/tokens.gen.h"
+#include "parse/context.h"
 #include "trie-dump.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -150,7 +150,8 @@ const char_t *type_string(uint32_t id) {
   }
 }
 
-constexpr char_t ENTRY_TYPE_CHECK_FMT[] = "  if (!entry_type_check(enum_%s_%s, %s->type)) { return nullptr; }\n";
+constexpr char_t ENTRY_TYPE_CHECK_FMT[] =
+    "  if (!entry_type_check(enum_%s_%s, %s->type)) { return nullptr; }\n";
 constexpr char_t ENTRY_TYPE_ADD_FMT[] = "  entry->subtypes[%u] = %s->type;\n";
 constexpr char_t ENTRY_VALUE_SET_FMT[] = "  number = numSetBits(number, %d, %d, %s->value);\n";
 constexpr char_t VALUE_SET_FMT[] = "  number = numSetBits(number, %d, %d, %s);\n";
@@ -221,14 +222,18 @@ void gen_context_def(Generator *generator, const Machine *machine) {
   Array *buffer = Generator_getOutputBuffer(generator, GenBuf_definitions);
 
   push_string("static const Entry Entry_EOI = { .type = enum_NONE, .value = 0x0 };\n");
-  gen_reg_sprintf(REG_ENTRY_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr,
-                  entries[i].field->upper - entries[i].field->lower + 1, entries[i].code);
+  gen_reg_sprintf(
+      REG_ENTRY_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr,
+      entries[i].field->upper - entries[i].field->lower + 1, entries[i].code
+  );
 
   push_string("const Entry *const EOI = &Entry_EOI;\n");
   gen_mem_def(context, buffer);
   gen_imm_sprintf(IMM_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr, entries[i].width);
-  gen_reg_sprintf(REG_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr,
-                  entries[i].field->upper - entries[i].field->lower + 1);
+  gen_reg_sprintf(
+      REG_DEF_FMT, entries[i].name->ptr, entries[i].name->ptr,
+      entries[i].field->upper - entries[i].field->lower + 1
+  );
 }
 
 constexpr char_t SET_GRP_VAL_TABLE_HEAD_FMT[] = "static const enum ENTRY_TYPE_ENUM\n"

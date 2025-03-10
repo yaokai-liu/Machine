@@ -23,10 +23,10 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "action-table.gen.h"
 #include "action.h"
-#include "reduce.gen.h"
-#include "tokens.gen.h"
+#include "generated/tokens.gen.h"
+#include "generated/macro/reduce.gen.h"
+#include "generated/macro/action-table.gen.h"
 
 struct state {
   const uint16_t ndx_base;
