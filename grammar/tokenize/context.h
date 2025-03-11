@@ -28,6 +28,7 @@
 #ifndef MACHINE_CONTEXT_H
 #define MACHINE_CONTEXT_H
 
+#include "avl-tree.h"
 #include "stack.h"
 #include "target.h"
 #include "trie.h"
@@ -36,9 +37,8 @@
 
 typedef struct MacroContext {
   const Allocator *allocator;
-  Array *macroArray;  // Array<Macro>
-  Trie *macroTrie;    // Trie<char_t, Macro>
-  Stack *call_stack;  // Stack<MacroCall>
+  Array *macroArray;   // Array<Macro>
+  AVLTree *macroTree;  // AVLTree<Macro>
 
   MacroParams *current_params;
   MacroArgs *current_args;
@@ -51,8 +51,6 @@ MacroContext *MacroContext_new(const Allocator *allocator);
 
 REFER(Macro) MacroContext_addMacro(MacroContext *context, Macro *macro);
 uint32_t MacroContext_getIdentParamIndex(MacroContext *context, Identifier *ident);
-void MacroContext_pushCallStack(MacroContext *context, MacroCall *call);
-void MacroContext_popCallStack(MacroContext *context, MacroCall *call);
 MacroCallFrame *
     MacroContext_makeFrame(MacroContext *context, MacroCallFrame *frame, REFER(Macro) v_macro);
 

@@ -33,8 +33,7 @@ MacroContext *MacroContext_new(const Allocator *allocator) {
   MacroContext *context = allocator->calloc(1, sizeof(MacroContext));
   context->allocator = allocator;
   context->macroArray = Array_new(sizeof(Macro), enum_Macro, allocator);
-  context->macroTrie = Trie_new(sizeof(char_t), get_char, allocator);
-  context->call_stack = Stack_new(allocator);
+  context->macroTree = AVLTree_new(allocator, nullptr);
   context->current_params = nullptr;
   context->current_args = nullptr;
   context->end_parse = false;
@@ -43,26 +42,33 @@ MacroContext *MacroContext_new(const Allocator *allocator) {
   return context;
 }
 
+void MacroContext_destroy(MacroContext *context) {
+  Array_reset(context->macroArray, (destruct_t *) releaseMacro);
+  Array_destroy(context->macroArray);
+  AVLTree_destroy(context->macroTree, nullptr);
+  context->allocator->free(context);
+}
+
 REFER(Macro) MacroContext_addMacro(MacroContext *context, Macro *macro) {
   Array_append(context->macroArray, macro, 1);
   REFER(Macro) v_macro = Array_last_virt(context->macroArray);
-  Trie_set(context->macroTrie, macro->name->ptr, v_macro);
+  AVLTree_set(context->macroTree, (uint64_t) macro->name, v_macro);
   return v_macro;
 }
 
-uint32_t MacroContext_getIdentParamIndex(MacroContext *context, Identifier *ident) {
+uint32_t MacroContext_getIdentParamIndex(MacroContext *context, REFER(Identifier) ident) {
   if (!context->current_params) { return 0; }
-  const Identifier *idents = Array_first_real(context->current_params);
+  REFER(Identifier) * const idents = Array_first_real(context->current_params);
   const uint32_t count = Array_length(context->current_params);
   for (uint32_t i = 0; i < count; i++) {
-    if (Identifier_cmp(&idents[i], ident) == 0) { return i + 1; }
+    if (idents[i] == ident) { return i + 1; }
   }
   return 0;
 }
 
 inline MacroCallFrame *
     MacroContext_makeFrame(MacroContext *context, MacroCallFrame *frame, REFER(Macro) v_macro) {
-  const Macro *macro = Array_vert2real(context->macroArray, v_macro);
+  const Macro *macro = Array_virt2real(context->macroArray, v_macro);
   frame->args = context->current_args;
   frame->tokens = macro->tokens;
   frame->index = 0;

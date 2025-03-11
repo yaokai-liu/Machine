@@ -50,8 +50,8 @@ typedef struct ParseContext {
   Array /*<Record>*/ *recordArray;
   Array /*<TrieKeyItem>*/ *keyArray;
   Array /*<TrieNodeItem>*/ *stateArray;
-  Trie /*<char_t, uint64_t>*/ *objectMap;
-  Trie /*<char_t, REFER(Instruction)>*/ *opcodeMap;
+  AVLTree /*<uint64_t>*/ *recordMap;
+  AVLTree /*<REFER(Instruction)>*/ *opcodeMap;
 
   // temporary variable
   MemItems *items;
@@ -71,14 +71,16 @@ ParseContext *GContext_new(const Allocator *allocator);
 
 const Allocator *GContext_getAllocator(const ParseContext *context);
 
-void GContext_addOpcode(ParseContext *context, const Identifier *ident, Instruction *instr);
+void GContext_addOpcode(
+    ParseContext *context, const REFER(Identifier) ident, REFER(Instruction) instr
+);
 
-Instruction *GContext_findOpcode(ParseContext *context, const Identifier *ident);
+REFER(Instruction) GContext_findOpcode(ParseContext *context, const REFER(Identifier) ident);
 
-void GContext_addRecord(ParseContext *context, const Identifier *ident, Record *record);
+void GContext_addRecord(ParseContext *context, const REFER(Identifier) ident, Record *record);
 
-const Record *GContext_findRecord(const ParseContext *context, const Identifier *ident);
-const Parameter *GContext_findParameter(ParseContext *context, Identifier *ident);
+const Record *GContext_findRecord(const ParseContext *context, const REFER(Identifier) ident);
+const Parameter *GContext_findParameter(ParseContext *context, const REFER(Identifier) ident);
 
 REFER(Immediate) GContext_addImmediate(ParseContext *context, const Immediate *imm);
 REFER(Register) GContext_addRegister(ParseContext *context, const Register *reg);
@@ -98,15 +100,15 @@ Register *GContext_referToRegister(const ParseContext *context, REFER(Register) 
 
 Array *GContext_getPatternArray(const ParseContext *context);
 
-void *GContext_findIdentInStack(ParseContext *context, Identifier *ident);
+void *GContext_findIdentInStack(ParseContext *context, const REFER(Identifier) ident);
 
 void Gcontext_setParts(ParseContext *context, InstrParts *parts);
 
 void Gcontext_setItems(ParseContext *context, MemItems *items);
 
-const InstrPart *GContext_findInstrPart(ParseContext *context, Identifier *ident);
+const InstrPart *GContext_findInstrPart(ParseContext *context, const REFER(Identifier) ident);
 
-const MemItem *GContext_findMemItem(ParseContext *context, Identifier *ident);
+const MemItem *GContext_findMemItem(ParseContext *context, const REFER(Identifier) ident);
 
 void GContext_addPattern(ParseContext *context, Pattern *pattern);
 

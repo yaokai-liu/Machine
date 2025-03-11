@@ -104,7 +104,7 @@ void gen_license(Generator *generator, Array *buffer, const char_t *filename) {
 void gen_export_header(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
   Array * const out_buffer = Generator_getOutputBuffer(generator, GenBuf_exports);
-  const char_t * const name = machine->name->ptr;
+  const char_t * const name = Array_virt2real(generator->ident_array, machine->name);
   const char_t *filename;
   if (generator->headpath) {
     filename = strrchr(generator->headpath, '/');
@@ -123,7 +123,8 @@ void gen_export_header(Generator *generator, const Machine *machine) {
 
 void gen_export_tail(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
-  const char_t * const name = machine->name->ptr;
+  const char_t * const name = Array_virt2real(generator->ident_array, machine->name);
+  ;
   sprintf(temp_buffer, EXPORT_TAIL_FMT, name);
   ctx_push_string(exports, temp_buffer);
 }

@@ -66,12 +66,6 @@ typedef struct Pattern {
   PatternArgs *args;
 } Pattern;
 
-typedef struct Evaluable {
-  uint32_t type;
-  void *lhs;
-  void *rhs;
-} Evaluable, Variable;
-
 struct Expression {
   uint32_t type;
   void *lhs;
@@ -79,6 +73,7 @@ struct Expression {
 };
 typedef struct Expression Expr, CondExpr, AndCondExpr, SingleCondExpr;
 typedef struct Expression Arith_0_Expr, Arith_1_Expr, Arith_2_Expr, Arith_3_Expr;
+typedef struct Expression Evaluable, Variable;
 
 typedef struct Condition {
   CondExpr *expr;
@@ -95,7 +90,7 @@ typedef struct Switchable {
 
 typedef struct MappingItem {
   uint32_t type;
-  BitField *field;
+  BitField field;
   void *target;
 } MappingItem;
 
@@ -155,7 +150,7 @@ typedef struct RegisterGroup RegisterGroup;
 
 typedef struct Register {
   Identifier *name;
-  BitField *field;
+  BitField field;
   uint64_t code;
   REFER(RegisterGroup) group;
 } Register;
@@ -168,7 +163,7 @@ typedef struct RegisterGroup {
   Registers *registers;
 } RegisterGroup;
 
-typedef Array SetItems;  // Array<Identifier>
+typedef Array SetItems;  // Array<REFER(Identifier)>
 
 typedef struct Set {
   Identifier *name;
@@ -179,22 +174,15 @@ typedef struct Set {
 
 void releaseToken(void *token, uint32_t type, const Allocator *allocator);
 
-void releaseEntry(Entry *entry, const Allocator *allocator);
 void releaseMachine(Machine *machine, const Allocator *allocator);
-void releaseImmediate(Immediate *immediate, const Allocator *allocator);
-void releaseParameter(Parameter *parameter, const Allocator *allocator);
 void releasePattern(Pattern *pattern, const Allocator *allocator);
-void releaseVariable(Variable *variable, const Allocator *allocator);
-void releaseEvaluable(Evaluable *evaluable, const Allocator *allocator);
 void releaseMappingItem(MappingItem *item, const Allocator *allocator);
 void releaseMappingItems(MappingItems *items, const Allocator *allocator);
 void releaseLayout(Layout *layout, const Allocator *allocator);
 void releaseInstrPart(InstrPart *part, const Allocator *allocator);
 void releaseInstrForm(InstrForm *form, const Allocator *allocator);
 void releaseInstruction(Instruction *instr, const Allocator *allocator);
-void releaseMemItem(MemItem *item, const Allocator *allocator);
 void releaseMemory(Memory *memory, const Allocator *allocator);
-void releaseRegister(Register *reg, const Allocator *allocator);
 void releaseRegisterGroup(RegisterGroup *rg, const Allocator *allocator);
 void releaseSet(Set *set, const Allocator *allocator);
 void releaseCondition(Condition *condition, const Allocator *allocator);

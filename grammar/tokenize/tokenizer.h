@@ -28,13 +28,14 @@
 #ifndef MACHINE_TOKENIZER_H
 #define MACHINE_TOKENIZER_H
 
-#include "allocator.h"
+#include "array.h"
 #include "char_t.h"
 #include "terminal.h"
 
 typedef struct Tokenizer Tokenizer;
 
-Tokenizer *Tokenizer_new(const char_t *src, const Allocator *allocator);
+Tokenizer *Tokenizer_new(const char_t *src, Array *ident_array, const Allocator *allocator);
+void Tokenizer_destroy(Tokenizer *tokenizer);
 uint32_t Tokenizer_next(Tokenizer *tokenizer, Terminal *result);
 
 #endif  // MACHINE_TOKENIZER_H

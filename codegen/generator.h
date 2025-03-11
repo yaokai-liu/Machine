@@ -35,6 +35,7 @@
 
 typedef struct Generator {
   const Allocator *allocator;
+  const Array *ident_array;
   const char_t *outname;
   const char_t *headpath;
   const char_t *libpath;
@@ -55,7 +56,7 @@ enum Gen_ByteBuffer {
 };
 
 typedef struct Generator Generator;
-Generator *Generator_new(const Allocator *allocator);
+Generator *Generator_new(const Array *ident_array, const Allocator *allocator);
 void Generator_setCopyright(
     Generator *generator, const char_t *outname, const char_t *headpath, const char_t *libpath,
     const char_t *cr_holder, const char_t *year

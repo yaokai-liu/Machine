@@ -183,13 +183,11 @@ inline uint32_t t_IDENTIFIER(
       break;
     }
   }
-  Identifier *ident = allocator->calloc(1, sizeof(Identifier));
-  ident->len = pText - input;
-  ident->ptr = allocator->calloc(ident->len + 1, sizeof(char_t));
-  allocator->memcpy(ident->ptr, input, ident->len);
-  ident->ptr[ident->len] = '\0';
+  const uint32_t len = pText - input;
   result->type = enum_IDENTIFIER;
-  result->value = ident;
+  result->value = allocator->calloc(len + 1, sizeof(char_t));
+  allocator->memcpy(result->value, input, len);
+  ((char_t *) result->value)[len] = '\0';
   result->length = pText - input;
   return result->length;
 }
@@ -236,21 +234,18 @@ fn_try_keyword(macro, MACRO)
 fn_try_keyword(register, REGISTER)
 fn_try_keyword_val(unsigned, TYPE, IT_UNSIGNED)
 fn_try_keyword_val(signed, TYPE, IT_SIGNED)
-#define fn_fall_through()                                           \
-  do {                                                              \
-    uint32_t length = t_IDENTIFIER(input - 1, result, allocator);   \
-    if (length == 0) {                                              \
-      Identifier *ident = allocator->calloc(1, sizeof(Identifier)); \
-      ident->len = 1;                                               \
-      ident->ptr = allocator->calloc(2, sizeof(char_t));            \
-      allocator->memcpy(ident->ptr, input, 1);                      \
-      ident->ptr[1] = '\0';                                         \
-      result->type = enum_IDENTIFIER;                               \
-      result->value = ident;                                        \
-      result->length = 1;                                           \
-      return 1;                                                     \
-    }                                                               \
-    return length;                                                  \
+#define fn_fall_through()                                         \
+  do {                                                            \
+    uint32_t length = t_IDENTIFIER(input - 1, result, allocator); \
+    if (length == 0) {                                            \
+      result->type = enum_IDENTIFIER;                             \
+      result->value = allocator->calloc(2, sizeof(char_t));       \
+      allocator->memcpy(result->value, input, 1);                 \
+      ((char_t *) result->value)[1] = '\0';                       \
+      result->length = 1;                                         \
+      return 1;                                                   \
+    }                                                             \
+    return length;                                                \
   } while (0)
 
 uint32_t tokenize_prefix_in(
@@ -380,17 +375,15 @@ uint32_t tokenize_LSQUARE_startswith_digital(
     pText += lenof("bit") + pass_whitespace(pText);
   } else if ((length = t_NUMBER_adic10(pText, result, allocator)) > 0) {
     pText += length;
-    BitField *bitField = allocator->calloc(1, sizeof(BitField));
+    BitField *bitField = (BitField *) &result->value;
     bitField->lower = (uint32_t) (uint64_t) result->value;
     bitField->upper = max(value, bitField->lower);
     bitField->lower = min(value, bitField->lower);
     result->type = enum_BIT_FIELD;
-    result->value = bitField;
   }
   pText += pass_whitespace(pText);
 
   if (*pText != ']') {
-    if (result->type == enum_BIT_FIELD) { allocator->free(result->value); }
     result->length = pText - input;
     return 0;
   } else {
@@ -454,7 +447,9 @@ uint32_t tokenize_symbol_LSQUARE(
   }
   if (strcmp_o(pText, "...") == lenof("...")) {
     result->type = enum_BIT_FIELD;
-    result->value = nullptr;
+    BitField *bitField = (BitField *) &result->value;
+    bitField->lower = -1;
+    bitField->upper = 0;
     pText += lenof("...");
     pText += pass_whitespace(pText);
     if (*pText == ']') {

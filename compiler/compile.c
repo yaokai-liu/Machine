@@ -120,30 +120,27 @@ int main(int argc, char *argv[]) {
   size_t size = ftell(file);
   fseek(file, 0, SEEK_SET);
   char_t *text = STDAllocator.calloc(size + 1, sizeof(char_t));
-  len = fread(text, sizeof(char_t), size, file);
+  fread(text, sizeof(char_t), size, file);
   if (fclose(file)) {
     fprintf(stderr, "failed to close file.\n");
     return -2;
   }
+  Array *ident_array = Array_new(sizeof(Identifier), enum_IDENTIFIER, &STDAllocator);
+  Tokenizer *tokenizer = Tokenizer_new(text, ident_array, &STDAllocator);
+  Generator *generator = Generator_new(ident_array, &STDAllocator);
+
   clock_t start = clock();
-  Tokenizer *tokenizer = Tokenizer_new(text, &STDAllocator);
-  //  const Terminal *terminals = tokenize(text, &cost, &n_tokens, &lineno, &column, &STDAllocator);
-  //  if (!terminals || terminals[n_tokens - 1].type != enum_TERMINATOR) {
-  //    fprintf(stderr, "failed to lex %s:%u:%u\n", srcpath, lineno, column);
-  //    fprintf(stderr, "unknown character '%c'\n", text[cost]);
-  //    STDAllocator.free((void *) terminals);
-  //    return -3;
-  //  }
+
   const char_t *err_msg = nullptr;
   const Machine *machine = parse(tokenizer, &err_msg, &STDAllocator);
   if (!machine) {
+    fprintf(stderr, "failed to parse: %s", err_msg);
     STDAllocator.free(text);
     return -4;
   }
-  STDAllocator.free(text);
-  Generator *generator = Generator_new(&STDAllocator);
   Generator_setCopyright(generator, outname, headpath, libpath, cr_holder, year);
   codegen(generator, machine);
+
   clock_t end = clock();
 
   file = fopen(headpath, "w");
@@ -167,5 +164,9 @@ int main(int argc, char *argv[]) {
   releaseMachine((Machine *) machine, &STDAllocator);
   STDAllocator.free((void *) machine);
   Generator_destroy(generator);
+  releasePrimeArray(ident_array);
+  Tokenizer_destroy(tokenizer);
+  STDAllocator.free(text);
+
   return 0;
 }

@@ -174,7 +174,8 @@ void gen_static_definitions(Generator *generator, const Machine *machine) {
     name = strrchr(name, '/');
     name = name ? name + 1 : generator->outname;
   } else {
-    name = machine->name->ptr;
+    name = Array_virt2real(generator->ident_array, machine->name);
+    ;
   }
   sprintf(temp_buffer, INCLUDES, name);
   Array * const out_buffer = Generator_getOutputBuffer(generator, GenBuf_includes);

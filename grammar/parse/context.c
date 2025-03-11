@@ -37,8 +37,8 @@
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
-uint64_t get_record_ndx(const void *ndx_ptr) {
-  return *(const uint64_t *) ndx_ptr;
+uint64_t get_v_record(const REFER(Record) * ndx_ptr) {
+  return (uint64_t) *ndx_ptr;
 }
 
 inline ParseContext *GContext_new(const Allocator *allocator) {
@@ -53,8 +53,8 @@ inline ParseContext *GContext_new(const Allocator *allocator) {
   context->recordArray = Array_new(sizeof(Record), INT32_MAX - 1, allocator);
   context->keyArray = Array_new(sizeof(TrieKeyItem), INT32_MAX - 2, allocator);
   context->stateArray = Array_new(sizeof(TrieNodeItem), INT32_MAX - 3, allocator);
-  context->objectMap = Trie_new(sizeof(char_t), get_char, allocator);
-  context->opcodeMap = Trie_new(sizeof(char_t), get_char, allocator);
+  context->recordMap = AVLTree_new(allocator, nullptr);
+  context->opcodeMap = AVLTree_new(allocator, nullptr);
   context->widthStack = Stack_new(allocator);
   context->identStack = Stack_new(allocator);
   context->mappingTree = nullptr;
@@ -78,17 +78,17 @@ inline ParseContext *GContext_new(const Allocator *allocator) {
 inline void GContext_destroy(ParseContext *context) {
   if (context->mappingTree) { AVLTree_destroy(context->mappingTree, nullptr); }
   if (context->patterns) { releasePrimeArray(context->patterns); }
-  contextReleaseArray(regArray, releaseRegister);
-  contextReleaseArray(immArray, releaseImmediate);
   contextReleaseArray(memArray, releaseMemory);
   contextReleaseArray(setArray, releaseSet);
   contextReleaseArray(grpArray, releaseRegisterGroup);
   contextReleaseArray(instrArray, releaseInstruction);
+  releasePrimeArray(context->regArray);
+  releasePrimeArray(context->immArray);
   releasePrimeArray(context->keyArray);
   releasePrimeArray(context->stateArray);
   releasePrimeArray(context->recordArray);
-  Trie_destroy(context->objectMap);
-  Trie_destroy(context->opcodeMap);
+  AVLTree_destroy(context->recordMap, nullptr);
+  AVLTree_destroy(context->opcodeMap, nullptr);
   contextReleaseStack(widthStack);
   contextReleaseStack(identStack);
   context->allocator->free(context);
@@ -98,23 +98,27 @@ inline const Allocator *GContext_getAllocator(const ParseContext *context) {
   return context->allocator;
 }
 
-inline void GContext_addOpcode(ParseContext *context, const Identifier *ident, Instruction *instr) {
-  Trie_set(context->opcodeMap, ident->ptr, instr);
+inline void GContext_addOpcode(
+    ParseContext *context, const REFER(Identifier) ident, REFER(Instruction) instr
+) {
+  AVLTree_set(context->opcodeMap, (uint64_t) ident, instr);
 }
-inline Instruction *GContext_findOpcode(ParseContext *context, const Identifier *ident) {
-  return Trie_get(context->opcodeMap, ident->ptr);
+inline REFER(Instruction)
+    GContext_findOpcode(ParseContext *context, const REFER(Identifier) ident) {
+  return AVLTree_get(context->opcodeMap, (uint64_t) ident);
 }
 
-inline void GContext_addRecord(ParseContext *context, const Identifier *ident, Record *record) {
+inline void
+    GContext_addRecord(ParseContext *context, const REFER(Identifier) ident, Record *record) {
   Array_append(context->recordArray, record, 1);
-  void *ndx = (void *) (uint64_t) Array_length(context->recordArray);
-  Trie_set(context->objectMap, ident->ptr, ndx);
+  REFER(Record) v_record = Array_last_virt(context->recordArray);
+  AVLTree_set(context->recordMap, (uint64_t) ident, v_record);
 }
 
-inline const Record *GContext_findRecord(const ParseContext *context, const Identifier *ident) {
-  uint32_t ndx = (uint64_t) Trie_get(context->objectMap, ident->ptr);
-  if (!ndx) { return nullptr; }
-  return Array_real_addr(context->recordArray, ndx - 1);
+inline const Record *
+    GContext_findRecord(const ParseContext *context, const REFER(Identifier) ident) {
+  REFER(Record) v_record = AVLTree_get(context->recordMap, (uint64_t) ident);
+  return Array_virt2real(context->recordArray, v_record);
 }
 
 #define contextAddRecord_DEF(type, array, obj)                                    \
@@ -151,7 +155,7 @@ contextGetFromOffset_DEF(RegisterGroup, grpArray)
 contextGetFromOffset_DEF(Set, setArray)
 
 inline Register *GContext_referToRegister(const ParseContext *context, REFER(Register) v_reg) {
-  return Array_vert2real(context->regArray, v_reg);
+  return Array_virt2real(context->regArray, v_reg);
 }
 
 inline Array *GContext_getPatternArray(const ParseContext *context) {
@@ -162,12 +166,11 @@ inline const Instruction *GContext_getInstruction(const ParseContext *context, u
   return Array_real_addr(context->instrArray, index);
 }
 
-inline void *GContext_findIdentInStack(ParseContext *context, Identifier *ident) {
+inline void *GContext_findIdentInStack(ParseContext *context, const REFER(Identifier) ident) {
   const uint32_t length = Stack_size(context->identStack) / sizeof(Identifier *);
-  const Identifier * const * const idents = Stack_get(context->identStack, 0);
+  REFER(Identifier) * const idents = Stack_get(context->identStack, 0);
   for (uint32_t i = 0; i < length; i++) {
-    const Identifier *id = idents[i];
-    if (Identifier_cmp(ident, id) == 0) { return (void *) id; }
+    if (ident == idents[i]) { return idents[i]; }
   }
   return nullptr;
 }
@@ -180,22 +183,22 @@ void Gcontext_setItems(ParseContext *context, MemItems *items) {
   context->items = items;
 }
 
-const InstrPart *GContext_findInstrPart(ParseContext *context, Identifier *ident) {
+const InstrPart *GContext_findInstrPart(ParseContext *context, const REFER(Identifier) ident) {
   if (!context->parts) { return nullptr; }
   const uint32_t length = Array_length(context->parts);
   const InstrPart * const parts = Array_real_addr(context->parts, 0);
   for (uint32_t i = 0; i < length; i++) {
-    if (Identifier_cmp(parts[i].name, ident) == 0) { return Array_virt_addr(context->parts, i); }
+    if (parts[i].name == ident) { return Array_virt_addr(context->parts, i); }
   }
   return nullptr;
 }
 
-const MemItem *GContext_findMemItem(ParseContext *context, Identifier *ident) {
+const MemItem *GContext_findMemItem(ParseContext *context, const REFER(Identifier) ident) {
   if (!context->items) { return nullptr; }
   const uint32_t length = Array_length(context->items);
   const MemItem * const items = Array_real_addr(context->items, 0);
   for (uint32_t i = 0; i < length; i++) {
-    if (Identifier_cmp(items[i].name, ident) == 0) { return Array_virt_addr(context->items, i); }
+    if (items[i].name == ident) { return Array_virt_addr(context->items, i); }
   }
   return nullptr;
 }
@@ -225,14 +228,15 @@ uint64_t GContext_getLastWidth(ParseContext *context) {
 }
 
 inline void GContext_addMapItem(ParseContext *context, MappingItem *item) {
-  AVLTree_set(context->mappingTree, (uint64_t) item->field, item);
+  AVLTree_set(context->mappingTree, *(uint64_t *) &item->field, item);
 }
 
 inline MappingItem *GContext_getMapItem(ParseContext *context, BitField *bf) {
-  return AVLTree_get(context->mappingTree, (uint64_t) bf);
+  return AVLTree_get(context->mappingTree, *(uint64_t *) bf);
 }
 
-inline const Parameter *GContext_findParameter(ParseContext *context, Identifier *ident) {
+inline const Parameter *
+    GContext_findParameter(ParseContext *context, const REFER(Identifier) ident) {
   if (!context->patterns) { return nullptr; }
   uint32_t n_patterns = Array_length(context->patterns);
   if (n_patterns == 0) { return nullptr; }
@@ -240,7 +244,7 @@ inline const Parameter *GContext_findParameter(ParseContext *context, Identifier
   const uint32_t n_args = Array_length(pattern->args);
   const Parameter *args = Array_real_addr(pattern->args, 0);
   for (uint32_t i = 0; i < n_args; i++) {
-    if (Identifier_cmp(ident, args[i].name) == 0) { return &args[i]; }
+    if (ident == args[i].name) { return &args[i]; }
   }
   return nullptr;
 }
@@ -249,10 +253,10 @@ inline const Parameter *GContext_findParameter(ParseContext *context, Identifier
 Trie /*<REFER(Record), uint64_t>*/ *
     GContext_build_args_trie(ParseContext *context, const Instruction *instr) {
   Trie /*<REFER(Record), uint64_t>*/ *args_trie =
-      Trie_new(sizeof(void *), get_record_ndx, context->allocator);
+      Trie_new(sizeof(void *), (fn_key_t *) get_v_record, context->allocator);
   const uint32_t n_forms = Array_length(instr->forms);
   const InstrForm *forms = Array_real_addr(instr->forms, 0);
-  REFER(Record) *ndx_array = nullptr;
+  REFER(Record) *v_record_array = nullptr;
   const uint32_t instr_ndx = (uint32_t) (uint64_t) GContext_findOpcode(context, instr->name);
   for (uint64_t i = 0; i < n_forms; i++) {
     Pattern *pattern = forms[i].pattern;
@@ -261,29 +265,28 @@ Trie /*<REFER(Record), uint64_t>*/ *
       Trie_set(args_trie, &ndx, instrFormNdx(instr_ndx, i));
     } else {
       const uint32_t length = Array_length(pattern->args);
-      void *p = context->allocator->realloc(ndx_array, (length + 1) * sizeof(REFER(Record)));
+      void *p = context->allocator->realloc(v_record_array, (length + 1) * sizeof(REFER(Record)));
       if (p) {
-        ndx_array = p;
+        v_record_array = p;
       } else {
-        if (ndx_array) { context->allocator->free(ndx_array); }
+        if (v_record_array) { context->allocator->free(v_record_array); }
         Trie_destroy(args_trie);
         return nullptr;
       }
       const Parameter *idents = Array_real_addr(pattern->args, 0);
       for (uint32_t j = 0; j < length; j++) {
-        uint64_t ndx = (uint64_t) Trie_get(context->objectMap, idents[j].type->ptr);
-        ndx_array[j] = Array_virt_addr(context->recordArray, ndx - 1);
+        v_record_array[j] = AVLTree_get(context->recordMap, (uint64_t) idents[j].type);
       }
-      ndx_array[length] = nullptr;
-      Trie_set(args_trie, ndx_array, instrFormNdx(instr_ndx, i));
+      v_record_array[length] = nullptr;
+      Trie_set(args_trie, v_record_array, instrFormNdx(instr_ndx, i));
     }
   }
-  if (ndx_array) { context->allocator->free(ndx_array); }
+  if (v_record_array) { context->allocator->free(v_record_array); }
   return args_trie;
 }
 
 void GContext_dump_instruction(ParseContext *context, Instruction *instr) {
-  instr = Array_vert2real(context->instrArray, instr);
+  instr = Array_virt2real(context->instrArray, instr);
   Trie /*<REFER(Record), uint64_t>*/ *args_trie = GContext_build_args_trie(context, instr);
   if (!args_trie) { return; }
   Trie_dump(args_trie, context->keyArray, context->stateArray);
@@ -308,7 +311,7 @@ void destroy_context_map_item_tree(ParseContext *context, void *) {
 }
 
 void push_context_ident(ParseContext *context, void *token) {
-  Identifier *ident = (Identifier *) token;
+  const REFER(Identifier) ident = (Identifier *) token;
   Stack_push(context->identStack, &ident, sizeof(Identifier *));
 }
 

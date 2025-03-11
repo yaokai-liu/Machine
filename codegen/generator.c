@@ -27,8 +27,9 @@
 
 #include "generator.h"
 
-Generator *Generator_new(const Allocator *allocator) {
+Generator *Generator_new(const Array *ident_array, const Allocator *allocator) {
   Generator *generator = allocator->calloc(1, sizeof(Generator));
+  generator->ident_array = ident_array;
   generator->allocator = allocator;
   return generator;
 }

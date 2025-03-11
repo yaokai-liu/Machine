@@ -28,30 +28,13 @@
 #include "terminal.h"
 #include "string_t.h"
 
-inline int32_t Identifier_cmp(const Identifier *ident1, const Identifier *ident2) {
-  if (ident1 == ident2) { return 0; }
-  if (!ident1) { return 1; }
-  if (!ident2) { return -1; }
-  if (ident1->len < ident2->len) { return -1; }
-  if (ident1->len > ident2->len) { return 1; }
-  uint32_t cmp_len = strcmp_o(ident1->ptr, ident2->ptr);
-  return (int32_t) (ident1->len < cmp_len) ? -1 : (ident1->len > cmp_len) ? 1 : 0;
-}
-
-inline int32_t BitField_cmp(BitField *bf1, BitField *bf2) {
-  if (bf1 == bf2) { return 0; }
-  if (!bf1) { return -1; }
-  if (!bf2) { return 1; }
+inline int32_t BitField_cmp(void *a, void *b) {
+  BitField *bf1 = (BitField *) &a;
+  BitField *bf2 = (BitField *) &b;
   if (bf1->upper < bf2->lower) { return -1; }
   if (bf1->lower > bf2->upper) { return 1; }
-  return 0;
+  return (bf2->upper < bf2->lower) - (bf1->upper < bf1->lower);
 }
-
-inline void releaseIdentifier(Identifier *ident, const Allocator *allocator) {
-  allocator->free(ident->ptr);
-}
-
-inline void releaseBitField(BitField *, const Allocator *) {}
 
 uint64_t get_char(const void *key) {
   return *(const char_t *) key;

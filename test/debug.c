@@ -63,7 +63,7 @@ int main() {
 
   //    const char_t * str = string_t("machine macro masdafa");
   Terminal terminal = {};
-  Tokenizer *tokenizer = Tokenizer_new(testString, &STDAllocator);
+  Tokenizer *tokenizer = Tokenizer_new(testString, nullptr, &STDAllocator);
   while (terminal.type != enum_TERMINATOR) {
     Tokenizer_next(tokenizer, &terminal);
     uint32_t t_line = terminal.lineno;

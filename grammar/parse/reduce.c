@@ -177,10 +177,11 @@ Arith_2_Expr *p_Arith_2_Expr_1(void *argv[], ParseContext *, const Allocator *al
 Arith_2_Expr *p_Arith_2_Expr_2(void *argv[], ParseContext *, const Allocator *) {
   return (Arith_2_Expr *) argv[0];
 }
+
 Arith_3_Expr *p_Arith_3_Expr_0(void *argv[], ParseContext *, const Allocator *) {
-  Arith_0_Expr *expr = (Arith_0_Expr *) argv[1];
-  return (Arith_3_Expr *) expr;
+  return (Arith_3_Expr *) argv[1];
 }
+
 Arith_3_Expr *p_Arith_3_Expr_1(void *argv[], ParseContext *, const Allocator *allocator) {
   uint32_t sin_op = (uint32_t) (uint64_t) argv[0];
   Arith_3_Expr *rhs = (Arith_1_Expr *) argv[1];
@@ -356,13 +357,10 @@ Variable *p_Variable_0(void *argv[], ParseContext *context, const Allocator *all
   const REFER(MemItem) item = GContext_findMemItem(context, rhs);
   grammarAssert(item, "no such field.");
   Gcontext_setItems(context, nullptr);
-  releaseIdentifier(rhs, allocator);
-  allocator->free(rhs);
-
   Variable *var = allocator->calloc(1, sizeof(Variable));
   var->type = enum_MemItem;
   var->lhs = lhs;
-  var->rhs = Array_vert2real(memory->items, item);
+  var->rhs = Array_virt2real(memory->items, item);
   return var;
 }
 
@@ -405,16 +403,14 @@ Variable *p_Variable_1(void *argv[], ParseContext *context, const Allocator *all
 
 Evaluable *p_Evaluable_0(void *argv[], ParseContext *context, const Allocator *allocator) {
   Variable *lhs = (Variable *) argv[0];
-  BitField *rhs = (BitField *) argv[1];
+  BitField *rhs = (BitField *) &argv[1];
 
   const Record *record = nullptr;
   Pattern *pattern = *(Pattern **) Array_last_real(GContext_getPatternArray(context));
   Parameter *first = Array_first_real(pattern->args);
   Parameter *last = Array_last_real(pattern->args);
   for (Parameter *param = first; param <= last; param++) {
-    if (Identifier_cmp(param->name, lhs->lhs) == 0) {
-      record = GContext_findRecord(context, param->type);
-    }
+    if (param->name == lhs->lhs) { record = GContext_findRecord(context, param->type); }
   }
   grammarAssert(record, "undeclared variable.");
   switch (lhs->type) {
@@ -428,13 +424,14 @@ Evaluable *p_Evaluable_0(void *argv[], ParseContext *context, const Allocator *a
         const Immediate *imm = GContext_getImmediate(context, record->offset);
         grammarAssert(rhs->upper < imm->width, "field out of range.");
       }
+      break;
     }
   }
 
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_BIT_FIELD;
   evaluable->lhs = lhs;
-  evaluable->rhs = rhs;
+  evaluable->rhs = *(void **) rhs;
   return evaluable;
 }
 
@@ -451,7 +448,7 @@ Evaluable *p_Evaluable_1(void *argv[], ParseContext *, const Allocator *allocato
     }
     case VT_REGISTER: {
       const Register *reg = var->rhs;
-      width = reg->field->upper - reg->field->lower + 1;
+      width = reg->field.upper - reg->field.lower + 1;
       break;
     }
     case VT_MEMORY: {
@@ -470,11 +467,10 @@ Evaluable *p_Evaluable_1(void *argv[], ParseContext *, const Allocator *allocato
       break;
     }
     default: {
-      releaseVariable(var, allocator);
       return nullptr;
     }
   }
-  releaseVariable(var, allocator);
+  allocator->free(var);
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_NUMBER;
   evaluable->lhs = (void *) (uint64_t) width;
@@ -487,7 +483,7 @@ Evaluable *p_Evaluable_2(void *argv[], ParseContext *context, const Allocator *a
 
   if (var->type == VT_REGISTER) {
     const Register *reg = var->rhs;
-    releaseVariable(var, allocator);
+    allocator->free(var);
     Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
     evaluable->type = enum_NUMBER;
     evaluable->lhs = (void *) reg->code;
@@ -723,7 +719,7 @@ Machine *p__Machine__(void *argv[], const Allocator *) {
 }
 
 MappingItem *p_MappingItem_0(void *argv[], ParseContext *context, const Allocator *allocator) {
-  BitField *bit_field = (BitField *) argv[0];
+  BitField *bit_field = (BitField *) &argv[0];
   Arith_0_Expr *expr = (Arith_0_Expr *) argv[2];
 
   if (bit_field) {
@@ -744,7 +740,8 @@ MappingItem *p_MappingItem_0(void *argv[], ParseContext *context, const Allocato
 
   MappingItem *item = allocator->calloc(1, sizeof(MappingItem));
   item->type = enum_Arith_0_Expr;
-  item->field = bit_field;
+  item->field.upper = bit_field->upper;
+  item->field.lower = bit_field->lower;
   item->target = expr;
 
   GContext_addMapItem(context, item);
@@ -752,7 +749,7 @@ MappingItem *p_MappingItem_0(void *argv[], ParseContext *context, const Allocato
   return item;
 }
 MappingItem *p_MappingItem_1(void *argv[], ParseContext *context, const Allocator *allocator) {
-  BitField *bit_field = (BitField *) argv[0];
+  BitField *bit_field = (BitField *) &argv[0];
   Switchable *switchable = (Switchable *) argv[2];
 
   if (bit_field) {
@@ -776,7 +773,8 @@ MappingItem *p_MappingItem_1(void *argv[], ParseContext *context, const Allocato
   }
   MappingItem *item = allocator->calloc(1, sizeof(MappingItem));
   item->type = enum_Switchable;
-  item->field = bit_field;
+  item->field.upper = bit_field->upper;
+  item->field.lower = bit_field->lower;
   item->target = switchable;
 
   GContext_addMapItem(context, item);
@@ -788,16 +786,16 @@ MappingItems *p_MappingItems_0(void *argv[], ParseContext *context, const Alloca
   MappingItems *items = (MappingItems *) argv[0];
   MappingItem *item = (MappingItem *) argv[2];
 
-  if (!item->field) {
+  if (item->field.upper < item->field.lower) {
     if (items->default_eval) {
       GContext_setErrorMessage(context, "redefine default bits.");
       return nullptr;
     }
     items->default_eval = item->target;
   } else {
-    items->lowest = min(item->field->lower, items->lowest);
+    items->lowest = min(item->field.lower, items->lowest);
     uint32_t index = Array_length(items->itemArray);
-    AVLTree_set(items->itemTree, (uint64_t) item->field, (void *) (uint64_t) index + 1);
+    AVLTree_set(items->itemTree, *(uint64_t *) &item->field, (void *) (uint64_t) index + 1);
     Array_append(items->itemArray, item, 1);
   }
   allocator->free(item);
@@ -810,13 +808,13 @@ MappingItems *p_MappingItems_1(void *argv[], ParseContext *, const Allocator *al
   MappingItems *items = allocator->calloc(1, sizeof(MappingItems));
   items->itemArray = Array_new(sizeof(MappingItem), enum_MappingItem, allocator);
   items->itemTree = AVLTree_new(allocator, (compare_t *) BitField_cmp);
-  if (!item->field) {
+  if (item->field.upper < item->field.lower) {
     items->default_eval = item->target;
     items->lowest = 0;
   } else {
     Array_append(items->itemArray, item, 1);
-    AVLTree_set(items->itemTree, (uint64_t) item->field, (void *) 1);
-    items->lowest = item->field->lower;
+    AVLTree_set(items->itemTree, *(uint64_t *) &item->field, (void *) 1);
+    items->lowest = item->field.lower;
   }
   allocator->free(item);
   return items;
@@ -959,12 +957,15 @@ PatternArgs *p_PatternArgs_1(void *argv[], ParseContext *, const Allocator *allo
 
 Register *p_Register_0(void *argv[], ParseContext *context, const Allocator *) {
   Identifier *ident = (Identifier *) argv[0];
-  BitField *field = (BitField *) argv[2];
+  BitField *field = (BitField *) &argv[2];
   uint64_t code = (uint64_t) argv[4];
 
   grammarAssertNotDeclaredRecord(ident);
 
-  Register reg = {.name = ident, .field = field, .code = code};
+  Register reg = {
+      .name = ident, .field = {.upper = field->upper, .lower = field->lower},
+           .code = code
+  };
   return GContext_addRegister(context, &reg);
 }
 
@@ -1014,14 +1015,13 @@ Set *p_Set_0(void *argv[], ParseContext *context, const Allocator *) {
   return GContext_addSet(context, &set);
 }
 
-SetItems *p_SetItems_0(void *argv[], ParseContext *context, const Allocator *allocator) {
+SetItems *p_SetItems_0(void *argv[], ParseContext *context, const Allocator *) {
   SetItems *items = (SetItems *) argv[0];
   Identifier *ident = (Identifier *) argv[2];
 
   grammarAssertDefinedRecord(ident);
 
-  Array_append(items, ident, 1);
-  allocator->free(ident);
+  Array_append(items, &ident, 1);
 
   return items;
 }
@@ -1029,11 +1029,18 @@ SetItems *p_SetItems_0(void *argv[], ParseContext *context, const Allocator *all
 SetItems *p_SetItems_1(void *argv[], ParseContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[0];
 
-  grammarAssertDefinedRecord(ident);
+  //  grammarAssertDefinedRecord(ident);
 
-  SetItems *items = Array_new(sizeof(Identifier), enum_IDENTIFIER, allocator);
-  Array_append(items, ident, 1);
-  allocator->free(ident);
+  do {
+    const Record *record = GContext_findRecord(context, ident);
+    if (!record) {
+      GContext_setErrorMessage(context, "undefined identifier.");
+      return nullptr;
+    }
+  } while (false);
+
+  SetItems *items = Array_new(sizeof(REFER(Identifier)), enum_IDENTIFIER, allocator);
+  Array_append(items, &ident, 1);
 
   return items;
 }
@@ -1102,32 +1109,30 @@ Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocat
 
 void releaseToken(void *token, uint32_t type, const Allocator *allocator) {
   switch (type) {
-    //    releaseArrayCase(Entries, Entry)
     releaseArrayCase(InstrForms, InstrForm)
     releaseArrayCase(InstrParts, InstrPart)
-    releaseArrayCase(PatternArgs, Identifier)
-    releaseArrayCase(Registers, Register)
-    releaseArrayCase(SetItems, Identifier)
+    case enum_SetItems:
+    case enum_Registers:
+    case enum_PatternArgs: {
+      releasePrimeArray(token);
+      break;
+    }
 
-    releaseTokenCase(Entry, Entry)
-    releaseTokenCase(Condition, Condition)
-    releaseTokenCase(Variable, Variable)
-    releaseTokenCase(Evaluable, Evaluable)
-    releaseTokenCase(Immediate, Immediate)
-    releaseTokenCase(InstrForm, InstrForm)
-    releaseTokenCase(InstrPart, InstrPart)
-    releaseTokenCase(Instruction, Instruction)
-    releaseTokenCase(Layout, Layout)
-    releaseTokenCase(Machine, Machine)
-    releaseTokenCase(MappingItem, MappingItem)
-    releaseTokenCase(MappingItems, MappingItems)
-    releaseTokenCase(MemItem, MemItem)
-    releaseTokenCase(Memory, Memory)
-    releaseTokenCase(Pattern, Pattern)
-    releaseTokenCase(Register, Register)
-    releaseTokenCase(RegisterGroup, RegisterGroup)
-    releaseTokenCase(Set, Set)
+      releaseTokenCase(Condition, Condition)
+      releaseTokenCase(InstrForm, InstrForm)
+      releaseTokenCase(InstrPart, InstrPart)
+      releaseTokenCase(Instruction, Instruction)
+      releaseTokenCase(Layout, Layout)
+      releaseTokenCase(Machine, Machine)
+      releaseTokenCase(MappingItem, MappingItem)
+      releaseTokenCase(MappingItems, MappingItems)
+      releaseTokenCase(Memory, Memory)
+      releaseTokenCase(Pattern, Pattern)
+      releaseTokenCase(RegisterGroup, RegisterGroup)
+      releaseTokenCase(Set, Set)
+    case enum_Variable:
     case enum_CondExpr:
+    case enum_Evaluable:
     case enum_AndCondExpr:
     case enum_SingleCondExpr:
     case enum_Arith_0_Expr:
@@ -1135,16 +1140,6 @@ void releaseToken(void *token, uint32_t type, const Allocator *allocator) {
     case enum_Arith_2_Expr:
     case enum_Arith_3_Expr: {
       releaseExpr(token, allocator);
-      allocator->free(token);
-      break;
-    }
-    case enum_IDENTIFIER: {
-      releaseIdentifier(token, allocator);
-      allocator->free(token);
-      break;
-    }
-    case enum_BIT_FIELD: {
-      releaseBitField(token, allocator);
       allocator->free(token);
       break;
     }

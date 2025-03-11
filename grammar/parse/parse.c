@@ -78,8 +78,8 @@ Machine *parse(Tokenizer *tokenizer, const char_t **err_msg, const Allocator *al
       fn_reduce *reduce = MACHINE_PRODUCTS[act->offset];
       result = reduce(args, context, allocator);
       if (!result) {
-        GContext_destroy(context);
         *err_msg = GContext_getErrorMessage(context);
+        GContext_destroy(context);
         return failed_to_produce(state_stack, token_stack, args, states, act->count, allocator);
       }
       state = parseJumpState(state, act->type);

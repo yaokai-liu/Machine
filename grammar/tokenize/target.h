@@ -41,7 +41,7 @@ typedef struct Macro Macro;
 typedef struct MacroArg MacroArg;
 typedef Array MacroArgs;  // Array<MacroArg>
 typedef struct MacroCall MacroCall;
-typedef struct Array MacroParams;  // Array<IDENTIFIER>
+typedef struct Array MacroParams;  // Array<REFER(Identifier)>
 typedef Terminal Token;
 typedef Array Tokens;  // Array<Token>
 
@@ -64,7 +64,9 @@ struct Macro {
 typedef struct MacroCallFrame {
   const Tokens *tokens;
   uint32_t index;
-  const MacroArgs *args;
+  MacroArgs *args;
 } MacroCallFrame;
+
+void releaseMacro(Macro *macro, const Allocator *allocator);
 
 #endif  // MACHINE_TARGET_H

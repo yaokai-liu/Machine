@@ -41,21 +41,14 @@ typedef struct Terminal {
   void *value;
 } Terminal;
 
-typedef struct Identifier {
-  char_t *ptr;
-  uint32_t len;
-} Identifier;
+typedef char_t Identifier;
 
 typedef struct BitField {
   uint32_t upper;
   uint32_t lower;
 } BitField;
 
-int32_t Identifier_cmp(const Identifier *ident1, const Identifier *ident2);
-int32_t BitField_cmp(BitField *bf1, BitField *bf2);
-
-void releaseIdentifier(Identifier *ident, const Allocator *allocator);
-void releaseBitField(BitField *bf, const Allocator *allocator);
+int32_t BitField_cmp(void *bf1, void *bf2);
 
 uint64_t get_char(const void *key);
 #endif  // MACHINE_TERMINAL_H
