@@ -49,14 +49,18 @@ void MacroContext_destroy(MacroContext *context) {
   context->allocator->free(context);
 }
 
-REFER(Macro) MacroContext_addMacro(MacroContext *context, Macro *macro) {
+inline REFER(Macro) MacroContext_addMacro(MacroContext *context, Macro *macro) {
   Array_append(context->macroArray, macro, 1);
   REFER(Macro) v_macro = Array_last_virt(context->macroArray);
   AVLTree_set(context->macroTree, (uint64_t) macro->name, v_macro);
   return v_macro;
 }
 
-uint32_t MacroContext_getIdentParamIndex(MacroContext *context, REFER(Identifier) ident) {
+inline REFER(Macro) MacroContext_findMacro(MacroContext *context, REFER(Identifier) ident) {
+  return AVLTree_get(context->macroTree, (uint64_t) ident);
+}
+
+inline uint32_t MacroContext_getIdentParamIndex(MacroContext *context, REFER(Identifier) ident) {
   if (!context->current_params) { return 0; }
   REFER(Identifier) * const idents = Array_first_real(context->current_params);
   const uint32_t count = Array_length(context->current_params);

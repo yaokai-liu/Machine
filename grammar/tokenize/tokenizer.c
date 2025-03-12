@@ -50,8 +50,7 @@ typedef struct Tokenizer {
   MacroCallFrame frame;
 } Tokenizer;
 
-uint32_t Tokenizer_parse(Tokenizer *tokenizer, Terminal *tp);
-Macro *Tokenizer_hasMacro(Tokenizer *tokenizer, const REFER(Identifier) ident);
+uint32_t Tokenizer_parse(Tokenizer *tokenizer, Token *token);
 
 Tokenizer *Tokenizer_new(const char_t *src, Array *ident_array, const Allocator *allocator) {
   Tokenizer *tokenizer = allocator->calloc(1, sizeof(Tokenizer));
@@ -80,96 +79,102 @@ void Tokenizer_destroy(Tokenizer *tokenizer) {
 }
 
 #define pText (tokenizer->src + tokenizer->cost)
-uint32_t Tokenizer_eat(Tokenizer *tokenizer, Terminal * const terminal) {
+uint32_t Tokenizer_eat(Tokenizer *tokenizer, Token * const token) {
   const uint32_t old_cost = tokenizer->cost;
   uint32_t cost = pass_space(pText, &tokenizer->lineno, &tokenizer->column);
   tokenizer->cost += cost;
-  terminal->lineno = tokenizer->lineno;
-  terminal->column = tokenizer->column;
-  cost = single_tokenize(pText, terminal, tokenizer->allocator);
+
+  Terminal terminal = {};
+  terminal.lineno = tokenizer->lineno;
+  terminal.column = tokenizer->column;
+  cost = single_tokenize(pText, &terminal, tokenizer->allocator);
   if (0 == cost) {
-    terminal->type = enum_TERMINATOR;
-    terminal->value = nullptr;
-    terminal->length = 0;
+    token->end.lineno = tokenizer->lineno;
+    token->end.column = tokenizer->column;
+    token->type = enum_TERMINATOR;
+    token->value = nullptr;
     return 0;
   }
-  if (terminal->type == enum_IDENTIFIER) {
-    REFER(Identifier) ident = Trie_get(tokenizer->ident_trie, terminal->value);
+  if (terminal.type == enum_IDENTIFIER) {
+    REFER(Identifier) ident = Trie_get(tokenizer->ident_trie, terminal.value);
     if (!ident) {
-      Array_append(tokenizer->ident_array, terminal->value, terminal->length + 1);
-      ident = Array_last_virt(tokenizer->ident_array) - terminal->length;
-      Trie_set(tokenizer->ident_trie, terminal->value, ident);
+      Array_append(tokenizer->ident_array, terminal.value, terminal.length + 1);
+      ident = Array_last_virt(tokenizer->ident_array) - terminal.length;
+      Trie_set(tokenizer->ident_trie, terminal.value, ident);
     }
-    tokenizer->allocator->free(terminal->value);
-    terminal->value = ident;
+    tokenizer->allocator->free(terminal.value);
+    terminal.value = ident;
   }
+
+  terminal_to_token(token, &terminal);
+
   tokenizer->cost += cost;
   tokenizer->column += cost;
   return tokenizer->cost - old_cost;
 }
 
-uint32_t Tokenizer_next(Tokenizer *tokenizer, Terminal * const terminal) {
+uint32_t Tokenizer_next(Tokenizer *tokenizer, Token * const token) {
   uint32_t cost = 0;
   if (tokenizer->frame.tokens) {
-    const Terminal *token = Array_real_addr(tokenizer->frame.tokens, tokenizer->frame.index++);
-    if (token->type == enum_PLACE_HOLDER) {
-      const uint32_t index = (uint32_t) (uint64_t) token->value;
-      const MacroArg *arg = Array_real_addr(tokenizer->frame.args, index);
+    const Token *tp = Array_real_addr(tokenizer->frame.tokens, tokenizer->frame.index++);
+    if (tp->type == enum_PLACE_HOLDER) {
+      const uint32_t index = (uint32_t) (uint64_t) tp->value;
+      MacroArg *arg = Array_real_addr(tokenizer->frame.args, index);
       if (arg->type != enum_Tokens) {
-        terminal->type = arg->type;
-        terminal->value = arg->target;
+        tokenizer->allocator->memcpy(token, arg->target, sizeof(Token));
         return 0;
-      } else {
-        Stack_push(tokenizer->framestack, &tokenizer->frame, sizeof(MacroCallFrame));
-        tokenizer->frame.tokens = arg->target;
-        tokenizer->frame.args = nullptr;
-        tokenizer->frame.index = 0;
-        return Tokenizer_next(tokenizer, terminal);
       }
+      Stack_push(tokenizer->framestack, &tokenizer->frame, sizeof(MacroCallFrame));
+      tokenizer->frame.tokens = arg->target;
+      tokenizer->frame.args = nullptr;
+      tokenizer->frame.index = 0;
+      return Tokenizer_next(tokenizer, token);
     }
-    tokenizer->allocator->memcpy(terminal, token, sizeof(Terminal));
+    tokenizer->allocator->memcpy(token, tp, sizeof(Token));
     if (tokenizer->frame.index >= Array_length(tokenizer->frame.tokens)) {
-      if (tokenizer->frame.args) { releasePrimeArray(tokenizer->frame.args); }
+      if (tokenizer->frame.args) {
+        Array_reset(tokenizer->frame.args, (destruct_t *) releaseMacroArg);
+        Array_destroy(tokenizer->frame.args);
+      }
       Stack_pop(tokenizer->framestack, &tokenizer->frame, sizeof(MacroCallFrame));
     }
   } else {
-    cost = Tokenizer_eat(tokenizer, terminal);
+    cost = Tokenizer_eat(tokenizer, token);
   }
-  if (terminal->type == enum_MACRO) {
-    Tokenizer_parse(tokenizer, terminal);
-    return Tokenizer_next(tokenizer, terminal);
+  if (token->type == enum_MACRO) {
+    Tokenizer_parse(tokenizer, token);
+    return Tokenizer_next(tokenizer, token);
   }
 
-  if (terminal->type == enum_IDENTIFIER) {
-    REFER(Macro) v_macro = Tokenizer_hasMacro(tokenizer, terminal->value);
+  if (token->type == enum_IDENTIFIER) {
+    REFER(Macro) v_macro = MacroContext_findMacro(tokenizer->context, token->value);
     if (v_macro) {
-      Tokenizer_parse(tokenizer, terminal);
+      Tokenizer_parse(tokenizer, token);
       Stack_push(tokenizer->framestack, &tokenizer->frame, sizeof(MacroCallFrame));
       MacroContext_makeFrame(tokenizer->context, &tokenizer->frame, v_macro);
-      return Tokenizer_next(tokenizer, terminal);
+      return Tokenizer_next(tokenizer, token);
     }
   }
   return cost;
 }
 
-Macro *Tokenizer_hasMacro(Tokenizer *tokenizer, const REFER(Identifier) ident) {
-  const MacroContext * const context = tokenizer->context;
-  return AVLTree_get(context->macroTree, (uint64_t) ident);
-}
-
-typedef void *fn_reduce(void *argv[], MacroContext *context, const Allocator *allocator);
+typedef void *fn_reduce(Token argv[], MacroContext *context, const Allocator *allocator);
 
 extern fn_reduce * const MACRO_PRODUCTS[];
 
-uint32_t Tokenizer_macro_next(Tokenizer *tokenizer, Terminal * const terminal) {
+uint32_t Tokenizer_macro_next(Tokenizer *tokenizer, Token * const token) {
   if (tokenizer->context->end_parse) {
-    terminal->type = enum_TERMINATOR;
-    terminal->value = nullptr;
+    token->start.lineno = tokenizer->lineno;
+    token->start.column = tokenizer->column;
+    token->end.lineno = tokenizer->lineno;
+    token->end.column = tokenizer->column;
+    token->type = enum_TERMINATOR;
+    token->value = nullptr;
     return 0;
   }
 
-  uint32_t cost = Tokenizer_eat(tokenizer, terminal);
-  switch (terminal->type) {
+  const uint32_t cost = Tokenizer_eat(tokenizer, token);
+  switch (token->type) {
     case enum_LEFT_BRACKET: {
       if (tokenizer->context->depth++ == 0) { return cost; }
       break;
@@ -189,18 +194,31 @@ uint32_t Tokenizer_macro_next(Tokenizer *tokenizer, Terminal * const terminal) {
     default: {
     }
   }
-  Terminal *token = tokenizer->allocator->calloc(1, sizeof(Terminal));
-  tokenizer->allocator->memcpy(token, terminal, sizeof(Terminal));
-  terminal->type = enum_TOKEN;
-  terminal->value = token;
+
+  Token *tp = tokenizer->allocator->calloc(1, sizeof(Token));
+  tokenizer->allocator->memcpy(tp, token, sizeof(Token));
+  token->type = enum_TOKEN;
+  token->value = tp;
   return cost;
 }
 
+void tokenizer_failed_to_get_next_state(
+    Stack *state_stack, Stack *token_stack, Token *result, const Allocator *allocator
+);
+
+void tokenizer_failed_to_produce(
+    Stack *state_stack, Stack *token_stack, Token args[], uint32_t argc, const Allocator *allocator
+);
+
+void tokenizer_clean_parse_stack(
+    Stack *state_stack, Stack *token_stack, const Allocator *allocator
+);
+
 #define MAX_ARGC 0x10
-uint32_t Tokenizer_parse(Tokenizer *tokenizer, Terminal * const tp) {
-  void *result;
+uint32_t Tokenizer_parse(Tokenizer *tokenizer, Token * const token) {
   int32_t state = 0;
-  void *args[MAX_ARGC] = {};
+  Token result = {};
+  Token args[MAX_ARGC] = {};
   int32_t states[MAX_ARGC] = {};
   const Allocator * const allocator = tokenizer->allocator;
   Stack *state_stack = Stack_new(allocator);
@@ -213,27 +231,41 @@ uint32_t Tokenizer_parse(Tokenizer *tokenizer, Terminal * const tp) {
   uint32_t cost = 0;
 
   while (true) {
-    const struct grammar_action *act = getMacroParseAction(state, tp->type);
-    if (!act) { return 0; }
+    const struct grammar_action *act = getMacroParseAction(state, token->type);
+    if (!act) {
+      tokenizer_clean_parse_stack(state_stack, token_stack, allocator);
+      return 0;
+    }
     if (act->action == stack) {
       state = act->offset;
-      Stack_push(token_stack, &(tp->value), sizeof(void *));
+      Stack_push(token_stack, token, sizeof(Token));
       Stack_push(state_stack, &state, sizeof(int32_t));
       fn_ctx_act *ctx_act = macro_get_after_stack_action(state);
-      if (ctx_act) { ctx_act(context, tp->value); }
-      cost += Tokenizer_macro_next(tokenizer, tp);
+      if (ctx_act) { ctx_act(context, token->value); }
+      cost += Tokenizer_macro_next(tokenizer, token);
     } else if (act->action == reduce) {
-      Stack_pop(token_stack, args, act->count * sizeof(void *));
+      Stack_pop(token_stack, args, act->count * sizeof(Token));
       Stack_pop(state_stack, states, act->count * sizeof(int32_t));
-      Stack_top(state_stack, (int32_t *) &state, sizeof(int32_t));
+      Stack_top(state_stack, &state, sizeof(int32_t));
       fn_reduce *reduce = MACRO_PRODUCTS[act->offset];
-      result = reduce(args, context, allocator);
-      if (!result) { return 0; }
+      result.type = act->type;
+      result.start.lineno = args[0].start.lineno;
+      result.start.column = args[0].start.column;
+      result.end.lineno = args[act->count - 1].end.lineno;
+      result.end.column = args[act->count - 1].end.column;
+      result.value = reduce(args, context, allocator);
+      if (!result.value) {
+        tokenizer_failed_to_produce(state_stack, token_stack, args, act->count, allocator);
+        return 0;
+      }
       state = macroParseJumpState(state, act->type);
-      if (state < 0) { return 0; }
+      if (state < 0) {
+        tokenizer_failed_to_get_next_state(state_stack, token_stack, &result, allocator);
+        return 0;
+      }
       fn_ctx_act *ctx_act = macro_get_after_reduce_action(state);
-      if (ctx_act) { ctx_act(context, result); }
-      Stack_push(token_stack, &result, sizeof(void *));
+      if (ctx_act) { ctx_act(context, result.value); }
+      Stack_push(token_stack, &result, sizeof(Token));
       Stack_push(state_stack, &state, sizeof(int32_t));
       if (act->offset == __EXTEND_RULE__) { break; }
     } else {
@@ -245,4 +277,35 @@ uint32_t Tokenizer_parse(Tokenizer *tokenizer, Terminal * const tp) {
   allocator->free(token_stack);
   allocator->free(state_stack);
   return cost;
+}
+
+void tokenizer_failed_to_get_next_state(
+    Stack *state_stack, Stack *token_stack, Token *result, const Allocator *allocator
+) {
+  int32_t state = 0;
+  Stack_top(state_stack, (&state), sizeof(int32_t));
+  releaseMacroToken(result, allocator);
+  allocator->free(result);
+  return tokenizer_clean_parse_stack(state_stack, token_stack, allocator);
+}
+
+void tokenizer_failed_to_produce(
+    Stack *state_stack, Stack *token_stack, Token args[], uint32_t argc, const Allocator *allocator
+) {
+  for (uint32_t i = 0; i < argc; i++) { releaseMacroToken(&args[i], allocator); }
+  return tokenizer_clean_parse_stack(state_stack, token_stack, allocator);
+}
+
+void tokenizer_clean_parse_stack(
+    Stack *state_stack, Stack *token_stack, const Allocator *allocator
+) {
+  Token token = {};
+  while (!Stack_empty(token_stack)) {
+    Stack_pop(token_stack, &token, sizeof(Token));
+    releaseMacroToken(&token, allocator);
+  }
+  Stack_clear(token_stack);
+  Stack_clear(state_stack);
+  allocator->free(token_stack);
+  allocator->free(state_stack);
 }

@@ -33,12 +33,22 @@
 #include "generated/tokens.gen.h"
 #include <stdint.h>
 
+typedef struct Token {
+  void *value;
+  uint32_t type;
+  uint32_t length;
+  struct {
+    uint32_t lineno;
+    uint32_t column;
+  } start, end;
+} Token;
+
 typedef struct Terminal {
+  void *value;
   uint32_t type;
   uint32_t length;
   uint32_t lineno;
   uint32_t column;
-  void *value;
 } Terminal;
 
 typedef char_t Identifier;
@@ -50,5 +60,6 @@ typedef struct BitField {
 
 int32_t BitField_cmp(void *bf1, void *bf2);
 
+void terminal_to_token(Token *token, const Terminal *tp);
 uint64_t get_char(const void *key);
 #endif  // MACHINE_TERMINAL_H

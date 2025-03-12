@@ -110,7 +110,7 @@ class Generator:
 
     def gen_reduces(self):
         rule_names = self.rules.keys()
-        args = f"(void * argv[], {self.context} *, const Allocator * allocator);"
+        args = f"(Token argv[], {self.context} *, const Allocator * allocator);"
         enum_reduces = sorted(f"{r} = {i}" for i, r in enumerate(rule_names))
         reduces = sorted(f"{re.sub(r'_\d+$', '', r)} * p_{r}" + args
                          if r != '__EXTEND_RULE__'

@@ -31,3 +31,29 @@ void releaseMacro(Macro *macro, const Allocator *) {
   releasePrimeArray(macro->params);
   releasePrimeArray(macro->tokens);
 }
+
+void releaseMacroArg(MacroArg *arg, const Allocator *allocator) {
+  allocator->free(arg->target);
+  arg->target = nullptr;
+}
+
+void releaseMacroToken(Token *token, const Allocator *allocator) {
+  switch (token->type) {
+    case enum_MACRO: {
+      releaseMacro(token->value, allocator);
+      allocator->free(token->value);
+      break;
+    }
+    case enum_Tokens:
+    case enum_MacroParams: {
+      releasePrimeArray(token->value);
+      break;
+    }
+    case enum_MacroArgs: {
+      Array_reset(token->value, (destruct_t *) releaseMacroArg);
+      Array_destroy(token->value);
+    }
+    default: {
+    }
+  }
+}

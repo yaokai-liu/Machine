@@ -36,6 +36,6 @@ typedef struct Tokenizer Tokenizer;
 
 Tokenizer *Tokenizer_new(const char_t *src, Array *ident_array, const Allocator *allocator);
 void Tokenizer_destroy(Tokenizer *tokenizer);
-uint32_t Tokenizer_next(Tokenizer *tokenizer, Terminal *result);
+uint32_t Tokenizer_next(Tokenizer *tokenizer, Token *token);
 
 #endif  // MACHINE_TOKENIZER_H

@@ -103,10 +103,10 @@
     }                                         \
   } while (false)
 
-Arith_0_Expr *p_Arith_0_Expr_0(void *argv[], ParseContext *, const Allocator *allocator) {
-  Arith_0_Expr *lhs = (Arith_0_Expr *) argv[0];
-  uint32_t bin_op = (uint32_t) (uint64_t) argv[1];
-  Arith_1_Expr *rhs = (Arith_1_Expr *) argv[2];
+Arith_0_Expr *p_Arith_0_Expr_0(Token argv[], ParseContext *, const Allocator *allocator) {
+  Arith_0_Expr *lhs = (Arith_0_Expr *) argv[0].value;
+  uint32_t bin_op = (uint32_t) (uint64_t) argv[1].value;
+  Arith_1_Expr *rhs = (Arith_1_Expr *) argv[2].value;
 
   Arith_0_Expr *expr = allocator->calloc(1, sizeof(Arith_0_Expr));
   expr->type = bin_op;
@@ -114,9 +114,9 @@ Arith_0_Expr *p_Arith_0_Expr_0(void *argv[], ParseContext *, const Allocator *al
   expr->rhs = rhs;
   return expr;
 }
-Arith_0_Expr *p_Arith_0_Expr_1(void *argv[], ParseContext *, const Allocator *allocator) {
-  uint32_t sin_op = (uint32_t) (uint64_t) argv[0];
-  Arith_0_Expr *rhs = (Arith_1_Expr *) argv[1];
+Arith_0_Expr *p_Arith_0_Expr_1(Token argv[], ParseContext *, const Allocator *allocator) {
+  uint32_t sin_op = (uint32_t) (uint64_t) argv[0].value;
+  Arith_0_Expr *rhs = (Arith_1_Expr *) argv[1].value;
 
   Arith_0_Expr *expr = allocator->calloc(1, sizeof(Arith_0_Expr));
   expr->type = sin_op;
@@ -124,14 +124,14 @@ Arith_0_Expr *p_Arith_0_Expr_1(void *argv[], ParseContext *, const Allocator *al
   expr->rhs = rhs;
   return expr;
 }
-Arith_0_Expr *p_Arith_0_Expr_2(void *argv[], ParseContext *, const Allocator *) {
-  return (Arith_1_Expr *) argv[0];
+Arith_0_Expr *p_Arith_0_Expr_2(Token argv[], ParseContext *, const Allocator *) {
+  return (Arith_1_Expr *) argv[0].value;
 }
 
-Arith_1_Expr *p_Arith_1_Expr_0(void *argv[], ParseContext *, const Allocator *allocator) {
-  Arith_1_Expr *lhs = (Arith_1_Expr *) argv[0];
-  uint32_t bin_op = (uint32_t) (uint64_t) argv[1];
-  Arith_1_Expr *rhs = (Arith_1_Expr *) argv[2];
+Arith_1_Expr *p_Arith_1_Expr_0(Token argv[], ParseContext *, const Allocator *allocator) {
+  Arith_1_Expr *lhs = (Arith_1_Expr *) argv[0].value;
+  uint32_t bin_op = (uint32_t) (uint64_t) argv[1].value;
+  Arith_1_Expr *rhs = (Arith_1_Expr *) argv[2].value;
 
   Arith_1_Expr *expr = allocator->calloc(1, sizeof(Arith_1_Expr));
   expr->type = bin_op;
@@ -139,9 +139,9 @@ Arith_1_Expr *p_Arith_1_Expr_0(void *argv[], ParseContext *, const Allocator *al
   expr->rhs = rhs;
   return expr;
 }
-Arith_1_Expr *p_Arith_1_Expr_1(void *argv[], ParseContext *, const Allocator *allocator) {
-  uint32_t sin_op = (uint32_t) (uint64_t) argv[0];
-  Arith_1_Expr *rhs = (Arith_1_Expr *) argv[1];
+Arith_1_Expr *p_Arith_1_Expr_1(Token argv[], ParseContext *, const Allocator *allocator) {
+  uint32_t sin_op = (uint32_t) (uint64_t) argv[0].value;
+  Arith_1_Expr *rhs = (Arith_1_Expr *) argv[1].value;
 
   Arith_1_Expr *expr = allocator->calloc(1, sizeof(Arith_0_Expr));
   expr->type = sin_op;
@@ -149,14 +149,14 @@ Arith_1_Expr *p_Arith_1_Expr_1(void *argv[], ParseContext *, const Allocator *al
   expr->rhs = rhs;
   return expr;
 }
-Arith_1_Expr *p_Arith_1_Expr_2(void *argv[], ParseContext *, const Allocator *) {
-  return (Arith_1_Expr *) argv[0];
+Arith_1_Expr *p_Arith_1_Expr_2(Token argv[], ParseContext *, const Allocator *) {
+  return (Arith_1_Expr *) argv[0].value;
 }
 
-Arith_2_Expr *p_Arith_2_Expr_0(void *argv[], ParseContext *, const Allocator *allocator) {
-  Arith_2_Expr *lhs = (Arith_2_Expr *) argv[0];
-  uint32_t bin_op = (uint32_t) (uint64_t) argv[1];
-  Arith_1_Expr *rhs = (Arith_1_Expr *) argv[2];
+Arith_2_Expr *p_Arith_2_Expr_0(Token argv[], ParseContext *, const Allocator *allocator) {
+  Arith_2_Expr *lhs = (Arith_2_Expr *) argv[0].value;
+  uint32_t bin_op = (uint32_t) (uint64_t) argv[1].value;
+  Arith_1_Expr *rhs = (Arith_1_Expr *) argv[2].value;
 
   Arith_2_Expr *expr = allocator->calloc(1, sizeof(Arith_2_Expr));
   expr->type = bin_op;
@@ -164,9 +164,9 @@ Arith_2_Expr *p_Arith_2_Expr_0(void *argv[], ParseContext *, const Allocator *al
   expr->rhs = rhs;
   return expr;
 }
-Arith_2_Expr *p_Arith_2_Expr_1(void *argv[], ParseContext *, const Allocator *allocator) {
-  uint32_t sin_op = (uint32_t) (uint64_t) argv[0];
-  Arith_2_Expr *rhs = (Arith_1_Expr *) argv[1];
+Arith_2_Expr *p_Arith_2_Expr_1(Token argv[], ParseContext *, const Allocator *allocator) {
+  uint32_t sin_op = (uint32_t) (uint64_t) argv[0].value;
+  Arith_2_Expr *rhs = (Arith_1_Expr *) argv[1].value;
 
   Arith_2_Expr *expr = allocator->calloc(1, sizeof(Arith_2_Expr));
   expr->type = sin_op;
@@ -174,17 +174,17 @@ Arith_2_Expr *p_Arith_2_Expr_1(void *argv[], ParseContext *, const Allocator *al
   expr->rhs = rhs;
   return expr;
 }
-Arith_2_Expr *p_Arith_2_Expr_2(void *argv[], ParseContext *, const Allocator *) {
-  return (Arith_2_Expr *) argv[0];
+Arith_2_Expr *p_Arith_2_Expr_2(Token argv[], ParseContext *, const Allocator *) {
+  return (Arith_2_Expr *) argv[0].value;
 }
 
-Arith_3_Expr *p_Arith_3_Expr_0(void *argv[], ParseContext *, const Allocator *) {
-  return (Arith_3_Expr *) argv[1];
+Arith_3_Expr *p_Arith_3_Expr_0(Token argv[], ParseContext *, const Allocator *) {
+  return (Arith_3_Expr *) argv[1].value;
 }
 
-Arith_3_Expr *p_Arith_3_Expr_1(void *argv[], ParseContext *, const Allocator *allocator) {
-  uint32_t sin_op = (uint32_t) (uint64_t) argv[0];
-  Arith_3_Expr *rhs = (Arith_1_Expr *) argv[1];
+Arith_3_Expr *p_Arith_3_Expr_1(Token argv[], ParseContext *, const Allocator *allocator) {
+  uint32_t sin_op = (uint32_t) (uint64_t) argv[0].value;
+  Arith_3_Expr *rhs = (Arith_1_Expr *) argv[1].value;
 
   Arith_3_Expr *expr = allocator->calloc(1, sizeof(Arith_3_Expr));
   expr->type = sin_op;
@@ -192,8 +192,8 @@ Arith_3_Expr *p_Arith_3_Expr_1(void *argv[], ParseContext *, const Allocator *al
   expr->rhs = rhs;
   return expr;
 }
-Arith_3_Expr *p_Arith_3_Expr_2(void *argv[], ParseContext *, const Allocator *allocator) {
-  Evaluable *eval = (Evaluable *) argv[0];
+Arith_3_Expr *p_Arith_3_Expr_2(Token argv[], ParseContext *, const Allocator *allocator) {
+  Evaluable *eval = (Evaluable *) argv[0].value;
   Arith_3_Expr *expr = allocator->calloc(1, sizeof(Arith_3_Expr));
   expr->type = AS_ID;
   expr->lhs = nullptr;
@@ -201,15 +201,15 @@ Arith_3_Expr *p_Arith_3_Expr_2(void *argv[], ParseContext *, const Allocator *al
   return expr;
 }
 
-Condition *p_Condition_0(void *argv[], ParseContext *, const Allocator *allocator) {
-  CondExpr *expr = (CondExpr *) argv[2];
+Condition *p_Condition_0(Token argv[], ParseContext *, const Allocator *allocator) {
+  CondExpr *expr = (CondExpr *) argv[2].value;
   Condition *cond = allocator->calloc(1, sizeof(Condition));
   cond->expr = expr;
   return cond;
 }
-CondExpr *p_CondExpr_0(void *argv[], ParseContext *, const Allocator *allocator) {
-  CondExpr *lhs = (CondExpr *) argv[0];
-  AndCondExpr *rhs = (AndCondExpr *) argv[2];
+CondExpr *p_CondExpr_0(Token argv[], ParseContext *, const Allocator *allocator) {
+  CondExpr *lhs = (CondExpr *) argv[0].value;
+  AndCondExpr *rhs = (AndCondExpr *) argv[2].value;
 
   CondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
   expr->type = enum_BOOL_OR;
@@ -218,13 +218,13 @@ CondExpr *p_CondExpr_0(void *argv[], ParseContext *, const Allocator *allocator)
   return expr;
 }
 
-CondExpr *p_CondExpr_1(void *argv[], ParseContext *, const Allocator *) {
-  return (CondExpr *) argv[0];
+CondExpr *p_CondExpr_1(Token argv[], ParseContext *, const Allocator *) {
+  return (CondExpr *) argv[0].value;
 }
 
-AndCondExpr *p_AndCondExpr_0(void *argv[], ParseContext *, const Allocator *allocator) {
-  AndCondExpr *lhs = (AndCondExpr *) argv[0];
-  SingleCondExpr *rhs = (SingleCondExpr *) argv[2];
+AndCondExpr *p_AndCondExpr_0(Token argv[], ParseContext *, const Allocator *allocator) {
+  AndCondExpr *lhs = (AndCondExpr *) argv[0].value;
+  SingleCondExpr *rhs = (SingleCondExpr *) argv[2].value;
 
   AndCondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
   expr->type = enum_BOOL_AND;
@@ -232,14 +232,14 @@ AndCondExpr *p_AndCondExpr_0(void *argv[], ParseContext *, const Allocator *allo
   expr->rhs = rhs;
   return expr;
 }
-AndCondExpr *p_AndCondExpr_1(void *argv[], ParseContext *, const Allocator *) {
-  return (CondExpr *) argv[0];
+AndCondExpr *p_AndCondExpr_1(Token argv[], ParseContext *, const Allocator *) {
+  return (CondExpr *) argv[0].value;
 }
-SingleCondExpr *p_SingleCondExpr_0(void *argv[], ParseContext *, const Allocator *) {
-  return (CondExpr *) argv[1];
+SingleCondExpr *p_SingleCondExpr_0(Token argv[], ParseContext *, const Allocator *) {
+  return (CondExpr *) argv[1].value;
 }
-CondExpr *p_SingleCondExpr_1(void *argv[], ParseContext *, const Allocator *allocator) {
-  SingleCondExpr *rhs = (SingleCondExpr *) argv[1];
+CondExpr *p_SingleCondExpr_1(Token argv[], ParseContext *, const Allocator *allocator) {
+  SingleCondExpr *rhs = (SingleCondExpr *) argv[1].value;
 
   CondExpr *expr = allocator->calloc(1, sizeof(CondExpr));
   expr->type = enum_BOOL_NOT;
@@ -250,10 +250,10 @@ CondExpr *p_SingleCondExpr_1(void *argv[], ParseContext *, const Allocator *allo
 
   return expr;
 }
-SingleCondExpr *p_SingleCondExpr_2(void *argv[], ParseContext *, const Allocator *allocator) {
-  SingleCondExpr *lhs = (SingleCondExpr *) argv[0];
-  uint32_t type = (uint32_t) (uint64_t) argv[1];
-  SingleCondExpr *rhs = (SingleCondExpr *) argv[2];
+SingleCondExpr *p_SingleCondExpr_2(Token argv[], ParseContext *, const Allocator *allocator) {
+  SingleCondExpr *lhs = (SingleCondExpr *) argv[0].value;
+  uint32_t type = (uint32_t) (uint64_t) argv[1].value;
+  SingleCondExpr *rhs = (SingleCondExpr *) argv[2].value;
 
   SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
   expr->type = type;
@@ -262,9 +262,9 @@ SingleCondExpr *p_SingleCondExpr_2(void *argv[], ParseContext *, const Allocator
   return expr;
 }
 SingleCondExpr *
-    p_SingleCondExpr_3(void *argv[], ParseContext *context, const Allocator *allocator) {
-  Variable *lhs = (Variable *) argv[0];
-  Identifier *rhs = (Identifier *) argv[2];
+    p_SingleCondExpr_3(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Variable *lhs = (Variable *) argv[0].value;
+  Identifier *rhs = (Identifier *) argv[2].value;
 
   grammarAssertDefinedRecord(rhs);
   SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
@@ -273,9 +273,9 @@ SingleCondExpr *
   expr->rhs = rhs;
   return expr;
 }
-SingleCondExpr *p_SingleCondExpr_4(void *argv[], ParseContext *, const Allocator *allocator) {
-  uint32_t type = (uint32_t) (uint64_t) argv[0];
-  Arith_0_Expr *rhs = (Arith_0_Expr *) argv[1];
+SingleCondExpr *p_SingleCondExpr_4(Token argv[], ParseContext *, const Allocator *allocator) {
+  uint32_t type = (uint32_t) (uint64_t) argv[0].value;
+  Arith_0_Expr *rhs = (Arith_0_Expr *) argv[1].value;
 
   SingleCondExpr *expr = allocator->calloc(1, sizeof(SingleCondExpr));
   expr->type = type;
@@ -283,21 +283,21 @@ SingleCondExpr *p_SingleCondExpr_4(void *argv[], ParseContext *, const Allocator
   expr->rhs = rhs;
   return expr;
 }
-SingleCondExpr *p_SingleCondExpr_5(void *argv[], ParseContext *, const Allocator *) {
-  return (Arith_0_Expr *) argv[0];
+SingleCondExpr *p_SingleCondExpr_5(Token argv[], ParseContext *, const Allocator *) {
+  return (Arith_0_Expr *) argv[0].value;
 }
 
-Options *p_Options_0(void *argv[], ParseContext *, const Allocator *allocator) {
-  Options *options = (Options *) argv[0];
-  Arith_0_Expr *evaluable = (Arith_0_Expr *) argv[2];
+Options *p_Options_0(Token argv[], ParseContext *, const Allocator *allocator) {
+  Options *options = (Options *) argv[0].value;
+  Arith_0_Expr *evaluable = (Arith_0_Expr *) argv[2].value;
 
   Array_append(options, evaluable, 1);
   allocator->free(evaluable);
   return options;
 }
 
-Options *p_Options_1(void *argv[], ParseContext *, const Allocator *allocator) {
-  Arith_0_Expr *evaluable = (Arith_0_Expr *) argv[0];
+Options *p_Options_1(Token argv[], ParseContext *, const Allocator *allocator) {
+  Arith_0_Expr *evaluable = (Arith_0_Expr *) argv[0].value;
 
   Options *options = Array_new(sizeof(Arith_0_Expr), enum_Arith_0_Expr, allocator);
   Array_append(options, evaluable, 1);
@@ -305,9 +305,9 @@ Options *p_Options_1(void *argv[], ParseContext *, const Allocator *allocator) {
   return options;
 }
 
-Switchable *p_Switchable_0(void *argv[], ParseContext *, const Allocator *allocator) {
-  CondExpr *expr = (CondExpr *) argv[1];
-  Options *options = (Options *) argv[4];
+Switchable *p_Switchable_0(Token argv[], ParseContext *, const Allocator *allocator) {
+  CondExpr *expr = (CondExpr *) argv[1].value;
+  Options *options = (Options *) argv[4].value;
 
   Switchable *switchable = allocator->calloc(1, sizeof(Switchable));
   switchable->expr = expr;
@@ -315,37 +315,37 @@ Switchable *p_Switchable_0(void *argv[], ParseContext *, const Allocator *alloca
   return switchable;
 }
 
-Entries *p_Entries_0(void *[], ParseContext *, const Allocator *) {
+Entries *p_Entries_0(Token[], ParseContext *, const Allocator *) {
   return (REFER(Entries))(uint64_t) (enum_Entries);
 }
 
-Entries *p_Entries_1(void *[], ParseContext *, const Allocator *) {
+Entries *p_Entries_1(Token[], ParseContext *, const Allocator *) {
   return (REFER(Entries))(uint64_t) (enum_Entries);
 }
 
-Entry *p_Entry_0(void *[], ParseContext *, const Allocator *) {
+Entry *p_Entry_0(Token[], ParseContext *, const Allocator *) {
   return (REFER(Entry))(uint64_t) (enum_Entry);
 }
 
-Entry *p_Entry_1(void *[], ParseContext *, const Allocator *) {
+Entry *p_Entry_1(Token[], ParseContext *, const Allocator *) {
   return (REFER(Entry))(uint64_t) (enum_Entry);
 }
 
-Entry *p_Entry_2(void *[], ParseContext *, const Allocator *) {
+Entry *p_Entry_2(Token[], ParseContext *, const Allocator *) {
   return (REFER(Entry))(uint64_t) (enum_Entry);
 }
 
-Entry *p_Entry_3(void *[], ParseContext *, const Allocator *) {
+Entry *p_Entry_3(Token[], ParseContext *, const Allocator *) {
   return (REFER(Entry))(uint64_t) (enum_Entry);
 }
 
-Entry *p_Entry_4(void *[], ParseContext *, const Allocator *) {
+Entry *p_Entry_4(Token[], ParseContext *, const Allocator *) {
   return (REFER(Entry))(uint64_t) (enum_Entry);
 }
 
-Variable *p_Variable_0(void *argv[], ParseContext *context, const Allocator *allocator) {
-  Identifier *lhs = (Identifier *) argv[0];
-  Identifier *rhs = (Identifier *) argv[2];
+Variable *p_Variable_0(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Identifier *lhs = (Identifier *) argv[0].value;
+  Identifier *rhs = (Identifier *) argv[2].value;
 
   Parameter *param = (Parameter *) GContext_findParameter(context, lhs);
   grammarAssert(param, "no such variable.");
@@ -364,8 +364,8 @@ Variable *p_Variable_0(void *argv[], ParseContext *context, const Allocator *all
   return var;
 }
 
-Variable *p_Variable_1(void *argv[], ParseContext *context, const Allocator *allocator) {
-  Identifier *ident = (Identifier *) argv[0];
+Variable *p_Variable_1(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Identifier *ident = (Identifier *) argv[0].value;
 
   const Record *record = GContext_findRecord(context, ident);
   if (record) {
@@ -401,9 +401,9 @@ Variable *p_Variable_1(void *argv[], ParseContext *context, const Allocator *all
   return var;
 }
 
-Evaluable *p_Evaluable_0(void *argv[], ParseContext *context, const Allocator *allocator) {
-  Variable *lhs = (Variable *) argv[0];
-  BitField *rhs = (BitField *) &argv[1];
+Evaluable *p_Evaluable_0(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Variable *lhs = (Variable *) argv[0].value;
+  BitField *rhs = (BitField *) &argv[1].value;
 
   const Record *record = nullptr;
   Pattern *pattern = *(Pattern **) Array_last_real(GContext_getPatternArray(context));
@@ -435,8 +435,8 @@ Evaluable *p_Evaluable_0(void *argv[], ParseContext *context, const Allocator *a
   return evaluable;
 }
 
-Evaluable *p_Evaluable_1(void *argv[], ParseContext *, const Allocator *allocator) {
-  Variable *var = (Variable *) argv[1];
+Evaluable *p_Evaluable_1(Token argv[], ParseContext *, const Allocator *allocator) {
+  Variable *var = (Variable *) argv[1].value;
   uint32_t width = 0;
   switch (var->type) {
     case VT_IDENTIFIER: {
@@ -478,8 +478,8 @@ Evaluable *p_Evaluable_1(void *argv[], ParseContext *, const Allocator *allocato
   return evaluable;
 }
 
-Evaluable *p_Evaluable_2(void *argv[], ParseContext *context, const Allocator *allocator) {
-  Variable *var = (Variable *) argv[0];
+Evaluable *p_Evaluable_2(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Variable *var = (Variable *) argv[0].value;
 
   if (var->type == VT_REGISTER) {
     const Register *reg = var->rhs;
@@ -501,8 +501,8 @@ Evaluable *p_Evaluable_2(void *argv[], ParseContext *context, const Allocator *a
   return evaluable;
 }
 
-Evaluable *p_Evaluable_3(void *argv[], ParseContext *, const Allocator *allocator) {
-  uint64_t number = (uint64_t) argv[0];
+Evaluable *p_Evaluable_3(Token argv[], ParseContext *, const Allocator *allocator) {
+  uint64_t number = (uint64_t) argv[0].value;
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_NUMBER;
   evaluable->lhs = (void *) number;
@@ -510,10 +510,10 @@ Evaluable *p_Evaluable_3(void *argv[], ParseContext *, const Allocator *allocato
   return evaluable;
 }
 
-Immediate *p_Immediate_0(void *argv[], ParseContext *context, const Allocator *) {
-  Identifier *ident = (Identifier *) argv[1];
-  uint32_t width = (uint32_t) (uint64_t) argv[2];
-  uint32_t type = (uint64_t) argv[3];
+Immediate *p_Immediate_0(Token argv[], ParseContext *context, const Allocator *) {
+  Identifier *ident = (Identifier *) argv[1].value;
+  uint32_t width = (uint32_t) (uint64_t) argv[2].value;
+  uint32_t type = (uint64_t) argv[3].value;
 
   grammarAssertNotDeclaredRecord(ident);
   grammarAssert(width <= 64, "too long to support this width.");
@@ -525,10 +525,10 @@ Immediate *p_Immediate_0(void *argv[], ParseContext *context, const Allocator *)
   return result;
 }
 
-InstrForm *p_InstrForm_0(void *argv[], ParseContext *, const Allocator *allocator) {
-  Pattern *pattern = (Pattern *) argv[0];
-  FormCheck *check = (FormCheck *) argv[3];
-  InstrParts *part_array = (InstrParts *) argv[4];
+InstrForm *p_InstrForm_0(Token argv[], ParseContext *, const Allocator *allocator) {
+  Pattern *pattern = (Pattern *) argv[0].value;
+  FormCheck *check = (FormCheck *) argv[3].value;
+  InstrParts *part_array = (InstrParts *) argv[4].value;
   uint32_t width = 0;
   const InstrPart *first = Array_first_real(part_array);
   const InstrPart *last = Array_last_real(part_array);
@@ -546,11 +546,11 @@ InstrForm *p_InstrForm_0(void *argv[], ParseContext *, const Allocator *allocato
   return form;
 }
 
-InstrForm *p_InstrForm_1(void *argv[], ParseContext *, const Allocator *allocator) {
-  Pattern *pattern = (Pattern *) argv[0];
-  uint32_t tick = (uint32_t) (uint64_t) argv[3];
-  FormCheck *check = (FormCheck *) argv[4];
-  InstrParts *part_array = (InstrParts *) argv[5];
+InstrForm *p_InstrForm_1(Token argv[], ParseContext *, const Allocator *allocator) {
+  Pattern *pattern = (Pattern *) argv[0].value;
+  uint32_t tick = (uint32_t) (uint64_t) argv[3].value;
+  FormCheck *check = (FormCheck *) argv[4].value;
+  InstrParts *part_array = (InstrParts *) argv[5].value;
 
   uint32_t width = 0;
   const InstrPart *first = Array_first_real(part_array);
@@ -568,35 +568,35 @@ InstrForm *p_InstrForm_1(void *argv[], ParseContext *, const Allocator *allocato
   return form;
 }
 
-InstrForms *p_InstrForms_0(void *argv[], ParseContext *, const Allocator *allocator) {
-  InstrForms *forms = (InstrForms *) argv[0];
-  InstrForm *form = (InstrForm *) argv[1];
+InstrForms *p_InstrForms_0(Token argv[], ParseContext *, const Allocator *allocator) {
+  InstrForms *forms = (InstrForms *) argv[0].value;
+  InstrForm *form = (InstrForm *) argv[1].value;
   Array_append(forms, form, 1);
   allocator->free(form);
   return forms;
 }
 
-InstrForms *p_InstrForms_1(void *argv[], ParseContext *, const Allocator *allocator) {
-  InstrForm *form = (InstrForm *) argv[0];
+InstrForms *p_InstrForms_1(Token argv[], ParseContext *, const Allocator *allocator) {
+  InstrForm *form = (InstrForm *) argv[0].value;
   InstrForms *forms = Array_new(sizeof(InstrForm), enum_InstrForm, allocator);
   Array_append(forms, form, 1);
   allocator->free(form);
   return forms;
 }
 
-FormCheck *p_FormCheck_0(void *argv[], ParseContext *, const Allocator *) {
-  FormCheck *check = (FormCheck *) argv[0];
+FormCheck *p_FormCheck_0(Token argv[], ParseContext *, const Allocator *) {
+  FormCheck *check = (FormCheck *) argv[0].value;
   return check;
 }
 
-FormCheck *p_FormCheck_1(void *[], ParseContext *, const Allocator *) {
+FormCheck *p_FormCheck_1(Token[], ParseContext *, const Allocator *) {
   return (FormCheck *) (uint64_t) enum_FormCheck;
 }
 
-InstrPart *p_InstrPart_0(void *argv[], ParseContext *context, const Allocator *allocator) {
-  Identifier *name = (Identifier *) argv[0];
-  uint32_t width = (uint32_t) (uint64_t) argv[2];
-  Layout *layout = (Layout *) argv[4];
+InstrPart *p_InstrPart_0(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Identifier *name = (Identifier *) argv[0].value;
+  uint32_t width = (uint32_t) (uint64_t) argv[2].value;
+  Layout *layout = (Layout *) argv[4].value;
 
   grammarAssert(width != 0, "empty part.");
 
@@ -621,11 +621,11 @@ InstrPart *p_InstrPart_0(void *argv[], ParseContext *context, const Allocator *a
   return part;
 }
 
-InstrPart *p_InstrPart_1(void *argv[], ParseContext *context, const Allocator *allocator) {
-  Identifier *name = (Identifier *) argv[0];
-  uint32_t width = (uint32_t) (uint64_t) argv[2];
-  Layout *layout = (Layout *) argv[4];
-  Condition *condition = (Condition *) argv[5];
+InstrPart *p_InstrPart_1(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Identifier *name = (Identifier *) argv[0].value;
+  uint32_t width = (uint32_t) (uint64_t) argv[2].value;
+  Layout *layout = (Layout *) argv[4].value;
+  Condition *condition = (Condition *) argv[5].value;
 
   grammarAssert(width != 0, "empty part.");
 
@@ -650,16 +650,16 @@ InstrPart *p_InstrPart_1(void *argv[], ParseContext *context, const Allocator *a
   return part;
 }
 
-InstrParts *p_InstrParts_0(void *argv[], ParseContext *, const Allocator *allocator) {
-  InstrParts *parts = (InstrParts *) argv[0];
-  InstrPart *part = (InstrPart *) argv[1];
+InstrParts *p_InstrParts_0(Token argv[], ParseContext *, const Allocator *allocator) {
+  InstrParts *parts = (InstrParts *) argv[0].value;
+  InstrPart *part = (InstrPart *) argv[1].value;
   Array_append(parts, part, 1);
   allocator->free(part);
   return parts;
 }
 
-InstrParts *p_InstrParts_1(void *argv[], ParseContext *context, const Allocator *allocator) {
-  InstrPart *part = (InstrPart *) argv[0];
+InstrParts *p_InstrParts_1(Token argv[], ParseContext *context, const Allocator *allocator) {
+  InstrPart *part = (InstrPart *) argv[0].value;
   InstrParts *parts = Array_new(sizeof(InstrPart), enum_InstrPart, allocator);
   Array_append(parts, part, 1);
   allocator->free(part);
@@ -669,9 +669,9 @@ InstrParts *p_InstrParts_1(void *argv[], ParseContext *context, const Allocator 
   return parts;
 }
 
-Instruction *p_Instruction_0(void *argv[], ParseContext *context, const Allocator *) {
-  Identifier *identifier = (Identifier *) argv[1];
-  InstrForms *forms = (InstrForms *) argv[3];
+Instruction *p_Instruction_0(Token argv[], ParseContext *context, const Allocator *) {
+  Identifier *identifier = (Identifier *) argv[1].value;
+  InstrForms *forms = (InstrForms *) argv[3].value;
 
   grammarAssertNotDeclaredOpcode(identifier);
 
@@ -681,32 +681,32 @@ Instruction *p_Instruction_0(void *argv[], ParseContext *context, const Allocato
   return instr;
 }
 
-Layout *p_Layout_0(void *argv[], ParseContext *, const Allocator *allocator) {
-  Arith_0_Expr *expr = (Arith_0_Expr *) argv[0];
+Layout *p_Layout_0(Token argv[], ParseContext *, const Allocator *allocator) {
+  Arith_0_Expr *expr = (Arith_0_Expr *) argv[0].value;
   Layout *layout = allocator->calloc(1, sizeof(Layout));
   layout->type = enum_Arith_0_Expr;
   layout->target = expr;
   return layout;
 }
 
-Layout *p_Layout_1(void *argv[], ParseContext *, const Allocator *allocator) {
-  Switchable *switchable = (Switchable *) argv[0];
+Layout *p_Layout_1(Token argv[], ParseContext *, const Allocator *allocator) {
+  Switchable *switchable = (Switchable *) argv[0].value;
   Layout *layout = allocator->calloc(1, sizeof(Layout));
   layout->type = enum_Switchable;
   layout->target = switchable;
   return layout;
 }
 
-Layout *p_Layout_2(void *argv[], ParseContext *, const Allocator *allocator) {
-  MappingItems *items = (MappingItems *) argv[1];
+Layout *p_Layout_2(Token argv[], ParseContext *, const Allocator *allocator) {
+  MappingItems *items = (MappingItems *) argv[1].value;
   Layout *layout = allocator->calloc(1, sizeof(Layout));
   layout->type = enum_MappingItems;
   layout->target = items;
   return layout;
 }
 
-Machine *p_Machine_0(void *argv[], ParseContext *context, const Allocator *allocator) {
-  Identifier *identifier = (Identifier *) argv[1];
+Machine *p_Machine_0(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Identifier *identifier = (Identifier *) argv[1].value;
   Machine *machine = allocator->calloc(1, sizeof(Machine));
   machine->name = identifier;
   machine->context = context;
@@ -714,13 +714,13 @@ Machine *p_Machine_0(void *argv[], ParseContext *context, const Allocator *alloc
   return machine;
 }
 
-Machine *p__Machine__(void *argv[], const Allocator *) {
-  return (Machine *) argv[0];
+Machine *p__Machine__(Token argv[], const Allocator *) {
+  return (Machine *) argv[0].value;
 }
 
-MappingItem *p_MappingItem_0(void *argv[], ParseContext *context, const Allocator *allocator) {
-  BitField *bit_field = (BitField *) &argv[0];
-  Arith_0_Expr *expr = (Arith_0_Expr *) argv[2];
+MappingItem *p_MappingItem_0(Token argv[], ParseContext *context, const Allocator *allocator) {
+  BitField *bit_field = (BitField *) &argv[0].value;
+  Arith_0_Expr *expr = (Arith_0_Expr *) argv[2].value;
 
   if (bit_field) {
     uint64_t width = GContext_getLastWidth(context);
@@ -748,9 +748,9 @@ MappingItem *p_MappingItem_0(void *argv[], ParseContext *context, const Allocato
 
   return item;
 }
-MappingItem *p_MappingItem_1(void *argv[], ParseContext *context, const Allocator *allocator) {
-  BitField *bit_field = (BitField *) &argv[0];
-  Switchable *switchable = (Switchable *) argv[2];
+MappingItem *p_MappingItem_1(Token argv[], ParseContext *context, const Allocator *allocator) {
+  BitField *bit_field = (BitField *) &argv[0].value;
+  Switchable *switchable = (Switchable *) argv[2].value;
 
   if (bit_field) {
     uint64_t width = GContext_getLastWidth(context);
@@ -782,9 +782,9 @@ MappingItem *p_MappingItem_1(void *argv[], ParseContext *context, const Allocato
   return item;
 }
 
-MappingItems *p_MappingItems_0(void *argv[], ParseContext *context, const Allocator *allocator) {
-  MappingItems *items = (MappingItems *) argv[0];
-  MappingItem *item = (MappingItem *) argv[2];
+MappingItems *p_MappingItems_0(Token argv[], ParseContext *context, const Allocator *allocator) {
+  MappingItems *items = (MappingItems *) argv[0].value;
+  MappingItem *item = (MappingItem *) argv[2].value;
 
   if (item->field.upper < item->field.lower) {
     if (items->default_eval) {
@@ -795,15 +795,16 @@ MappingItems *p_MappingItems_0(void *argv[], ParseContext *context, const Alloca
   } else {
     items->lowest = min(item->field.lower, items->lowest);
     uint32_t index = Array_length(items->itemArray);
-    AVLTree_set(items->itemTree, *(uint64_t *) &item->field, (void *) (uint64_t) index + 1);
+    uint64_t *key = (uint64_t *) &item->field;
+    AVLTree_set(items->itemTree, *key, (void *) (uint64_t) index + 1);
     Array_append(items->itemArray, item, 1);
   }
   allocator->free(item);
   return items;
 }
 
-MappingItems *p_MappingItems_1(void *argv[], ParseContext *, const Allocator *allocator) {
-  MappingItem *item = (MappingItem *) argv[0];
+MappingItems *p_MappingItems_1(Token argv[], ParseContext *, const Allocator *allocator) {
+  MappingItem *item = (MappingItem *) argv[0].value;
 
   MappingItems *items = allocator->calloc(1, sizeof(MappingItems));
   items->itemArray = Array_new(sizeof(MappingItem), enum_MappingItem, allocator);
@@ -813,16 +814,17 @@ MappingItems *p_MappingItems_1(void *argv[], ParseContext *, const Allocator *al
     items->lowest = 0;
   } else {
     Array_append(items->itemArray, item, 1);
-    AVLTree_set(items->itemTree, *(uint64_t *) &item->field, (void *) 1);
+    uint64_t *key = (uint64_t *) &item->field;
+    AVLTree_set(items->itemTree, *key, (void *) 1);
     items->lowest = item->field.lower;
   }
   allocator->free(item);
   return items;
 }
 
-MemItem *p_MemItem_0(void *argv[], ParseContext *context, const Allocator *allocator) {
-  Identifier *name = (Identifier *) argv[0];
-  uint32_t width = (uint32_t) (uint64_t) argv[2];
+MemItem *p_MemItem_0(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Identifier *name = (Identifier *) argv[0].value;
+  uint32_t width = (uint32_t) (uint64_t) argv[2].value;
 
   grammarAssertNotDeclaredMemItem(name);
   grammarAssert(width <= 64, "too long to support this width.");
@@ -835,10 +837,10 @@ MemItem *p_MemItem_0(void *argv[], ParseContext *context, const Allocator *alloc
   return item;
 }
 
-MemItem *p_MemItem_1(void *argv[], ParseContext *context, const Allocator *allocator) {
-  Identifier *name = (Identifier *) argv[0];
-  uint32_t width = (uint32_t) (uint64_t) argv[2];
-  Identifier *type = (Identifier *) argv[4];
+MemItem *p_MemItem_1(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Identifier *name = (Identifier *) argv[0].value;
+  uint32_t width = (uint32_t) (uint64_t) argv[2].value;
+  Identifier *type = (Identifier *) argv[4].value;
 
   grammarAssertNotDeclaredMemItem(name);
   grammarAssertDefinedRecord(type);
@@ -857,9 +859,9 @@ MemItem *p_MemItem_1(void *argv[], ParseContext *context, const Allocator *alloc
   return item;
 }
 
-MemItems *p_MemItems_0(void *argv[], ParseContext *, const Allocator *allocator) {
-  MemItems *items = (MemItems *) argv[0];
-  MemItem *item = (MemItem *) argv[1];
+MemItems *p_MemItems_0(Token argv[], ParseContext *, const Allocator *allocator) {
+  MemItems *items = (MemItems *) argv[0].value;
+  MemItem *item = (MemItem *) argv[1].value;
 
   MemItem *last_item = Array_last_real(items);
   item->start = last_item->start + last_item->width;
@@ -870,8 +872,8 @@ MemItems *p_MemItems_0(void *argv[], ParseContext *, const Allocator *allocator)
   return items;
 }
 
-MemItems *p_MemItems_1(void *argv[], ParseContext *context, const Allocator *allocator) {
-  MemItem *item = (MemItem *) argv[0];
+MemItems *p_MemItems_1(Token argv[], ParseContext *context, const Allocator *allocator) {
+  MemItem *item = (MemItem *) argv[0].value;
 
   item->start = 0;
 
@@ -883,10 +885,10 @@ MemItems *p_MemItems_1(void *argv[], ParseContext *context, const Allocator *all
   return items;
 }
 
-Memory *p_Memory_0(void *argv[], ParseContext *context, const Allocator *) {
-  Identifier *ident = (Identifier *) argv[1];
-  uint32_t width = (uint32_t) (uint64_t) argv[2];
-  MemItems *items = (MemItems *) argv[4];
+Memory *p_Memory_0(Token argv[], ParseContext *context, const Allocator *) {
+  Identifier *ident = (Identifier *) argv[1].value;
+  uint32_t width = (uint32_t) (uint64_t) argv[2].value;
+  MemItems *items = (MemItems *) argv[4].value;
 
   grammarAssert(width <= 64, "too long to support this width.");
 
@@ -897,9 +899,9 @@ Memory *p_Memory_0(void *argv[], ParseContext *context, const Allocator *) {
   return result;
 }
 
-Parameter *p_Parameter_0(void *argv[], ParseContext *context, const Allocator *allocator) {
-  Identifier *type = (Identifier *) argv[0];
-  Identifier *name = (Identifier *) argv[1];
+Parameter *p_Parameter_0(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Identifier *type = (Identifier *) argv[0].value;
+  Identifier *name = (Identifier *) argv[1].value;
 
   grammarAssertDefinedRecord(type);
   grammarAssertNotDeclaredRecord(name);
@@ -911,8 +913,8 @@ Parameter *p_Parameter_0(void *argv[], ParseContext *context, const Allocator *a
   return param;
 }
 
-Pattern *p_Pattern_0(void *argv[], ParseContext *context, const Allocator *allocator) {
-  PatternArgs *args = (PatternArgs *) argv[1];
+Pattern *p_Pattern_0(Token argv[], ParseContext *context, const Allocator *allocator) {
+  PatternArgs *args = (PatternArgs *) argv[1].value;
 
   if (GContext_testPattern(context, args)) {
     GContext_setErrorMessage(context, "duplicated instruction pattern.");
@@ -927,7 +929,7 @@ Pattern *p_Pattern_0(void *argv[], ParseContext *context, const Allocator *alloc
   return pattern;
 }
 
-Pattern *p_Pattern_1(void *[], ParseContext *context, const Allocator *allocator) {
+Pattern *p_Pattern_1(Token[], ParseContext *context, const Allocator *allocator) {
   Pattern *pattern = allocator->calloc(1, sizeof(Pattern));
   pattern->args = nullptr;
 
@@ -936,17 +938,17 @@ Pattern *p_Pattern_1(void *[], ParseContext *context, const Allocator *allocator
   return pattern;
 }
 
-PatternArgs *p_PatternArgs_0(void *argv[], ParseContext *, const Allocator *allocator) {
-  PatternArgs *args = (PatternArgs *) argv[0];
-  Parameter *param = (Parameter *) argv[2];
+PatternArgs *p_PatternArgs_0(Token argv[], ParseContext *, const Allocator *allocator) {
+  PatternArgs *args = (PatternArgs *) argv[0].value;
+  Parameter *param = (Parameter *) argv[2].value;
 
   Array_append(args, param, 1);
   allocator->free(param);
   return args;
 }
 
-PatternArgs *p_PatternArgs_1(void *argv[], ParseContext *, const Allocator *allocator) {
-  Parameter *param = (Parameter *) argv[0];
+PatternArgs *p_PatternArgs_1(Token argv[], ParseContext *, const Allocator *allocator) {
+  Parameter *param = (Parameter *) argv[0].value;
 
   PatternArgs *args = Array_new(sizeof(Parameter), enum_PatternArgs, allocator);
   Array_append(args, param, 1);
@@ -955,10 +957,10 @@ PatternArgs *p_PatternArgs_1(void *argv[], ParseContext *, const Allocator *allo
   return args;
 }
 
-Register *p_Register_0(void *argv[], ParseContext *context, const Allocator *) {
-  Identifier *ident = (Identifier *) argv[0];
-  BitField *field = (BitField *) &argv[2];
-  uint64_t code = (uint64_t) argv[4];
+Register *p_Register_0(Token argv[], ParseContext *context, const Allocator *) {
+  Identifier *ident = (Identifier *) argv[0].value;
+  BitField *field = (BitField *) &argv[2].value;
+  uint64_t code = (uint64_t) argv[4].value;
 
   grammarAssertNotDeclaredRecord(ident);
 
@@ -969,10 +971,10 @@ Register *p_Register_0(void *argv[], ParseContext *context, const Allocator *) {
   return GContext_addRegister(context, &reg);
 }
 
-RegisterGroup *p_RegisterGroup_0(void *argv[], ParseContext *context, const Allocator *) {
-  Identifier *ident = (Identifier *) argv[1];
-  uint32_t width = (uint32_t) (uint64_t) argv[2];
-  Registers *registers = (Registers *) argv[4];
+RegisterGroup *p_RegisterGroup_0(Token argv[], ParseContext *context, const Allocator *) {
+  Identifier *ident = (Identifier *) argv[1].value;
+  uint32_t width = (uint32_t) (uint64_t) argv[2].value;
+  Registers *registers = (Registers *) argv[4].value;
 
   grammarAssertNotDeclaredRecord(ident);
 
@@ -990,23 +992,23 @@ RegisterGroup *p_RegisterGroup_0(void *argv[], ParseContext *context, const Allo
   return result;
 }
 
-Registers *p_Registers_0(void *argv[], ParseContext *, const Allocator *) {
-  Registers *regs = (Registers *) argv[0];
-  Register *reg = (Register *) argv[1];
+Registers *p_Registers_0(Token argv[], ParseContext *, const Allocator *) {
+  Registers *regs = (Registers *) argv[0].value;
+  Register *reg = (Register *) argv[1].value;
   Array_append(regs, &reg, 1);
   return regs;
 }
 
-Registers *p_Registers_1(void *argv[], ParseContext *, const Allocator *allocator) {
-  Register *reg = argv[0];
+Registers *p_Registers_1(Token argv[], ParseContext *, const Allocator *allocator) {
+  Register *reg = (Register *) argv[0].value;
   Registers *regs = Array_new(sizeof(REFER(Register)), -1, allocator);
   Array_append(regs, &reg, 1);
   return regs;
 }
 
-Set *p_Set_0(void *argv[], ParseContext *context, const Allocator *) {
-  Identifier *ident = (Identifier *) argv[1];
-  SetItems *items = (SetItems *) argv[3];
+Set *p_Set_0(Token argv[], ParseContext *context, const Allocator *) {
+  Identifier *ident = (Identifier *) argv[1].value;
+  SetItems *items = (SetItems *) argv[3].value;
 
   grammarAssertNotDeclaredRecord(ident);
 
@@ -1015,9 +1017,9 @@ Set *p_Set_0(void *argv[], ParseContext *context, const Allocator *) {
   return GContext_addSet(context, &set);
 }
 
-SetItems *p_SetItems_0(void *argv[], ParseContext *context, const Allocator *) {
-  SetItems *items = (SetItems *) argv[0];
-  Identifier *ident = (Identifier *) argv[2];
+SetItems *p_SetItems_0(Token argv[], ParseContext *context, const Allocator *) {
+  SetItems *items = (SetItems *) argv[0].value;
+  Identifier *ident = (Identifier *) argv[2].value;
 
   grammarAssertDefinedRecord(ident);
 
@@ -1026,18 +1028,10 @@ SetItems *p_SetItems_0(void *argv[], ParseContext *context, const Allocator *) {
   return items;
 }
 
-SetItems *p_SetItems_1(void *argv[], ParseContext *context, const Allocator *allocator) {
-  Identifier *ident = (Identifier *) argv[0];
+SetItems *p_SetItems_1(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Identifier *ident = (Identifier *) argv[0].value;
 
-  //  grammarAssertDefinedRecord(ident);
-
-  do {
-    const Record *record = GContext_findRecord(context, ident);
-    if (!record) {
-      GContext_setErrorMessage(context, "undefined identifier.");
-      return nullptr;
-    }
-  } while (false);
+  grammarAssertDefinedRecord(ident);
 
   SetItems *items = Array_new(sizeof(REFER(Identifier)), enum_IDENTIFIER, allocator);
   Array_append(items, &ident, 1);
@@ -1045,48 +1039,31 @@ SetItems *p_SetItems_1(void *argv[], ParseContext *context, const Allocator *all
   return items;
 }
 
+#include "parse.h"
 #include "stack.h"
 
 Machine *failed_to_get_next_state(
-    Stack *state_stack, Stack *token_stack, void *token, uint32_t type, const Allocator *allocator
-);
-
-Machine *failed_to_produce(
-    Stack *state_stack, Stack *token_stack, void *args[], int32_t *states, uint32_t argc,
-    const Allocator *allocator
-);
-
-Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocator *allocator);
-
-Machine *failed_to_get_next_state(
-    Stack *state_stack, Stack *token_stack, void *token, uint32_t type, const Allocator *allocator
+    Stack *state_stack, Stack *token_stack, Token *token, const Allocator *allocator
 ) {
   int32_t state = 0;
   Stack_top(state_stack, (&state), sizeof(int32_t));
-  releaseToken(token, type, allocator);
+  releaseToken(token, allocator);
   allocator->free(token);
   return clean_parse_stack(state_stack, token_stack, allocator);
 }
 
 Machine *failed_to_produce(
-    Stack *state_stack, Stack *token_stack, void *args[], int32_t *states, uint32_t argc,
-    const Allocator *allocator
+    Stack *state_stack, Stack *token_stack, Token args[], uint32_t argc, const Allocator *allocator
 ) {
-  for (uint32_t i = 0; i < argc; i++) {
-    uint32_t type = getParseStateCurrentTokenType(states[i]);
-    releaseToken(args[i], type, allocator);
-  }
+  for (uint32_t i = 0; i < argc; i++) { releaseToken(&args[i], allocator); }
   return clean_parse_stack(state_stack, token_stack, allocator);
 }
 
 Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocator *allocator) {
-  void *token = nullptr;
-  int32_t state = -1;
+  Token token = {};
   while (!Stack_empty(token_stack)) {
-    Stack_pop(token_stack, &token, sizeof(void *));
-    Stack_pop(state_stack, &state, sizeof(int32_t));
-    uint32_t type = getParseStateCurrentTokenType(state);
-    releaseToken(token, type, allocator);
+    Stack_pop(token_stack, &token, sizeof(Token));
+    releaseToken(&token, allocator);
   }
   Stack_clear(token_stack);
   Stack_clear(state_stack);
@@ -1095,26 +1072,26 @@ Machine *clean_parse_stack(Stack *state_stack, Stack *token_stack, const Allocat
   return nullptr;
 }
 
-#define releaseArrayCase(array, ele)                 \
-  case enum_##array: {                               \
-    Array_reset(token, (destruct_t *) release##ele); \
-    Array_destroy(token);                            \
-    break;                                           \
+#define releaseArrayCase(array, ele)                        \
+  case enum_##array: {                                      \
+    Array_reset(token->value, (destruct_t *) release##ele); \
+    Array_destroy(token->value);                            \
+    break;                                                  \
   }
-#define releaseTokenCase(t, r)    \
-  case enum_##t: {                \
-    release##r(token, allocator); \
-    break;                        \
+#define releaseTokenCase(t, r)           \
+  case enum_##t: {                       \
+    release##r(token->value, allocator); \
+    break;                               \
   }
 
-void releaseToken(void *token, uint32_t type, const Allocator *allocator) {
-  switch (type) {
+void releaseToken(Token *token, const Allocator *allocator) {
+  switch (token->type) {
     releaseArrayCase(InstrForms, InstrForm)
     releaseArrayCase(InstrParts, InstrPart)
     case enum_SetItems:
     case enum_Registers:
     case enum_PatternArgs: {
-      releasePrimeArray(token);
+      releasePrimeArray(token->value);
       break;
     }
 
@@ -1139,8 +1116,8 @@ void releaseToken(void *token, uint32_t type, const Allocator *allocator) {
     case enum_Arith_1_Expr:
     case enum_Arith_2_Expr:
     case enum_Arith_3_Expr: {
-      releaseExpr(token, allocator);
-      allocator->free(token);
+      releaseExpr(token->value, allocator);
+      allocator->free(token->value);
       break;
     }
     default: {
