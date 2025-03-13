@@ -867,102 +867,31 @@ macro u_instr_i(name, code, gpr1_id) {
     };
   };
 
-  instruction jo {
-    [Ib a] = {
-      opcode: [8] = 0x70;
-      imm: [8] = a;
-    };
-  };
-  instruction jno {
-    [Ib a] = {
-      opcode: [8] = 0x71;
-      imm: [8] = a;
-    };
-  };
-  instruction jb {
-    [Ib a] = {
-      opcode: [8] = 0x72;
-      imm: [8] = a;
-    };
-  };
-  instruction jnb {
-    [Ib a] = {
-      opcode: [8] = 0x73;
-      imm: [8] = a;
-    };
-  };
-  instruction jz {
-    [Ib a] = {
-      opcode: [8] = 0x74;
-      imm: [8] = a;
-    };
-  };
-  instruction jnz {
-    [Ib a] = {
-      opcode: [8] = 0x75;
-      imm: [8] = a;
-    };
-  };
-  instruction jbe {
-    [Ib a] = {
-      opcode: [8] = 0x76;
-      imm: [8] = a;
-    };
-  };
-  instruction jnbe {
-    [Ib a] = {
-      opcode: [8] = 0x77;
-      imm: [8] = a;
-    };
-  };
-  instruction js {
-    [Ib a] = {
-      opcode: [8] = 0x78;
-      imm: [8] = a;
-    };
-  };
-  instruction jns {
-    [Ib a] = {
-      opcode: [8] = 0x79;
-      imm: [8] = a;
-    };
-  };
-  instruction jp {
-    [Ib a] = {
-      opcode: [8] = 0x7a;
-      imm: [8] = a;
-    };
-  };
-  instruction jnp {
-    [Ib a] = {
-      opcode: [8] = 0x7b;
-      imm: [8] = a;
-    };
-  };
-  instruction jl {
-    [Ib a] = {
-      opcode: [8] = 0x7c;
-      imm: [8] = a;
-    };
-  };
-  instruction jnl {
-    [Ib a] = {
-      opcode: [8] = 0x7d;
-      imm: [8] = a;
-    };
-  };
-  instruction jle {
-    [Ib a] = {
-      opcode: [8] = 0x7e;
-      imm: [8] = a;
-    };
-  };
-  instruction jnle {
-    [Ib a] = {
-      opcode: [8] = 0x7f;
-      imm: [8] = a;
-    };
-  };
+  macro jmp_i_low(name, code) {
+      instruction name {
+        [Ib a] = {
+          opcode: [8] = code;
+          imm: [8] = a;
+        };
+      };
+  }
+
+  jmp_i_low(jo, 0x70)
+  jmp_i_low(jno, 0x71)
+  jmp_i_low(jb, 0x72)
+  jmp_i_low(jnb, 0x73)
+  jmp_i_low(jz, 0x74)
+  jmp_i_low(jnz, 0x75)
+  jmp_i_low(jbe, 0x76)
+  jmp_i_low(jnbe, 0x77)
+  jmp_i_low(js, 0x78)
+  jmp_i_low(jns, 0x79)
+  jmp_i_low(jp, 0x7a)
+  jmp_i_low(jnp, 0x7b)
+  jmp_i_low(jl, 0x7c)
+  jmp_i_low(jnl, 0x7d)
+  jmp_i_low(jle, 0x7e)
+  jmp_i_low(jnle, 0x7f)
 
   instruction test {
     [gpr8 a, gpr8 b] = {

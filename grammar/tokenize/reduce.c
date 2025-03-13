@@ -145,17 +145,22 @@ MacroParams *p_MacroParams_2(Token[], MacroContext *, const Allocator *) {
   return (MacroParams *) (uint64_t) enum_MacroParams;
 }
 
+#define identToPlaceHolder(ident)                                                \
+  do {                                                                           \
+    if ((ident)->type == enum_IDENTIFIER) {                                      \
+      uint32_t index = MacroContext_getIdentParamIndex(context, (ident)->value); \
+      if (index) {                                                               \
+        (ident)->type = enum_PLACE_HOLDER;                                       \
+        (ident)->value = (void *) (uint64_t) index - 1;                          \
+      }                                                                          \
+    }                                                                            \
+  } while (false)
+
 Tokens *p_Tokens_0(Token argv[], MacroContext *context, const Allocator *allocator) {
   Tokens *tokens = (Tokens *) argv[0].value;
   Token *token = (Token *) argv[1].value;
 
-  if (token->type == enum_IDENTIFIER) {
-    uint32_t index = MacroContext_getIdentParamIndex(context, token->value);
-    if (index) {
-      token->type = enum_PLACE_HOLDER;
-      token->value = (void *) (uint64_t) index - 1;
-    }
-  }
+  identToPlaceHolder(token);
 
   Array_append(tokens, token, 1);
   allocator->free(token);
@@ -163,20 +168,52 @@ Tokens *p_Tokens_0(Token argv[], MacroContext *context, const Allocator *allocat
   return tokens;
 }
 
-Tokens *p_Tokens_1(Token argv[], MacroContext *context, const Allocator *allocator) {
+Tokens *p_Tokens_1(Token argv[], MacroContext *, const Allocator *) {
+  Tokens *tokens = (Tokens *) argv[0].value;
+  Concat *_concat = (Concat *) argv[1].value;
+
+  Token token = {
+      .type = enum_Concat, .value = _concat, .start = _concat->left.start, .end = _concat->right.end
+  };
+  Array_append(tokens, &token, 1);
+
+  return tokens;
+}
+
+Tokens *p_Tokens_2(Token argv[], MacroContext *context, const Allocator *allocator) {
   Token *token = (Token *) argv[0].value;
 
-  if (token->type == enum_IDENTIFIER) {
-    uint32_t index = MacroContext_getIdentParamIndex(context, token->value);
-    if (index) {
-      token->type = enum_PLACE_HOLDER;
-      token->value = (void *) (uint64_t) index - 1;
-    }
-  }
+  identToPlaceHolder(token);
 
   Tokens *tokens = Array_new(sizeof(Token), enum_TOKEN, allocator);
   Array_append(tokens, token, 1);
   allocator->free(token);
 
   return tokens;
+}
+
+Tokens *p_Tokens_3(Token argv[], MacroContext *, const Allocator *allocator) {
+  Concat *_concat = (Concat *) argv[0].value;
+
+  Token token = {
+      .type = enum_Concat, .value = _concat, .start = _concat->left.start, .end = _concat->right.end
+  };
+
+  Tokens *tokens = Array_new(sizeof(Token), enum_TOKEN, allocator);
+  Array_append(tokens, &token, 1);
+
+  return tokens;
+}
+
+Concat *p_Concat_0(Token argv[], MacroContext *context, const Allocator *allocator) {
+  Token left = argv[0];
+  Token right = argv[1];
+
+  identToPlaceHolder(&left);
+  identToPlaceHolder(&right);
+
+  Concat *_concat = allocator->calloc(1, sizeof(Concat));
+  _concat->left = left;
+  _concat->right = right;
+  return _concat;
 }

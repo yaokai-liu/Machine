@@ -27,6 +27,27 @@
 
 #include "target.h"
 
+void concat_to_token(Concat *concat, Token *token, Array *ident_array) {
+  const char_t *left_str = nullptr, *right_str = nullptr;
+
+  if (concat->left.type == enum_IDENTIFIER) {
+    left_str = Array_virt2real(ident_array, concat->left.value);
+  }
+  if (concat->right.type == enum_IDENTIFIER) {
+    right_str = Array_virt2real(ident_array, concat->right.value);
+  }
+
+  uint32_t str_0 = Array_length(ident_array);
+  Array_append(ident_array, left_str, concat->left.length);
+  Array_append(ident_array, right_str, concat->right.length);
+  Array_append(ident_array, "\0", 1);
+
+  token->type = enum_IDENTIFIER;
+  token->value = Array_virt_addr(ident_array, str_0);
+  token->start = concat->left.start;
+  token->end = concat->right.end;
+}
+
 void releaseMacro(Macro *macro, const Allocator *) {
   releasePrimeArray(macro->params);
   releasePrimeArray(macro->tokens);

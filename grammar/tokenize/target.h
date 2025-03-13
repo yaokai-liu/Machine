@@ -32,10 +32,6 @@
 #include "generated/tokens.gen.h"
 #include "terminal.h"
 
-enum __TOKEN_TYPE_ENUM_MACRO_EXTEND__ {
-  enum_PLACE_HOLDER = MAX_REAL_TOKEN + 1
-};
-
 typedef void MacroEntry;
 typedef struct Macro Macro;
 typedef struct MacroArg MacroArg;
@@ -65,6 +61,13 @@ typedef struct MacroCallFrame {
   uint32_t index;
   MacroArgs *args;
 } MacroCallFrame;
+
+typedef struct Concat {
+  Token left;
+  Token right;
+} Concat;
+
+void concat_to_token(Concat *concat, Token *token, Array *ident_array);
 
 void releaseMacro(Macro *macro, const Allocator *allocator);
 void releaseMacroArg(MacroArg *arg, const Allocator *allocator);
