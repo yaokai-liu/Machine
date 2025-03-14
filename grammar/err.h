@@ -1,6 +1,6 @@
 /* License
  *
- * xMachine - A Backend Generator for Compilers
+ * ${PROJ_DESCRIPTION}
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,26 +18,21 @@
  *
  *
  * Project Name: machine
- * Module Name: grammar/tokenize
- * Filename: tokenizer.h
+ * Module Name: compiler
+ * Filename: err.h
  * Creator: Yaokai Liu
- * Create Date: 2025-03-08
+ * Create Date: 2025-03-14
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef MACHINE_TOKENIZE_TOKENIZER_H
-#define MACHINE_TOKENIZE_TOKENIZER_H
+#ifndef MACHINE_ERR_H
+#define MACHINE_ERR_H
 
-#include "array.h"
-#include "char_t.h"
-#include "err.h"
 #include "terminal.h"
 
-typedef struct Tokenizer Tokenizer;
+typedef struct {
+  TokenPos pos;
+  const char_t *msg;
+} ErrInfo;
 
-Tokenizer *Tokenizer_new(const char_t *src, Array *ident_array, const Allocator *allocator);
-void Tokenizer_destroy(Tokenizer *tokenizer);
-uint32_t Tokenizer_next(Tokenizer *tokenizer, Token *token, ErrInfo *err_info);
-uint32_t Tokenizer_frame_pos_to_array(Tokenizer *tokenizer, Array /*<MacroCallFrame>*/ *array);
-
-#endif  // MACHINE_TOKENIZE_TOKENIZER_H
+#endif  // MACHINE_ERR_H

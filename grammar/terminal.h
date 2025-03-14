@@ -37,14 +37,16 @@ enum TOKEN_TYPE_ENUM_MACRO_EXTEND {
   enum_PLACE_HOLDER = MAX_REAL_TOKEN + 1
 };
 
+typedef struct {
+  uint32_t lineno;
+  uint32_t column;
+} TokenPos[2];
+
 typedef struct Token {
   void *value;
   uint32_t type;
   uint32_t length;
-  struct {
-    uint32_t lineno;
-    uint32_t column;
-  } start, end;
+  TokenPos position;
 } Token;
 
 typedef struct Terminal {

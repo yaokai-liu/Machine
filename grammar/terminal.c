@@ -40,10 +40,10 @@ inline void terminal_to_token(Token *token, const Terminal *tp) {
   token->type = tp->type;
   token->value = tp->value;
   token->length = tp->length;
-  token->start.lineno = tp->lineno;
-  token->start.column = tp->column;
-  token->end.lineno = tp->lineno;
-  token->end.column = tp->column + tp->length;
+  token->position[0].lineno = tp->lineno;
+  token->position[0].column = tp->column;
+  token->position[1].lineno = tp->lineno;
+  token->position[1].column = tp->column + tp->length;
 }
 
 uint64_t get_char(const void *key) {

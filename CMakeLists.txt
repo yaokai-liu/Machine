@@ -36,6 +36,7 @@ add_library(meman SHARED ${CTR_SRC})
 link_libraries(meman)
 
 include_directories(meman grammar)
+
 file(GLOB_RECURSE GRAMMAR_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} grammar/*.c grammar/*.h)
 add_library(grammar ${GRAMMAR_SRC})
 

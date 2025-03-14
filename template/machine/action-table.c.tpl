@@ -68,21 +68,21 @@ const uint32_t MACHINE_CURRENT_TOKENS[] = {
 };
 
 inline const struct unit *getParseUnit(const state *state, uint32_t look) {
-    const struct unit *unit, *base = &MACHINE_UNITS[state->token_base];
-    uint32_t left = 0, right = state->n_tokens - 1;
-    uint32_t u_idx = (left + right) / 2;
-    unit = &base[u_idx];
-    while (unit->type != look && left < right) {
-        if (unit->type < look) {
-            left = u_idx + 1;
-        } else {
-            right = u_idx - 1;
-        }
-        u_idx = (left + right) / 2;
-        unit = &base[u_idx];
+  const struct unit *unit, *base = &MACHINE_UNITS[state->token_base];
+  int32_t left = 0, right = state->n_tokens - 1;
+  int32_t u_idx = (left + right) / 2;
+  unit = &base[u_idx];
+  while (unit->type != look && left < right) {
+    if (unit->type < look) {
+      left = u_idx + 1;
+    } else {
+      right = u_idx - 1;
     }
-    if (unit->type != look) { return nullptr; }
-    return unit;
+    u_idx = (left + right) / 2;
+    unit = &base[u_idx];
+  }
+  if (unit->type != look) { return nullptr; }
+  return unit;
 }
 
 

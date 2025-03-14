@@ -30,6 +30,7 @@
 #include "generate.h"
 #include "parse/parse.h"
 #include "parse/target.h"
+#include "tokenize/target.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,12 +74,12 @@ int main(int argc, char *argv[]) {
   srcname = argv[1];
   realpath(srcname, srcpath);
 
-  int i = 2;
+  int arg_ndx = 2;
   if (argc > 2 && argv[2][0] != '-') {
     outname = argv[2];
     realpath(outname, headpath);
     realpath(outname, libpath);
-    i++;
+    arg_ndx++;
   } else {
     outname = strrchr(srcname, '/');
     outname = outname ? outname + 1 : srcname;
@@ -88,22 +89,22 @@ int main(int argc, char *argv[]) {
   uint32_t len = strlen(headpath);
   strcpy(headpath + len, ".h");
   strcpy(libpath + len, ".c");
-  for (; i < argc; i++) {
-    if (strcmp(argv[i], "-y") == 0 || strcmp(argv[i], "--year") == 0) {
-      if (i + 1 >= argc) {
+  for (; arg_ndx < argc; arg_ndx++) {
+    if (strcmp(argv[arg_ndx], "-y") == 0 || strcmp(argv[arg_ndx], "--year") == 0) {
+      if (arg_ndx + 1 >= argc) {
         fprintf(stderr, "copyright year required.\n");
         return -1;
       } else {
-        year = argv[i + 1];
-        i++;
+        year = argv[arg_ndx + 1];
+        arg_ndx++;
       }
-    } else if (strcmp(argv[i], "-a") == 0 || strcmp(argv[i], "--author") == 0) {
-      if (i + 1 >= argc) {
+    } else if (strcmp(argv[arg_ndx], "-a") == 0 || strcmp(argv[arg_ndx], "--author") == 0) {
+      if (arg_ndx + 1 >= argc) {
         fprintf(stderr, "copyright holder required.\n");
         return -1;
       } else {
-        cr_holder = argv[i + 1];
-        i++;
+        cr_holder = argv[arg_ndx + 1];
+        arg_ndx++;
       }
     } else {
       fprintf(stderr, "wrong count of arguments.\n");
@@ -131,12 +132,21 @@ int main(int argc, char *argv[]) {
 
   clock_t start = clock();
 
-  const char_t *err_msg = nullptr;
-  const Machine *machine = parse(tokenizer, &err_msg, &STDAllocator);
+  ErrInfo err_info = {};
+  const Machine *machine = parse(tokenizer, &err_info, &STDAllocator);
   if (!machine) {
-    fprintf(stderr, "failed to parse: %s", err_msg);
+    fprintf(stderr, "failed to parse:\n");
+    Array *frame_array = Array_new(sizeof(TokenPos), -1, &STDAllocator);
+    Tokenizer_frame_pos_to_array(tokenizer, frame_array);
+    const TokenPos *positions = Array_first_real(frame_array);
+    const uint32_t last = Array_length(frame_array) - 1;
+    for (uint32_t i = last - 1; i < last; i--) {
+      fprintf(stderr, "  at %s:%d:%d\n", srcpath, positions[i][1].lineno, positions[i][1].column);
+    }
+    fprintf(stderr, "  at %s:%d:%d\n", srcpath, err_info.pos[1].lineno, err_info.pos[1].column);
+    fprintf(stderr, "  %s\n", err_info.msg);
     STDAllocator.free(text);
-    return -4;
+    return 0;
   }
   Generator_setCopyright(generator, outname, headpath, libpath, cr_holder, year);
   codegen(generator, machine);

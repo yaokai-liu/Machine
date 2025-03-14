@@ -34,7 +34,7 @@
 
 extern fn_reduce * const MACHINE_PRODUCTS[];
 
-Machine *parse(Tokenizer *tokenizer, const char_t **err_msg, const Allocator *allocator);
+Machine *parse(Tokenizer *tokenizer, ErrInfo *err_info, const Allocator *allocator);
 
 Machine *failed_to_get_next_state(
     Stack *state_stack, Stack *token_stack, Token *token, const Allocator *allocator

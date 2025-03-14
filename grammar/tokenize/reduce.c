@@ -173,7 +173,9 @@ Tokens *p_Tokens_1(Token argv[], MacroContext *, const Allocator *) {
   Concat *_concat = (Concat *) argv[1].value;
 
   Token token = {
-      .type = enum_Concat, .value = _concat, .start = _concat->left.start, .end = _concat->right.end
+      .type = enum_Concat,
+      .value = _concat,
+      .position = {_concat->left.position[0], _concat->right.position[1]}
   };
   Array_append(tokens, &token, 1);
 
@@ -196,7 +198,9 @@ Tokens *p_Tokens_3(Token argv[], MacroContext *, const Allocator *allocator) {
   Concat *_concat = (Concat *) argv[0].value;
 
   Token token = {
-      .type = enum_Concat, .value = _concat, .start = _concat->left.start, .end = _concat->right.end
+      .type = enum_Concat,
+      .value = _concat,
+      .position = {_concat->left.position[0], _concat->right.position[1]}
   };
 
   Tokens *tokens = Array_new(sizeof(Token), enum_TOKEN, allocator);

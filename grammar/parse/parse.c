@@ -28,13 +28,14 @@
 #include "parse.h"
 #include "action.h"
 #include "context.h"
+#include "err.h"
 #include "generated/machine/action-table.gen.h"
 #include "generated/machine/reduce.gen.h"
 #include "stack.h"
 #include "target.h"
 
 #define MAX_ARGC 0x10
-Machine *parse(Tokenizer *tokenizer, const char_t **err_msg, const Allocator *allocator) {
+Machine *parse(Tokenizer *tokenizer, ErrInfo *err_info, const Allocator *allocator) {
   int32_t state = 0;
   Token token = {}, result = {};
   Token args[MAX_ARGC] = {};
@@ -44,11 +45,13 @@ Machine *parse(Tokenizer *tokenizer, const char_t **err_msg, const Allocator *al
   Stack_push(state_stack, &state, sizeof(int32_t));
   ParseContext *context = GContext_new(allocator);
 
-  Tokenizer_next(tokenizer, &token);
+  Tokenizer_next(tokenizer, &token, err_info);
   while (true) {
     const struct grammar_action *act = getParseAction(state, token.type);
     if (!act) {
-      *err_msg = "unexpected token.";
+      err_info->pos[0] = token.position[0];
+      err_info->pos[1] = token.position[1];
+      err_info->msg = "unexpected token.";
       GContext_destroy(context);
       return clean_parse_stack(state_stack, token_stack, allocator);
     }
@@ -58,27 +61,31 @@ Machine *parse(Tokenizer *tokenizer, const char_t **err_msg, const Allocator *al
       Stack_push(state_stack, &state, sizeof(int32_t));
       fn_ctx_act *ctx_act = get_after_stack_actions(state);
       if (ctx_act) { ctx_act(context, token.value); }
-      Tokenizer_next(tokenizer, &token);
+      Tokenizer_next(tokenizer, &token, err_info);
     } else if (act->action == reduce) {
       Stack_pop(token_stack, args, act->count * sizeof(Token));
       Stack_pop(state_stack, states, act->count * sizeof(int32_t));
       Stack_top(state_stack, (int32_t *) &state, sizeof(int32_t));
       fn_reduce *reduce = MACHINE_PRODUCTS[act->offset];
       result.type = act->type;
-      result.start.lineno = args[0].start.lineno;
-      result.start.column = args[0].start.column;
-      result.end.lineno = args[act->count - 1].end.lineno;
-      result.end.column = args[act->count - 1].end.column;
+      result.position[0].lineno = args[0].position[0].lineno;
+      result.position[0].column = args[0].position[0].column;
+      result.position[1].lineno = args[act->count - 1].position[1].lineno;
+      result.position[1].column = args[act->count - 1].position[1].column;
       result.value = reduce(args, context, allocator);
       if (!result.value) {
-        *err_msg = GContext_getErrorMessage(context);
+        err_info->pos[0] = result.position[0];
+        err_info->pos[1] = result.position[1];
+        err_info->msg = GContext_getErrorMessage(context);
         GContext_destroy(context);
         return failed_to_produce(state_stack, token_stack, args, act->count, allocator);
       }
       state = parseJumpState(state, act->type);
       if (state < 0) {
         GContext_destroy(context);
-        *err_msg = "unexpected token.";
+        err_info->pos[0] = result.position[0];
+        err_info->pos[1] = result.position[1];
+        err_info->msg = "unexpected token.";
         return failed_to_get_next_state(state_stack, token_stack, &result, allocator);
       }
       Stack_push(token_stack, &result, sizeof(Token));

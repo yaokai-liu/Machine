@@ -25,8 +25,8 @@
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef MACHINE_TARGET_H
-#define MACHINE_TARGET_H
+#ifndef MACHINE_TOKENIZE_TARGET_H
+#define MACHINE_TOKENIZE_TARGET_H
 
 #include "array.h"
 #include "generated/tokens.gen.h"
@@ -60,6 +60,7 @@ typedef struct MacroCallFrame {
   const Tokens *tokens;
   uint32_t index;
   MacroArgs *args;
+  TokenPos position;
 } MacroCallFrame;
 
 typedef struct Concat {
@@ -73,4 +74,4 @@ void releaseMacro(Macro *macro, const Allocator *allocator);
 void releaseMacroArg(MacroArg *arg, const Allocator *allocator);
 void releaseMacroToken(Token *token, const Allocator *allocator);
 
-#endif  // MACHINE_TARGET_H
+#endif  // MACHINE_TOKENIZE_TARGET_H

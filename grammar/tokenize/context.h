@@ -25,8 +25,8 @@
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef MACHINE_CONTEXT_H
-#define MACHINE_CONTEXT_H
+#ifndef MACHINE_TOKENIZE_CONTEXT_H
+#define MACHINE_TOKENIZE_CONTEXT_H
 
 #include "avl-tree.h"
 #include "stack.h"
@@ -62,4 +62,4 @@ typedef void fn_ctx_act(MacroContext *context, void *token);
 fn_ctx_act *macro_get_after_stack_action(uint32_t state);
 fn_ctx_act *macro_get_after_reduce_action(uint32_t state);
 
-#endif  // MACHINE_CONTEXT_H
+#endif  // MACHINE_TOKENIZE_CONTEXT_H
