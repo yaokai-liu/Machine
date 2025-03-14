@@ -1,34 +1,60 @@
-# xMachine - A Backend Generator for Compilers
+# xMachine - An Assembler Generator
 
-This project tries to provide a method to generate C lib to describe a backend's structure.
+This project provides a method to generate an assembler in C or binary executable file.
 
 ## Functions
 
-With this project, users can:
+Users can write a script of target instruction set architecture,
+and use this project to generate a C library.
 
-1. call a function `Array<uint32_t> *listRegisters(void)` to get register-ids of the current machine;
-2. call a function `Array<uint32_t> *listMemoryModel(void)` to get memory-models of the current machine;
-3. call a function `Register *getRegisterInfo(uint32_t id)` to get information of a register in the current machine by id;
-4. call a function `Memory *getMemModelInfo(uint32_t id)` to get information of a memory-model in the current machine by id;
-5. call a function `uint32_t ${instr}(Array<uint8_t> *, ...)` to encode an instruction and write into an array;
-6. call a function `uint32_t emit_${instr}(Array<uint8_t> *, ...)` to emit an instruction and record registers' allocation;
-7. call a function `uint32_t getCycles()` to get cycles count of instructions emitted till now;
-8. call a function `void setCycles(uint32_t)` to set initial cycles count from now;
-9. call a function `void usedRegister(uint32_t)` to mark a register as used;
-10. call a function `void unusedRegister(uint32_t)` to mark a register as unused;
-11. call a function `bool isUsed(uint32_t)` to query if the register is used.
-12. call a function `Array<uint32_t> *getUnused(uint32_t)` to get a list of not allocated
-    registers in the set.
-13. call a function `uint32_t dumpRegAllocation(void *)` to dump the registers' allocation;
-14. call a function `uint32_t loadRegAllocation(void *)` to load a registers' allocation;
-15. call a function `void* getCurrentMachine(void)` to get the address of the current context machine;
-16. call a function `void setCurrentMachine(void*)` to set the current context machine;
+The C library generated contains these functions:
 
-## Grammar of machine file
+1.  `Array<uint32_t> *listRegisters(void)` to get register-ids of the current machine;
+2.  `Array<uint32_t> *listMemoryModel(void)` to get memory-models of the current machine;
+3.  `Register *getRegisterInfo(uint32_t id)` to get information of a register in the current machine by id;
+4.  `Memory *getMemModelInfo(uint32_t id)` to get information of a memory-model in the current machine by id;
+5.  `uint32_t ${instr}(Array<uint8_t> *, ...)` to encode an instruction and write into an array;
+6.  `uint32_t emit_${instr}(Array<uint8_t> *, ...)` to emit an instruction and record registers' allocation;
+7.  `uint32_t getCycles()` to get cycles count of instructions emitted till now;
+8.  `void setCycles(uint32_t)` to set initial cycles count from now;
+9.  `void usedRegister(uint32_t)` to mark a register as used;
+10.  `void unusedRegister(uint32_t)` to mark a register as unused;
+11.  `bool isUsed(uint32_t)` to query if the register is used.
+12.  `Array<uint32_t> *getUnused(uint32_t)` to get a list of not allocated
+     registers in the set.
+13.  `uint32_t dumpRegAllocation(void *)` to dump the registers' allocation;
+14.  `uint32_t loadRegAllocation(void *)` to load a registers' allocation;
+15.  `void* getCurrentMachine(void)` to get the address of the current context machine;
+16.  `void setCurrentMachine(void*)` to set the current context machine;
 
-The machine (or backend) is supposed to be defined with a special text grammar.
+## Build and Dependence
 
-The generator read text inputs and analysis by the grammar and then generate a C lib if no error.
+This project using a python script to generate some source files.
+And it is written in C and request standard of C23, built with cmake.
+
+So please make sure the python and cmake in the PATH environment,
+and your C compiler supports cstd-23.
+
+Then run command:
+```shell
+cmake -B <cmake-output-dir> -S <this-project-root-dir> -DCMAKE_C_COMPILER=<your-compiler>
+cmake build <cmake-output-dir> --target machine-c --parallel <your-cpu-core-count>
+```
+
+Without any error, there is a directory named `output` in the `<this-project-root-dir>`
+and an executable file named `machine-c` in it.
+
+Then to write some script to experience it!
+
+## Grammar of assembler script
+
+The assembler is supposed to be defined with a special text grammar.
+
+The generator read text inputs and analysis by the grammar and then generate a C header file and,
+a source file or a library archive file if no error.
+
+In the script, an assembler is called machine, cause every assembler is specified with a certain instruction set architecture,
+i.e. a certain machine architecture.
 
 If there's a machine are going defined, it is supposed to specify three kinds of things: **register groups**, **memories** and **instructions**.
 To define the machine, there's a keyword should be presented: `machine`.
