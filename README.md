@@ -44,7 +44,7 @@ cmake build <cmake-output-dir> --target machine-c --parallel <your-cpu-core-coun
 Without any error, there is a directory named `output` in the `<this-project-root-dir>`
 and an executable file named `machine-c` in it.
 
-Then to write some script to experience it!
+Then write some script to experience it!
 
 ## Grammar of assembler script
 
