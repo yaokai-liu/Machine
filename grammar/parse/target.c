@@ -30,9 +30,6 @@
 #include "context.h"
 #include "enum.h"
 #include "generated/tokens.gen.h"
-#include "terminal.h"
-
-void releaseEntry(Entry *, const Allocator *) {}
 
 void releaseMachine(Machine *machine, const Allocator *) {
   if (machine->context) { GContext_destroy(machine->context); }

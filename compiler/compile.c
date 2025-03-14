@@ -49,8 +49,8 @@
   } while (0)
 
 int main(int argc, char *argv[]) {
-  char_t *srcname = nullptr;
-  char_t *outname = nullptr;
+  char_t *srcname;
+  char_t *outname;
   char_t srcpath[1024] = {};
   char_t headpath[1024] = {};
   char_t libpath[1024] = {};

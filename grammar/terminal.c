@@ -26,7 +26,6 @@
  **/
 
 #include "terminal.h"
-#include "string_t.h"
 
 inline int32_t BitField_cmp(void *a, void *b) {
   BitField *bf1 = (BitField *) &a;

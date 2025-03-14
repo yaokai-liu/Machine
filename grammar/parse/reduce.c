@@ -30,7 +30,6 @@
 #include "context.h"
 #include "enum.h"
 #include "expr-reduce.h"
-#include "generated/machine/action-table.gen.h"
 #include "generated/tokens.gen.h"
 #include "semantic.h"
 #include "target.h"
@@ -714,7 +713,7 @@ Machine *p_Machine_0(Token argv[], ParseContext *context, const Allocator *alloc
   return machine;
 }
 
-Machine *p__Machine__(Token argv[], const Allocator *) {
+Machine *p__Machine__(Token argv[], ParseContext *, const Allocator *) {
   return (Machine *) argv[0].value;
 }
 

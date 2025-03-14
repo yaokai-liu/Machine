@@ -129,11 +129,11 @@ inline const Record *
     GContext_addRecord(context, obj->name, &record);                              \
     return Array_virt_addr(context->array, offset);                               \
   }
-contextAddRecord_DEF(Immediate, immArray, imm);
-contextAddRecord_DEF(Register, regArray, reg);
-contextAddRecord_DEF(Memory, memArray, mem);
-contextAddRecord_DEF(RegisterGroup, grpArray, grp);
-contextAddRecord_DEF(Set, setArray, set);
+contextAddRecord_DEF(Immediate, immArray, imm)
+contextAddRecord_DEF(Register, regArray, reg)
+contextAddRecord_DEF(Memory, memArray, mem)
+contextAddRecord_DEF(RegisterGroup, grpArray, grp)
+contextAddRecord_DEF(Set, setArray, set)
 
 inline REFER(Instruction) GContext_addInstruction(ParseContext *context, const Instruction *instr) {
   uint32_t ndx = Array_length(context->instrArray);

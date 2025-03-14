@@ -299,11 +299,11 @@ void gen_set_grp_jump_table(Generator *generator, const Machine *machine) {
     for (uint32_t j = 0; j < item_count; j++) {
       const Record *record = GContext_findRecord(context, items[j]);
       switch (record->typeid) {
-        val_case_item(Memory, mem, MEM);
-        val_case_item(Immediate, imm, IMM);
-        val_case_item(Register, reg, REG);
-        val_case_item(RegisterGroup, grp, GRP);
-        val_case_item(Set, set, SET);
+        val_case_item(Memory, mem, MEM)
+        val_case_item(Immediate, imm, IMM)
+        val_case_item(Register, reg, REG)
+        val_case_item(RegisterGroup, grp, GRP)
+        val_case_item(Set, set, SET)
         default: {
         }
       }
