@@ -339,7 +339,7 @@ macro u_instr_rv_rv(code) {
         [1-1] = 0,
         [0-0] = a[3-3]
       } @ (a in gpr64);
-      opcode: [8] = code + 1;
+      opcode: [8] = code;
       modRM: [8] = {
         [7-6] = 0b11,
         [5-3] = b,
@@ -347,11 +347,7 @@ macro u_instr_rv_rv(code) {
       };
     };
 }
-
-macro u_instr(name, code) {
-  instruction name {
-    u_instr_r8_r8(code)
-    u_instr_rv_rv(code)
+macro u_instr_m8_r8(code) {
     [REFb a, gpr8 b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
       REX: [8] = {
@@ -368,6 +364,8 @@ macro u_instr(name, code) {
         [2-0] = a.reg
       };
     };
+}
+macro u_instr_mv_rv(code) {
     [REFv a, Gv b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
       prefix: [8] = 0x66 @ (b in gpr16);
@@ -377,14 +375,22 @@ macro u_instr(name, code) {
         [2-2] = b[3-3],
         [1-1] = 0,
         [0-0] = a.reg[3-3]
-      } @ (a.reg in GREX || b in GREX);
-      opcode: [8] = code + 1;
+      } @ (a.reg in GExtend || b in GREX);
+      opcode: [8] = code;
       modRM: [8] = {
         [7-6] = 0b00,
         [5-3] = b,
         [2-0] = a.reg
       };
     };
+}
+
+macro u_instr(name, code) {
+  instruction name {
+    u_instr_r8_r8(code)
+    u_instr_rv_rv({code + 1})
+    u_instr_m8_r8(code)
+    u_instr_mv_rv({code + 1})
   };
 }
 macro u_instr_r(name, code) {

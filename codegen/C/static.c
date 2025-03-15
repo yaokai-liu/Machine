@@ -83,6 +83,7 @@ constexpr char_t TYPEDEF_ENTRY_FMT[] = "typedef struct Entry {\n"
                                        "} Entry;\n";
 
 constexpr char_t TYPEDEF_MACHINE_FMT[] = "typedef struct Machine {\n"
+                                         "  const Allocator *allocator;"
                                          "  uint32_t argCount;\n"
                                          "  Entry entries[%u];\n"
                                          "} Machine;\n";
@@ -123,11 +124,17 @@ constexpr char_t ENTRY_TYPE_CHECK_DEF[] =
     "  }\n"
     "  return false;\n"
     "}\n";
-constexpr char_t MACHINE_NEW_DEF[] = "Machine *Machine_new(const Allocator *allocator) {\n"
+constexpr char_t MACHINE_NEW_DEF[] = "inline Machine *Machine_new(const Allocator *allocator) {\n"
                                      "  Machine *machine = allocator->calloc(1, sizeof(Machine));\n"
+                                     "  machine->allocator = allocator;\n"
                                      "  return machine;\n"
                                      "}\n";
-constexpr char_t USE_MACHINE_DEF[] = "void useMachine(Machine *machine) {\n"
+constexpr char_t MACHINE_DESTROY_DEF[] =
+    "inline void Machine_destroy(Machine *machine) {\n"
+    "  if (CURRENT_MACHINE == machine) { CURRENT_MACHINE = nullptr; }\n"
+    "  machine->allocator->free(machine);\n"
+    "}\n";
+constexpr char_t USE_MACHINE_DEF[] = "inline void useMachine(Machine *machine) {\n"
                                      "  CURRENT_MACHINE = machine;\n"
                                      "}\n";
 
@@ -203,6 +210,7 @@ void gen_driver(Generator *generator, const Machine *machine) {
   sprintf(temp_buffer, MAX_ARGS_FMT, machine->context->maxArgCount);
   ctx_push_string(definitions, temp_buffer);
   ctx_push_string(definitions, MACHINE_NEW_DEF);
+  ctx_push_string(definitions, MACHINE_DESTROY_DEF);
   ctx_push_string(definitions, USE_MACHINE_DEF);
   ctx_push_string(definitions, ENTRY_TYPE_CHECK_DEF);
   ctx_push_string(definitions, CONVERT_INSTR_TO_BYTES_DEF);
