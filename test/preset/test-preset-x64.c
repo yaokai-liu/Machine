@@ -25,7 +25,7 @@
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#include "test-x64.h"
+#include "x64/test-x64.h"
 
 int main() {
   uint32_t n_failed = 0;

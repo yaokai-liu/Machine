@@ -69,8 +69,24 @@
 NEW_TEST(test_add_r8_r8) {
   uint8_t bytes1[] = {0x00, 0xc8};
   test_encoding(bytes1, 2, INSTR_add, REG_al, REG_cl);
-  uint8_t bytes2[] = {0x00, 0xc0};
-  test_encoding(bytes2, 2, INSTR_add, REG_al, REG_r8b);
+  uint8_t bytes2[] = {0x44, 0x00, 0xc0};
+  test_encoding(bytes2, 3, INSTR_add, REG_al, REG_r8b);
+  uint8_t bytes3[] = {0x41, 0x00, 0xcb};
+  test_encoding(bytes3, 3, INSTR_add, REG_r11b, REG_cl);
+
+  fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__);
+  return 0;
+}
+
+NEW_TEST(test_add_rv_rv) {
+  uint8_t bytes1[] = {0x66, 0x01, 0xf3};
+  test_encoding(bytes1, 3, INSTR_add, REG_bx, REG_si);
+  uint8_t bytes2[] = {0x66, 0x44, 0x01, 0xca};
+  test_encoding(bytes2, 4, INSTR_add, REG_dx, REG_r9w);
+  uint8_t bytes3[] = {0x41, 0x01, 0xcb};
+  test_encoding(bytes3, 3, INSTR_add, REG_r11d, REG_ecx);
+  uint8_t bytes4[] = {0x4d, 0x01, 0xea};
+  test_encoding(bytes4, 3, INSTR_add, REG_r10, REG_r13);
 
   fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__);
   return 0;
@@ -79,6 +95,7 @@ NEW_TEST(test_add_r8_r8) {
 uint32_t test_add(Machine *machine, Array *output_array) {
   uint32_t n_failed = 0;
   add_test(test_add_r8_r8);
+  add_test(test_add_rv_rv);
   return n_failed;
 }
 
