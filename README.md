@@ -67,6 +67,7 @@ Every definition item's contents should be bracketed with `{` and `}` and ended 
 For example, a definition of machine "abc" should be like:
 ```
 machine abc {
+    macro ... { ... };
     register ... { ... };
     memory ... { ... };
     memory ... {
@@ -122,20 +123,24 @@ Therefore, it is easy to know that **registers in the same group will exclude ea
 
 A Memory definition item gives actually the Memory addressing mode of a machine. It's led by the keyword `memory`.
 
-A Memory definition item have and only have two fields: base and offset.
-and these two field are directly expressed with two symbols `$` and `>`.
-Both base and offset can be directly with registers or [bit field](#width-bit-field-and-time-tick).
+A Memory definition item have some fields.
+
+These fields can be register set or immediate.
+
+If a field is a register set, the assembler will check its type.
 
 A [width](#width-bit-field-and-time-tick) follows the name of memory is required.
 
 For example:
 ```
 memory local [12-bit] {
-    $: [0-5];
-    >: [6-12];
+    reg: [0-5] = Gv;
+    off: [6-12];
 };
 ```
-The text above defines a Memory addressing mode named `local`, which has total 12 bits, and its base stores lower 0 to 5th bit (total 6 bits) and its offset stores upper 6 to 12th bit (total 6 bits, too).
+The text above defines a Memory addressing mode named `local`, which has total 12 bits.
+Its first 6 bits is a code of registers those in `Gv` which is a register group or register set.
+The last 6 bits is an unsigned immediate number by default.
 
 #### Instruction
 
@@ -178,7 +183,7 @@ defines an Instruction `foo` with only one form. The form in binary will be like
 +--------+------+-----+------------+-+--------+--------+
    0x12    0x34          aaa.yyy        bbb     aaa.xxx
 ```
-and it will cost 4 cpu [time tick](#width-bit-field-and-time-tick) for executing.
+and it will cost 4 cpu [time tick](#width-bit-field-and-time-tick) to execute.
 
 
 #### Immediate
@@ -265,7 +270,7 @@ There's a lot of symbols as macro to terse the grammar.
 
 #### identifier
 
-An identifier is a text string only consists with letters and digits.
+An identifier is a text string consists with letters, digits or `_`, but starts with `_` is not allowed.
 
 #### pattern of instruction form
 
@@ -280,42 +285,113 @@ the order of the parameters doesn't matter.
 
 #### total grammar
 
+The machine entries grammar is:
 ```
-<Machine>           ->      machine     <identifier> { ... } ;
-<RegisterGroup>     ->      register    <identifier> { <Register>+ };
-<Memory>            ->      memory      <identifier> { <Base> ; <Offset> ; } ;
-<Instruction>       ->      instruction <identifier> { <InstructionForm>+ } ;
-<Immediate>         ->      immediate   <identifier> <width> <type> ;
-<Set>               ->      set         <identifier> { <identifier>+ } ;
+Machine = MACHINE IDENTIFIER LEFT_BRACKET Entries RIGHT_BRACKET SEMICOLON;
+Entries = Entries Entry | Entry;
+Entry = RegisterGroup | Instruction | Memory | Immediate | Set;
 
-<Register>          ->      <identifier> : <width> = <number> ;
+RegisterGroup = REGISTER IDENTIFIER WIDTH LEFT_BRACKET Registers RIGHT_BRACKET SEMICOLON;
+Memory = MEMORY IDENTIFIER WIDTH LEFT_BRACKET MemItems RIGHT_BRACKET SEMICOLON;
+Instruction = INSTRUCTION IDENTIFIER LEFT_BRACKET InstrForms RIGHT_BRACKET SEMICOLON;
+Immediate = IMMEDIATE IDENTIFIER WIDTH TYPE SEMICOLON;
+Set = SET IDENTIFIER LEFT_BRACKET SetItems RIGHT_BRACKET SEMICOLON;
 
-<Base>              ->      $ : <width> ;
-<Offset>            ->      > : <width> ;
+Registers = Registers Register | Register;
+InstrForms = InstrForms InstrForm | InstrForm;
+SetItems = SetItems COMMA IDENTIFIER | IDENTIFIER;
+MemItems = MemItems MemItem | MemItem;
 
-<InstructionForm>   ->      <Pattern> = <width> <time-tick>? { <Part>!3 } ;
-<Patten>            ->      [ <idnetifier>+ ]
-<Part>              ->      <part> : <width> = <Layout> ;
-<Layout>            ->      <evaluable>
-<Layout>            ->      <Mapping>
-<Mapping>           ->      { <MappingItem>+ }
-<MappingItem>       ->      <bit-field> = <evaluable>
+MemItem = IDENTIFIER COLON WIDTH SEMICOLON
+        | IDENTIFIER COLON WIDTH ASSIGN IDENTIFIER SEMICOLON;
+
+Register = IDENTIFIER COLON BIT_FIELD ASSIGN NUMBER SEMICOLON;
+
+InstrForm = Pattern ASSIGN           LEFT_BRACKET FormCheck InstrParts RIGHT_BRACKET SEMICOLON
+          | Pattern ASSIGN TIME_TICK LEFT_BRACKET FormCheck InstrParts RIGHT_BRACKET SEMICOLON;
+
+Pattern = LEFT_SQUARE_BRACKET PatternArgs RIGHT_SQUARE_BRACKET
+        | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET;
+FormCheck = Condition SEMICOLON | ;
+InstrParts = InstrParts InstrPart | InstrPart;
+InstrPart = IDENTIFIER COLON WIDTH ASSIGN Layout SEMICOLON
+          | IDENTIFIER COLON WIDTH ASSIGN Layout Condition SEMICOLON;
+Layout = Arith_0_Expr | Switchable | LEFT_BRACKET MappingItems RIGHT_BRACKET;
+MappingItems = MappingItems COMMA MappingItem | MappingItem;
+MappingItem = BIT_FIELD ASSIGN Arith_0_Expr
+            | BIT_FIELD ASSIGN Switchable;
+
+Switchable = LEFT_PAREN CondExpr RIGHT_PAREN QUESTION_MARK Options;
+PatternArgs = PatternArgs COMMA Parameter
+            | Parameter;
+Condition = AT LEFT_PAREN CondExpr RIGHT_PAREN;
+
+Options = Options COLON Arith_0_Expr | Arith_0_Expr;
+Parameter = IDENTIFIER IDENTIFIER;
 ```
 
-and
+and the arithemetic expression grammar is:
+```
+CondExpr = CondExpr BOOL_OR AndCondExpr
+         | AndCondExpr;
 
+AndCondExpr = AndCondExpr BOOL_AND SingleCondExpr
+            | SingleCondExpr;
+
+SingleCondExpr = LEFT_PAREN CondExpr RIGHT_PAREN
+               | BOOL_NOT SingleCondExpr
+               | SingleCondExpr COND_BIN_OP SingleCondExpr
+               | Variable IN IDENTIFIER
+               | COND_SIN_OP Arith_0_Expr
+               | Arith_0_Expr;
+
+Arith_0_Expr = Arith_0_Expr ARITH_0_BIN_OP Arith_1_Expr
+             | ARITH_0_SIN_OP Arith_0_Expr
+             | Arith_1_Expr;
+Arith_1_Expr = Arith_1_Expr ARITH_1_BIN_OP Arith_2_Expr
+             | ARITH_1_SIN_OP Arith_1_Expr
+             | Arith_2_Expr;
+Arith_2_Expr = Arith_2_Expr ARITH_2_BIN_OP Arith_3_Expr
+             | ARITH_2_SIN_OP Arith_2_Expr
+             | Arith_3_Expr;
+Arith_3_Expr = LEFT_PAREN Arith_0_Expr RIGHT_PAREN
+             | ARITH_3_SIN_OP Arith_3_Expr
+             | Evaluable;
+
+Evaluable = Variable BIT_FIELD | OP_WIDTH Variable | Variable | NUMBER;
+
+Variable = IDENTIFIER DOT IDENTIFIER | IDENTIFIER;
 ```
-<evaluable>       ->        <identifier> . <identifier>
-<evaluable>       ->        <identifier> <bit-feild>
-<evaluable>       ->        <identifier>
-<evaluable>       ->        <number>
+
+All the two are defined in [machine.xnf](https://github.com/yaokai-liu/Xnf/blob/liu-machine/machine.xnf).
+
+The macro grammar is:
 ```
+MacroEntry = Macro | MacroCall;
+
+Macro = MACRO IDENTIFIER LEFT_PAREN MacroParams RIGHT_PAREN LEFT_BRACKET Tokens RIGHT_BRACKET;
+MacroCall = IDENTIFIER LEFT_PAREN MacroArgs RIGHT_PAREN;
+
+MacroParams = MacroParams COMMA IDENTIFIER | IDENTIFIER | ;
+MacroArgs = MacroArgs COMMA MacroArg | MacroArg | ;
+
+MacroArg = LEFT_BRACKET Tokens RIGHT_BRACKET | IDENTIFIER | NUMBER;
+
+Tokens = Tokens TOKEN | Tokens Concat | TOKEN | Concat;
+
+Concat = TOKEN CONCAT TOKEN;
+```
+
+It is defined in [macro.xnf](https://github.com/yaokai-liu/Xnf/blob/liu-machine/macro.xnf).
+
+
 
 ## TODO:
 
-Codegen/C:
+### Codegen/C:
 
-1. error messages;
-2. machine model;
-3. query functions;
-4. test work.
+1. machine model;
+2. query functions;
+3. test work.
+
+### Codegen/elf
