@@ -107,10 +107,26 @@ int32_t online_gen_instr_encoding_def(
   return 0;
 }
 
-const char_t INSTR_EXEC_DEC_FMT[] = "uint32_t %s(Array *buffer, ...);\n";
-const char_t INSTR_EXEC_DEF_HEAD_FMT[] = "uint32_t %s(Array *buffer, ...) {\n"
-                                         "  constexpr uint32_t entry_offset = %u;\n";
-const char_t INSTR_EXEC_DEF_BODY[] = "  instrExecDefPrincipalPart();\n}\n";
+const char_t IF_USING_INSTR_DIRECTLY[] = "#ifdef USING_INSTR_DIRECTLY\n";
+const char_t END_IF[] = "#endif\n";
+const char_t INSTR_EXEC_DEC[] =
+    "#define %s(buffer, ...)  encodingInstr(buffer, INSTR_%s, __VA_ARGS__, EOI)\n";
+const char_t INSTR_EXEC_DEF[] =
+    "uint32_t encodingInstr(Array *buffer, uint32_t entry_offset, ...) {\n"
+    "  const Entry *entries[MAX_ARGS] = {};\n"
+    "  va_list args;\n"
+    "  va_start(args, entry_offset);\n"
+    "  uint32_t n_args = 0;\n"
+    "  for (; n_args < MAX_ARGS; n_args ++) {\n"
+    "    Entry * entry = va_arg(args, Entry *);\n"
+    "    if (!entry) { return 0; }\n"
+    "    if (entry->type == enum_NONE) { break; }\n"
+    "    entries[n_args] = entry;\n"
+    "  }\n"
+    "  va_end(args);\n"
+    "  CURRENT_MACHINE->argCount = 0;\n"
+    "  return convert_instr_to_bytes(entry_offset, buffer, entries, n_args);\n"
+    "}\n";
 
 void gen_instr_exec(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
@@ -123,6 +139,7 @@ void gen_instr_exec(Generator *generator, const Machine *machine) {
 
   const uint32_t n_instr = Array_length(context->instrArray);
   const Instruction *instructions = Array_real_addr(context->instrArray, 0);
+  ctx_push_string(exports, IF_USING_INSTR_DIRECTLY);
   for (uint32_t i = 0; i < n_instr; i++) {
     const uint32_t n_forms = Array_length(instructions[i].forms);
     const InstrForm *forms = Array_real_addr(instructions[i].forms, 0);
@@ -134,15 +151,12 @@ void gen_instr_exec(Generator *generator, const Machine *machine) {
         context, ident_array, encoding_def_buffer, ctx_ident_real(instructions[i].name), forms,
         n_forms
     );
-    sprintf(temp_buffer, INSTR_EXEC_DEC_FMT, ctx_ident_real(instructions[i].name));
+    const char_t *instr_name = ctx_ident_real(instructions[i].name);
+    sprintf(temp_buffer, INSTR_EXEC_DEC, instr_name, instr_name);
     ctx_push_string(exports, temp_buffer);
-    sprintf(
-        temp_buffer, INSTR_EXEC_DEF_HEAD_FMT, ctx_ident_real(instructions[i].name),
-        instructions[i].entry_offset
-    );
-    _push_string(def_buffer, temp_buffer);
-    _push_string(def_buffer, INSTR_EXEC_DEF_BODY);
   }
+  ctx_push_string(exports, END_IF);
+  _push_string(def_buffer, INSTR_EXEC_DEF);
   Array_concat(dec_buffer, encoding_dec_buffer);
   Array_concat(def_buffer, encoding_def_buffer);
   releasePrimeArray(encoding_dec_buffer);

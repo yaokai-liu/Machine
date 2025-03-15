@@ -30,6 +30,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define ctx_ident_real(ptr) Array_virt2real(ident_array, ptr)
+
 constexpr char_t EXPORT_HEADER_FMT[] = "#ifndef MACHINE_%s_H\n"
                                        "#define MACHINE_%s_H\n\n";
 
@@ -79,6 +81,13 @@ constexpr char_t EXPORT_DECLARE[] = "typedef struct Machine Machine;\n"
 constexpr char_t MACHINE_NEW_DEC[] = "Machine *Machine_new(const Allocator *allocator);\n";
 constexpr char_t MACHINE_DESTROY_DEC[] = "void Machine_destroy(Machine *machine);\n";
 constexpr char_t USE_MACHINE_DEC[] = "void useMachine(Machine *machine);\n";
+constexpr char_t ENCODING_INSTR_DEC[] =
+    "// Note: arguments of this function must be ended with an EOI.\n"
+    "uint32_t encodingInstr(Array *buffer, uint32_t instr, ...);\n";
+
+constexpr char_t INSTR_ENUM_HEAD[] = "enum INSTR_ENUM {\n";
+constexpr char_t INSTR_ENUM_ITEM_FNT[] = "  INSTR_%s = %d,\n";
+constexpr char_t INSTR_ENUM_TAIL[] = "};\n";
 
 constexpr char_t EXPORT_TAIL_FMT[] = "\n#endif  // MACHINE_%s_H\n";
 
@@ -121,6 +130,20 @@ void gen_export_header(Generator *generator, const Machine *machine) {
   ctx_push_string(exports, MACHINE_NEW_DEC);
   ctx_push_string(exports, MACHINE_DESTROY_DEC);
   ctx_push_string(exports, USE_MACHINE_DEC);
+  ctx_push_string(exports, ENCODING_INSTR_DEC);
+  const ParseContext *context = machine->context;
+  const Array *ident_array = generator->ident_array;
+  const uint32_t n_instr = Array_length(context->instrArray);
+  const Instruction *instructions = Array_real_addr(context->instrArray, 0);
+  ctx_push_string(exports, INSTR_ENUM_HEAD);
+  for (uint32_t i = 0; i < n_instr; i++) {
+    sprintf(
+        temp_buffer, INSTR_ENUM_ITEM_FNT, ctx_ident_real(instructions[i].name),
+        instructions[i].entry_offset
+    );
+    ctx_push_string(exports, temp_buffer);
+  }
+  ctx_push_string(exports, INSTR_ENUM_TAIL);
 }
 
 void gen_export_tail(Generator *generator, const Machine *machine) {
