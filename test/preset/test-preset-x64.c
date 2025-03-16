@@ -33,9 +33,9 @@ int main() {
   Array *output_array = Array_new(sizeof(uint8_t), -1, &STDAllocator);
 
   useMachine(machine);
-  n_failed += test_add(machine, output_array);
+  n_failed += test_prime_instructions(machine, output_array);
 
   Array_destroy(output_array);
   Machine_destroy(machine);
-  return n_failed ? -1 : 0;
+  return (int) n_failed;
 }

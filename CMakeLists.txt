@@ -32,7 +32,7 @@ else()
 endif()
 
 aux_source_directory(meman CTR_SRC)
-add_library(meman SHARED ${CTR_SRC})
+add_library(meman ${CTR_SRC})
 link_libraries(meman)
 
 include_directories(meman grammar)
