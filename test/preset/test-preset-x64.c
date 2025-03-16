@@ -33,7 +33,7 @@ int main() {
   Array *output_array = Array_new(sizeof(uint8_t), -1, &STDAllocator);
 
   useMachine(machine);
-  n_failed += test_prime_instructions(machine, output_array);
+  n_failed += test_primary_instructions(machine, output_array);
 
   Array_destroy(output_array);
   Machine_destroy(machine);

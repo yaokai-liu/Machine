@@ -1011,7 +1011,11 @@ Set *p_Set_0(Token argv[], ParseContext *context, const Allocator *) {
 
   grammarAssertNotDeclaredRecord(ident);
 
-  Set set = {.name = ident, .items = items};
+
+  Array *deduplicated_items = Array_deduplicate(items,  (cmp_t *) Identifier_cmp);
+  releasePrimeArray(items);
+
+  Set set = {.name = ident, .items = deduplicated_items};
 
   return GContext_addSet(context, &set);
 }
@@ -1020,21 +1024,70 @@ SetItems *p_SetItems_0(Token argv[], ParseContext *context, const Allocator *) {
   SetItems *items = (SetItems *) argv[0].value;
   Identifier *ident = (Identifier *) argv[2].value;
 
-  grammarAssertDefinedRecord(ident);
-
-  Array_append(items, &ident, 1);
-
+  const Record *record = GContext_findRecord(context, ident);
+  if (!record) {
+    GContext_setErrorMessage(context, "undefined identifier.");
+    return nullptr;
+  }
+  switch (record->typeid) {
+    case enum_RegisterGroup: {
+      const RegisterGroup *grp = GContext_getRegisterGroup(context, record->offset);
+      Array *reg_array = grp->registers;
+      const Register *regs = Array_first_real(reg_array);
+      const uint32_t count = Array_length(reg_array);
+      for (uint32_t i = 0; i < count; i ++) {
+        Array_append(items, &regs->name, 1);
+      }
+      break;
+    }
+    case enum_Set: {
+      const Set *set = GContext_getSet(context, record->offset);
+      REFER(Identifier) *_items = Array_first_real(set->items);
+      const uint32_t count = Array_length(set->items);
+      for (uint32_t i = 0; i < count; i ++) {
+        Array_append(items, &_items[i], 1);
+      }
+      break;
+    }
+    default:{
+      Array_append(items, &ident, 1);
+    }
+  }
   return items;
 }
 
 SetItems *p_SetItems_1(Token argv[], ParseContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[0].value;
-
-  grammarAssertDefinedRecord(ident);
-
+  const Record *record = GContext_findRecord(context, ident);
+  if (!record) {
+    GContext_setErrorMessage(context, "undefined identifier.");
+    return nullptr;
+  }
   SetItems *items = Array_new(sizeof(REFER(Identifier)), enum_IDENTIFIER, allocator);
-  Array_append(items, &ident, 1);
-
+  switch (record->typeid) {
+    case enum_RegisterGroup: {
+      const RegisterGroup *grp = GContext_getRegisterGroup(context, record->offset);
+      Array *reg_array = grp->registers;
+      const Register *regs = Array_first_real(reg_array);
+      const uint32_t count = Array_length(reg_array);
+      for (uint32_t i = 0; i < count; i ++) {
+        Array_append(items, &regs->name, 1);
+      }
+      break;
+    }
+    case enum_Set: {
+      const Set *set = GContext_getSet(context, record->offset);
+      REFER(Identifier) *_items = Array_first_real(set->items);
+      const uint32_t count = Array_length(set->items);
+      for (uint32_t i = 0; i < count; i ++) {
+        Array_append(items, &_items[i], 1);
+      }
+      break;
+    }
+    default:{
+      Array_append(items, &ident, 1);
+    }
+  }
   return items;
 }
 

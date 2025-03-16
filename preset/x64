@@ -289,7 +289,8 @@ machine x64 {
   set cr { cr0, cr1, cr2, cr3, cr4, cr5, cr6, cr7, cr8, cr9, cr10, cr11, cr12, cr13, cr14, cr15 };
   set dr { dr0, dr1, dr2, dr3, dr4, dr5, dr6, dr7, dr8, dr9, dr10, dr11, dr12, dr13, dr14, dr15 };
 
-  set gpr8H { ah, ch, dh, bh };
+  set gpr8h { ah, ch, dh, bh };
+  set gpr8all { gpr8, gpr8h };
   set gpr8Base { al, cl, dl, bl, ah, ch, dh, bh };
   set gpr16Base { ax, cx, dx, bx, sp, bp, si, di };
   set gpr32Base { eax, ecx, edx, ebx, esp, ebp, esi, edi };
@@ -317,7 +318,7 @@ machine x64 {
     base: [4] = Gv;
   };
 
-macro prime_instr_r8_r8(code) {
+macro primary_instr_r8_r8(code) {
     [gpr8 a, gpr8 b] = {
       REX: [8] = {
         [7-4] = 0x4,
@@ -335,7 +336,7 @@ macro prime_instr_r8_r8(code) {
     };
 }
 
-macro prime_instr_rv_rv(code) {
+macro primary_instr_rv_rv(code) {
     [Gv a, Gv b] = {
       @ ( #a == #b );
       prefix: [8] = 0x66 @ (#a == 16);
@@ -354,7 +355,7 @@ macro prime_instr_rv_rv(code) {
       };
     };
 }
-macro prime_instr_m8_r8(code) {
+macro primary_instr_m8_r8(code) {
     [REFb a, gpr8 b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
       REX: [8] = {
@@ -372,7 +373,7 @@ macro prime_instr_m8_r8(code) {
       };
     };
 }
-macro prime_instr_mv_rv(code) {
+macro primary_instr_mv_rv(code) {
     [REFv a, Gv b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
       prefix: [8] = 0x66 @ (b in gpr16);
@@ -391,8 +392,8 @@ macro prime_instr_mv_rv(code) {
       };
     };
 }
-macro prime_instr_r8_m8(code) {
-    [gpr8 a, REFb b] = {
+macro primary_instr_r8_m8(code) {
+    [gpr8all a, REFb b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
       REX: [8] = {
         [7-4] = 0x4,
@@ -409,7 +410,7 @@ macro prime_instr_r8_m8(code) {
       };
     };
 }
-macro prime_instr_rv_mv(code) {
+macro primary_instr_rv_mv(code) {
     [Gv a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
       prefix: [8] = 0x66 @ (a in gpr16);
@@ -429,24 +430,24 @@ macro prime_instr_rv_mv(code) {
     };
 }
 
-macro prime_instr(name, code) {
+macro primary_instr(name, code) {
   instruction name {
-    prime_instr_r8_r8(code)
-    prime_instr_rv_rv({code + 1})
-    prime_instr_m8_r8(code)
-    prime_instr_mv_rv({code + 1})
+    primary_instr_r8_r8(code)
+    primary_instr_rv_rv({code + 1})
+    primary_instr_m8_r8(code)
+    primary_instr_mv_rv({code + 1})
   };
 }
-macro prime_instr_rev(name, code) {
+macro primary_instr_rev(name, code) {
   instruction name {
-    prime_instr_r8_r8(code)
-    prime_instr_rv_rv({code + 1})
-    prime_instr_r8_m8(code)
-    prime_instr_rv_mv({code + 1})
+    primary_instr_r8_r8(code)
+    primary_instr_rv_rv({code + 1})
+    primary_instr_r8_m8(code)
+    primary_instr_rv_mv({code + 1})
   };
 }
 
-macro prime_instr_imm(name, code, gpr1_id) {
+macro primary_instr_imm(name, code, gpr1_id) {
   instruction name {
     [Ib a] = {
       opcode: [8] = code;
@@ -537,34 +538,37 @@ macro prime_instr_imm(name, code, gpr1_id) {
   };
 }
 
-  prime_instr(add, 0x00)
-  prime_instr(adc, 0x10)
-  prime_instr(and, 0x20)
-  prime_instr(xor, 0x30)
-  prime_instr( or, 0x08)
-  prime_instr(sbb, 0x18)
-  prime_instr(sub, 0x28)
-  prime_instr(cmp, 0x38)
-  prime_instr(mov, 0x88)
+  primary_instr(add, 0x00)
+  primary_instr(adc, 0x10)
+  primary_instr(and, 0x20)
+  primary_instr(xor, 0x30)
+  primary_instr( or, 0x08)
+  primary_instr(sbb, 0x18)
+  primary_instr(sub, 0x28)
+  primary_instr(cmp, 0x38)
+  primary_instr(mov, 0x88)
 
-  prime_instr_rev(radd, 0x02)
-  prime_instr_rev(radc, 0x12)
-  prime_instr_rev(rand, 0x22)
-  prime_instr_rev(rxor, 0x32)
-  prime_instr_rev( ror, 0x0a)
-  prime_instr_rev(rsbb, 0x1a)
-  prime_instr_rev(rsub, 0x2a)
-  prime_instr_rev(rcmp, 0x3a)
-  prime_instr_rev(rmov, 0x8a)
+  primary_instr_rev(radd, 0x02)
+  primary_instr_rev(radc, 0x12)
+  primary_instr_rev(rand, 0x22)
+  primary_instr_rev(rxor, 0x32)
+  primary_instr_rev( ror, 0x0a)
+  primary_instr_rev(rsbb, 0x1a)
+  primary_instr_rev(rsub, 0x2a)
+  primary_instr_rev(rcmp, 0x3a)
+  primary_instr_rev(rmov, 0x8a)
 
-  prime_instr_imm(addi, 0x04, 0)
-  prime_instr_imm(adci, 0x14, 2)
-  prime_instr_imm(andi, 0x24, 4)
-  prime_instr_imm(xori, 0x34, 6)
-  prime_instr_imm( ori, 0x0c, 1)
-  prime_instr_imm(sbbi, 0x1c, 3)
-  prime_instr_imm(subi, 0x2c, 5)
-  prime_instr_imm(cmpi, 0x3c, 7)
+  primary_instr_imm(addi, 0x04, 0)
+  primary_instr_imm(adci, 0x14, 2)
+  primary_instr_imm(andi, 0x24, 4)
+  primary_instr_imm(xori, 0x34, 6)
+  primary_instr_imm( ori, 0x0c, 1)
+  primary_instr_imm(sbbi, 0x1c, 3)
+  primary_instr_imm(subi, 0x2c, 5)
+  primary_instr_imm(cmpi, 0x3c, 7)
+
+
+  primary_instr(test, 0x84)
 
   instruction push {
     [gpr64 a] = {
@@ -786,7 +790,7 @@ macro prime_instr_imm(name, code, gpr1_id) {
     };
   };
 
-  macro jmp_i_low(name, code) {
+  macro jmp_near_imm(name, code) {
       instruction name {
         [Ib a] = {
           opcode: [8] = code;
@@ -795,73 +799,23 @@ macro prime_instr_imm(name, code, gpr1_id) {
       };
   }
 
-  jmp_i_low(jo, 0x70)
-  jmp_i_low(jno, 0x71)
-  jmp_i_low(jb, 0x72)
-  jmp_i_low(jnb, 0x73)
-  jmp_i_low(jz, 0x74)
-  jmp_i_low(jnz, 0x75)
-  jmp_i_low(jbe, 0x76)
-  jmp_i_low(jnbe, 0x77)
-  jmp_i_low(js, 0x78)
-  jmp_i_low(jns, 0x79)
-  jmp_i_low(jp, 0x7a)
-  jmp_i_low(jnp, 0x7b)
-  jmp_i_low(jl, 0x7c)
-  jmp_i_low(jnl, 0x7d)
-  jmp_i_low(jle, 0x7e)
-  jmp_i_low(jnle, 0x7f)
+  jmp_near_imm(jo, 0x70)
+  jmp_near_imm(jno, 0x71)
+  jmp_near_imm(jb, 0x72)
+  jmp_near_imm(jnb, 0x73)
+  jmp_near_imm(jz, 0x74)
+  jmp_near_imm(jnz, 0x75)
+  jmp_near_imm(jbe, 0x76)
+  jmp_near_imm(jnbe, 0x77)
+  jmp_near_imm(js, 0x78)
+  jmp_near_imm(jns, 0x79)
+  jmp_near_imm(jp, 0x7a)
+  jmp_near_imm(jnp, 0x7b)
+  jmp_near_imm(jl, 0x7c)
+  jmp_near_imm(jnl, 0x7d)
+  jmp_near_imm(jle, 0x7e)
+  jmp_near_imm(jnle, 0x7f)
 
-  instruction test {
-    [gpr8 a, gpr8 b] = {
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-3] = 0,
-        [2-2] = b[3-3],
-        [1-1] = 0,
-        [0-0] = a[3-3]
-      } @ (a in gpr8Extend || b in gpr8Extend);
-      opcode: [8] = 0x84;
-      modRM: [8] = {
-        [7-6] = 0b11,
-        [5-3] = b,
-        [2-0] = a
-      };
-    };
-    [REFb a, gpr8 b] = {
-      asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-3] = 0,
-        [2-2] = b[3-3],
-        [1-1] = 0,
-        [0-0] = a[3-3]
-      } @ (a.reg in gpr64 || a.reg in GExtend || b in GExtend);
-      opcode: [8] = 0x84;
-      modRM: [8] = {
-        [6-7] = 0b00,
-        [3-5] = b,
-        [0-2] = a.reg
-      };
-    };
-    [Gv a, Gv b] = {
-      @ ( #a == #b );
-      prefix: [8] = 0x66 @ (a in gpr16);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-3] = 1,
-        [2-2] = b[3-3],
-        [1-1] = 0,
-        [0-0] = a[3-3]
-      } @ (a in gpr64);
-      opcode: [8] = 0x87;
-      modRM: [8] = {
-        [7-6] = 0b11,
-        [5-3] = b,
-        [2-0] = a
-      };
-    };
-  };
   instruction testi {
     [al a, Ib b] = {
       opcode: [8] = 0xa8;

@@ -66,6 +66,24 @@ constexpr char_t ENCODING_NAME_FMT[] = "encoding_%s_%u";
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
 
+int32_t instr_pattern_to_str(const ParseContext *, const Array *ident_array, Array *buffer,
+                             const char_t *instr_op, const InstrForm *form) {
+  char_t temp_buffer[256] = {};
+  sprintf(temp_buffer, "// %s(", instr_op);
+  push_string(temp_buffer);
+  if (!form->pattern->args) { push_string(")\n"); return 0; }
+  const uint32_t count = Array_length(form->pattern->args);
+  const Parameter *params = Array_real_addr(form->pattern->args, 0);
+  for (uint32_t i = 0; i < count; i ++) {
+    const Identifier *type = Array_virt2real(ident_array, params[i].type);
+    const Identifier *name = Array_virt2real(ident_array, params[i].name);
+    sprintf(temp_buffer, "%s %s", type, name);
+    push_string(temp_buffer);
+    push_string((i < count - 1) ? ", " : ")\n");
+  }
+  return 0;
+}
+
 int32_t online_gen_instr_encoding_dec(
     const ParseContext *, const Array *, Array *buffer, const char_t *instr_op, const InstrForm[],
     uint32_t n_forms
@@ -85,6 +103,7 @@ int32_t online_gen_instr_encoding_def(
 ) {
   char_t head_buffer[sizeof(ENCODING_DEF_FMT_HEAD) + 256];
   for (uint32_t i = 0; i < n_forms; ++i) {
+    instr_pattern_to_str(context, ident_array, buffer, instr_op, &forms[i]);
     const PatternArgs *arg_array = forms[i].pattern->args;
     const char_t * const encoding_dec_fmt = arg_array ? ENCODING_DEC_FMT : ENCODING_DEC_NO_ARGS_FMT;
     sprintf(head_buffer, encoding_dec_fmt, instr_op, i);

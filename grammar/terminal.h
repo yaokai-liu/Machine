@@ -65,6 +65,7 @@ typedef struct BitField {
 } BitField;
 
 int32_t BitField_cmp(void *bf1, void *bf2);
+int32_t Identifier_cmp(void *a, void *b);
 
 void terminal_to_token(Token *token, const Terminal *tp);
 uint64_t get_char(const void *key);

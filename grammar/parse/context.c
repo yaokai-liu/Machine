@@ -228,13 +228,13 @@ uint64_t GContext_getLastWidth(ParseContext *context) {
 }
 
 inline void GContext_addMapItem(ParseContext *context, MappingItem *item) {
-  uint64_t *key = (uint64_t *) &item->field;
-  AVLTree_set(context->mappingTree, *key, item);
+  uint64_t key = (((uint64_t) item->field.upper) << 32) | item->field.lower;
+  AVLTree_set(context->mappingTree, key, item);
 }
 
 inline MappingItem *GContext_getMapItem(ParseContext *context, BitField *bf) {
-  uint64_t *key = (uint64_t *) &bf;
-  return AVLTree_get(context->mappingTree, *key);
+  uint64_t key = (((uint64_t) bf->upper) << 32) | bf->lower;
+  return AVLTree_get(context->mappingTree, key);
 }
 
 inline const Parameter *

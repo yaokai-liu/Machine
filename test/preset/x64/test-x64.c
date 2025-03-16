@@ -67,7 +67,7 @@
 #define add_test(test_name) \
   do { n_failed += test_name(machine, output_array); } while (false)
 
-NEW_TEST(test_prime_instr_r8_r8) {
+NEW_TEST(test_primary_instr_r8_r8) {
   uint32_t n_failed = 0;
   // test by varying operands
   uint8_t bytes1[] = {0x00, 0xc8};
@@ -91,7 +91,7 @@ NEW_TEST(test_prime_instr_r8_r8) {
   return n_failed;
 }
 
-NEW_TEST(test_prime_instr_rv_rv) {
+NEW_TEST(test_primary_instr_rv_rv) {
   uint32_t n_failed = 0;
   // test by varying operands
   uint8_t bytes1[] = {0x66, 0x01, 0xf3};
@@ -117,7 +117,7 @@ NEW_TEST(test_prime_instr_rv_rv) {
   return n_failed;
 }
 
-NEW_TEST(test_prime_instr_m8_r8) {
+NEW_TEST(test_primary_instr_m8_r8) {
   uint32_t n_failed = 0;
   // test by varying operands
   uint8_t bytes1[] = {0x40, 0x00, 0x33};
@@ -147,7 +147,7 @@ NEW_TEST(test_prime_instr_m8_r8) {
   return n_failed;
 }
 
-NEW_TEST(test_prime_instr_m16_r16) {
+NEW_TEST(test_primary_instr_m16_r16) {
   uint32_t n_failed = 0;
   // test by varying operands
   uint8_t bytes1[] = {0x66, 0x01, 0x33};
@@ -177,7 +177,7 @@ NEW_TEST(test_prime_instr_m16_r16) {
   return n_failed;
 }
 
-NEW_TEST(test_prime_instr_m32_r32) {
+NEW_TEST(test_primary_instr_m32_r32) {
   uint32_t n_failed = 0;
   // test by varying operands
   uint8_t bytes1[] = {0x01, 0x33};
@@ -207,7 +207,7 @@ NEW_TEST(test_prime_instr_m32_r32) {
   return n_failed;
 }
 
-NEW_TEST(test_prime_instr_m64_r64) {
+NEW_TEST(test_primary_instr_m64_r64) {
   uint32_t n_failed = 0;
   // test by varying operands
   uint8_t bytes1[] = {0x48, 0x01, 0x33};
@@ -237,14 +237,14 @@ NEW_TEST(test_prime_instr_m64_r64) {
   return n_failed;
 }
 
-uint32_t test_prime_instructions(Machine *machine, Array *output_array) {
+uint32_t test_primary_instructions(Machine *machine, Array *output_array) {
   uint32_t n_failed = 0;
-  add_test(test_prime_instr_r8_r8);
-  add_test(test_prime_instr_rv_rv);
-  add_test(test_prime_instr_m8_r8);
-  add_test(test_prime_instr_m16_r16);
-  add_test(test_prime_instr_m32_r32);
-  add_test(test_prime_instr_m64_r64);
+  add_test(test_primary_instr_r8_r8);
+  add_test(test_primary_instr_rv_rv);
+  add_test(test_primary_instr_m8_r8);
+  add_test(test_primary_instr_m16_r16);
+  add_test(test_primary_instr_m32_r32);
+  add_test(test_primary_instr_m64_r64);
   return n_failed;
 }
 

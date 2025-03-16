@@ -35,6 +35,12 @@ inline int32_t BitField_cmp(void *a, void *b) {
   return (bf2->upper < bf2->lower) - (bf1->upper < bf1->lower);
 }
 
+int32_t Identifier_cmp(void *a, void *b) {
+  uint64_t v1 = *(uint64_t *)a;
+  uint64_t v2 = *(uint64_t *)b;
+  return (int32_t)(v1 & 0xFFFFFFFF) - (int32_t)(v2 & 0xFFFFFFFF);
+}
+
 inline void terminal_to_token(Token *token, const Terminal *tp) {
   token->type = tp->type;
   token->value = tp->value;
