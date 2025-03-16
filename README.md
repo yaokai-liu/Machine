@@ -174,7 +174,9 @@ instruction foo {
             [31-24] = bbb[13-20],
             [22-11] = aaa.yyy,
             [...] = 0
-        };
+        }
+    };
+};
 ```
 defines an Instruction `foo` with only one form. The form in binary will be like
 ```
@@ -255,19 +257,6 @@ Examples:
 (1-tick), (3-tick)
 ```
 
-#### table of macros
-
-There's a lot of symbols as macro to terse the grammar.
-
-| symbol |    where    |     means      |
-|:------:|:-----------:|:--------------:|
-|  `^`   | Instruction |     prefix     |
-|  `&`   | Instruction |     suffix     |
-|  `~`   | Instruction | principal part |
-|  `$`   |   Memory    |      base      |
-|  `>`   |   Memory    |     offset     |
-
-
 #### identifier
 
 An identifier is a text string consists with letters, digits or `_`, but starts with `_` is not allowed.
@@ -281,7 +270,7 @@ Example
 ```
 [ax, local, bx]
 ```
-the order of the parameters doesn't matter.
+the order of the parameters does matter.
 
 #### total grammar
 
