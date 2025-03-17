@@ -30,9 +30,8 @@
 
 #include "array.h"
 #include "avl-tree.h"
+#include "set.h"
 #include "terminal.h"
-
-#define REFER(T) /*VirtAddr*/ T *
 
 typedef struct Entry {
   uint32_t type;
@@ -163,12 +162,12 @@ typedef struct RegisterGroup {
   Registers *registers;
 } RegisterGroup;
 
-typedef Array SetItems;  // Array<REFER(Identifier)>
+typedef Set SetItems;  // Set<REFER(Identifier)>
 
-typedef struct Set {
+typedef struct EntrySet {
   Identifier *name;
   SetItems *items;
-} Set;
+} EntrySet;
 
 #include "allocator.h"
 
@@ -184,7 +183,7 @@ void releaseInstrForm(InstrForm *form, const Allocator *allocator);
 void releaseInstruction(Instruction *instr, const Allocator *allocator);
 void releaseMemory(Memory *memory, const Allocator *allocator);
 void releaseRegisterGroup(RegisterGroup *rg, const Allocator *allocator);
-void releaseSet(Set *set, const Allocator *allocator);
+void releaseEntrySet(EntrySet *set, const Allocator *allocator);
 void releaseCondition(Condition *condition, const Allocator *allocator);
 void releaseExpr(CondExpr *expr, const Allocator *allocator);
 

@@ -116,8 +116,8 @@ void releaseRegisterGroup(RegisterGroup *rg, const Allocator *) {
   releasePrimeArray(rg->registers);
 }
 
-void releaseSet(Set *set, const Allocator *) {
-  releasePrimeArray(set->items);
+void releaseEntrySet(EntrySet *set, const Allocator *) {
+  Set_destroy(set->items);
 }
 
 void releaseCondition(Condition *condition, const Allocator *allocator) {

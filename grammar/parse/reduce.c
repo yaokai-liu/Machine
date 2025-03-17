@@ -1005,19 +1005,15 @@ Registers *p_Registers_1(Token argv[], ParseContext *, const Allocator *allocato
   return regs;
 }
 
-Set *p_Set_0(Token argv[], ParseContext *context, const Allocator *) {
+EntrySet *p_EntrySet_0(Token argv[], ParseContext *context, const Allocator *) {
   Identifier *ident = (Identifier *) argv[1].value;
   SetItems *items = (SetItems *) argv[3].value;
 
   grammarAssertNotDeclaredRecord(ident);
 
+  EntrySet set = {.name = ident, .items = items};
 
-  Array *deduplicated_items = Array_deduplicate(items,  (cmp_t *) Identifier_cmp);
-  releasePrimeArray(items);
-
-  Set set = {.name = ident, .items = deduplicated_items};
-
-  return GContext_addSet(context, &set);
+  return GContext_addEntrySet(context, &set);
 }
 
 SetItems *p_SetItems_0(Token argv[], ParseContext *context, const Allocator *) {
@@ -1035,22 +1031,16 @@ SetItems *p_SetItems_0(Token argv[], ParseContext *context, const Allocator *) {
       Array *reg_array = grp->registers;
       const Register *regs = Array_first_real(reg_array);
       const uint32_t count = Array_length(reg_array);
-      for (uint32_t i = 0; i < count; i ++) {
-        Array_append(items, &regs->name, 1);
-      }
+      for (uint32_t i = 0; i < count; i++) { Set_add(items, regs->name); }
       break;
     }
-    case enum_Set: {
-      const Set *set = GContext_getSet(context, record->offset);
-      REFER(Identifier) *_items = Array_first_real(set->items);
-      const uint32_t count = Array_length(set->items);
-      for (uint32_t i = 0; i < count; i ++) {
-        Array_append(items, &_items[i], 1);
-      }
+    case enum_EntrySet: {
+      const EntrySet *set = GContext_getEntrySet(context, record->offset);
+      Set_update(items, set->items);
       break;
     }
-    default:{
-      Array_append(items, &ident, 1);
+    default: {
+      Set_add(items, ident);
     }
   }
   return items;
@@ -1063,29 +1053,23 @@ SetItems *p_SetItems_1(Token argv[], ParseContext *context, const Allocator *all
     GContext_setErrorMessage(context, "undefined identifier.");
     return nullptr;
   }
-  SetItems *items = Array_new(sizeof(REFER(Identifier)), enum_IDENTIFIER, allocator);
+  SetItems *items = Set_new(enum_IDENTIFIER, allocator, nullptr);
   switch (record->typeid) {
     case enum_RegisterGroup: {
       const RegisterGroup *grp = GContext_getRegisterGroup(context, record->offset);
       Array *reg_array = grp->registers;
       const Register *regs = Array_first_real(reg_array);
       const uint32_t count = Array_length(reg_array);
-      for (uint32_t i = 0; i < count; i ++) {
-        Array_append(items, &regs->name, 1);
-      }
+      for (uint32_t i = 0; i < count; i++) { Set_add(items, regs->name); }
       break;
     }
-    case enum_Set: {
-      const Set *set = GContext_getSet(context, record->offset);
-      REFER(Identifier) *_items = Array_first_real(set->items);
-      const uint32_t count = Array_length(set->items);
-      for (uint32_t i = 0; i < count; i ++) {
-        Array_append(items, &_items[i], 1);
-      }
+    case enum_EntrySet: {
+      const EntrySet *set = GContext_getEntrySet(context, record->offset);
+      Set_update(items, set->items);
       break;
     }
-    default:{
-      Array_append(items, &ident, 1);
+    default: {
+      Set_add(items, ident);
     }
   }
   return items;
@@ -1158,7 +1142,7 @@ void releaseToken(Token *token, const Allocator *allocator) {
       releaseTokenCase(Memory, Memory)
       releaseTokenCase(Pattern, Pattern)
       releaseTokenCase(RegisterGroup, RegisterGroup)
-      releaseTokenCase(Set, Set)
+      releaseTokenCase(EntrySet, EntrySet)
     case enum_Variable:
     case enum_CondExpr:
     case enum_Evaluable:

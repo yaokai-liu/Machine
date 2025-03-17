@@ -7,10 +7,10 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 
-
-aux_source_directory(../../meman CTR_SRC)
-add_library(meman SHARED ${CTR_SRC})
-include_directories(../../meman)
+#
+#aux_source_directory(../../meman CTR_SRC)
+#add_library(meman SHARED ${CTR_SRC})
+#include_directories(../../meman)
 
 add_compile_options("-Wno-unused-parameter" "-funsigned-char" "-fno-builtin")
 

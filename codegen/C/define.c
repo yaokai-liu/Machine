@@ -99,7 +99,7 @@ void gen_enum_item(Generator *generator, const Machine *machine) {
   gen_type_enum_item(Register, REG, reg);
   push_string("  enum_BEGIN_SET_GRP,\n");
   gen_type_enum_item(RegisterGroup, GRP, grp);
-  gen_type_enum_item(Set, SET, set);
+  gen_type_enum_item(EntrySet, SET, set);
   push_string("  enum_TYPE_ENUM_UPPER_BOUND\n};\n");
 }
 
@@ -150,7 +150,7 @@ const char_t *type_string(uint32_t id) {
     case enum_Memory: return "MEM";
     case enum_Register: return "REG";
     case enum_RegisterGroup: return "GRP";
-    case enum_Set: return "SET";
+    case enum_EntrySet: return "SET";
     default: return nullptr;
   }
 }
@@ -292,10 +292,10 @@ void gen_set_grp_jump_table(Generator *generator, const Machine *machine) {
   }
 
   const uint32_t set_count = Array_length(context->setArray);
-  const Set *sets = Array_real_addr(context->setArray, 0);
+  const EntrySet *sets = Array_real_addr(context->setArray, 0);
   for (uint32_t i = 0; i < set_count; i++) {
-    const uint32_t item_count = Array_length(sets[i].items);
-    const REFER(Identifier) *items = Array_real_addr(sets[i].items, 0);
+    const uint32_t item_count = Set_count(sets[i].items);
+    const REFER(Identifier) *items = Set_data(sets[i].items);
     for (uint32_t j = 0; j < item_count; j++) {
       const Record *record = GContext_findRecord(context, items[j]);
       switch (record->typeid) {
@@ -303,7 +303,7 @@ void gen_set_grp_jump_table(Generator *generator, const Machine *machine) {
         val_case_item(Immediate, imm, IMM)
         val_case_item(Register, reg, REG)
         val_case_item(RegisterGroup, grp, GRP)
-        val_case_item(Set, set, SET)
+        val_case_item(EntrySet, set, SET)
         default: {
         }
       }

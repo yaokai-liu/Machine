@@ -86,7 +86,7 @@ REFER(Immediate) GContext_addImmediate(ParseContext *context, const Immediate *i
 REFER(Register) GContext_addRegister(ParseContext *context, const Register *reg);
 REFER(Memory) GContext_addMemory(ParseContext *context, const Memory *mem);
 REFER(RegisterGroup) GContext_addRegisterGroup(ParseContext *context, const RegisterGroup *grp);
-REFER(Set) GContext_addSet(ParseContext *context, const Set *set);
+REFER(EntrySet) GContext_addEntrySet(ParseContext *context, const EntrySet *set);
 REFER(Instruction) GContext_addInstruction(ParseContext *context, const Instruction *instr);
 
 const Immediate *GContext_getImmediate(const ParseContext *context, uint32_t offset);
@@ -94,7 +94,7 @@ const Register *GContext_getRegister(const ParseContext *context, uint32_t offse
 const Memory *GContext_getMemory(const ParseContext *context, uint32_t offset);
 const RegisterGroup *GContext_getRegisterGroup(const ParseContext *context, uint32_t offset);
 const Instruction *GContext_getInstruction(const ParseContext *context, uint32_t index);
-const Set *GContext_getSet(const ParseContext *context, uint32_t offset);
+const EntrySet *GContext_getEntrySet(const ParseContext *context, uint32_t offset);
 
 Register *GContext_referToRegister(const ParseContext *context, REFER(Register) v_reg);
 

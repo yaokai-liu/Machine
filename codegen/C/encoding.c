@@ -66,15 +66,20 @@ constexpr char_t ENCODING_NAME_FMT[] = "encoding_%s_%u";
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
 
-int32_t instr_pattern_to_str(const ParseContext *, const Array *ident_array, Array *buffer,
-                             const char_t *instr_op, const InstrForm *form) {
+int32_t instr_pattern_to_str(
+    const ParseContext *, const Array *ident_array, Array *buffer, const char_t *instr_op,
+    const InstrForm *form
+) {
   char_t temp_buffer[256] = {};
   sprintf(temp_buffer, "// %s(", instr_op);
   push_string(temp_buffer);
-  if (!form->pattern->args) { push_string(")\n"); return 0; }
+  if (!form->pattern->args) {
+    push_string(")\n");
+    return 0;
+  }
   const uint32_t count = Array_length(form->pattern->args);
   const Parameter *params = Array_real_addr(form->pattern->args, 0);
-  for (uint32_t i = 0; i < count; i ++) {
+  for (uint32_t i = 0; i < count; i++) {
     const Identifier *type = Array_virt2real(ident_array, params[i].type);
     const Identifier *name = Array_virt2real(ident_array, params[i].name);
     sprintf(temp_buffer, "%s %s", type, name);
@@ -224,7 +229,7 @@ void gen_jump_table_def(
       val_case_item(Immediate, imm, "IMM")
       val_case_item(Register, reg, "REG")
       val_case_item(RegisterGroup, grp, "GRP")
-      val_case_item(Set, set, "SET")
+      val_case_item(EntrySet, set, "SET")
       default: {
       }
     }
@@ -384,7 +389,7 @@ void type_to_val(
     type_case_item(Immediate, imm, "IMM")
     type_case_item(Register, reg, "REG")
     type_case_item(RegisterGroup, grp, "GRP")
-    type_case_item(Set, set, "SET")
+    type_case_item(EntrySet, set, "SET")
   }
 }
 
