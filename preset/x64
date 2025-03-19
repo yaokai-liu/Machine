@@ -289,8 +289,8 @@ machine x64 {
   set cr { cr0, cr1, cr2, cr3, cr4, cr5, cr6, cr7, cr8, cr9, cr10, cr11, cr12, cr13, cr14, cr15 };
   set dr { dr0, dr1, dr2, dr3, dr4, dr5, dr6, dr7, dr8, dr9, dr10, dr11, dr12, dr13, dr14, dr15 };
 
+  set gpr8s { spl, bpl, sil, dil };
   set gpr8h { ah, ch, dh, bh };
-  set gpr8all { gpr8, gpr8h };
   set gpr8Base { al, cl, dl, bl, ah, ch, dh, bh };
   set gpr16Base { ax, cx, dx, bx, sp, bp, si, di };
   set gpr32Base { eax, ecx, edx, ebx, esp, ebp, esi, edi };
@@ -393,7 +393,7 @@ macro primary_instr_mv_rv(code) {
     };
 }
 macro primary_instr_r8_m8(code) {
-    [gpr8all a, REFb b] = {
+    [gpr8 a, REFb b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
       REX: [8] = {
         [7-4] = 0x4,
@@ -401,7 +401,21 @@ macro primary_instr_r8_m8(code) {
         [2-2] = a[3-3],
         [1-1] = 0,
         [0-0] = b.reg[3-3]
-      } @ (a in GREX || b.reg in GExtend);
+      } @ (a in GREX || a in gpr8s || b.reg in GExtend);
+      opcode: [8] = code;
+      modRM: [8] = {
+        [7-6] = 0b00,
+        [5-3] = a,
+        [2-0] = b.reg
+      };
+    }; 0b00'001'101
+    [gpr8h a, REFb b] = {
+      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-1] = 0,
+        [0-0] = b.reg[3-3]
+      } @ (b.reg in GExtend);
       opcode: [8] = code;
       modRM: [8] = {
         [7-6] = 0b00,
