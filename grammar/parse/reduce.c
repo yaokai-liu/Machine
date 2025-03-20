@@ -1005,13 +1005,16 @@ Registers *p_Registers_1(Token argv[], ParseContext *, const Allocator *allocato
   return regs;
 }
 
-EntrySet *p_EntrySet_0(Token argv[], ParseContext *context, const Allocator *) {
+EntrySet *p_EntrySet_0(Token argv[], ParseContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[1].value;
-  SetItems *items = (SetItems *) argv[3].value;
+  SetExpr *expr = (SetExpr *) argv[2].value;
 
   grammarAssertNotDeclaredRecord(ident);
 
+  SetItems *items = expr->lhs;
+
   EntrySet set = {.name = ident, .items = items};
+  allocator->free(expr);
 
   return GContext_addEntrySet(context, &set);
 }
@@ -1073,6 +1076,126 @@ SetItems *p_SetItems_1(Token argv[], ParseContext *context, const Allocator *all
     }
   }
   return items;
+}
+
+#define record_translate_to_set(record)                                                \
+  do {                                                                                 \
+    switch (record->typeid) {                                                          \
+      case enum_EntrySet: {                                                            \
+        const EntrySet *set = GContext_getEntrySet(context, record->offset);           \
+        Set_update(items, set->items);                                                 \
+        break;                                                                         \
+      }                                                                                \
+      case enum_RegisterGroup: {                                                       \
+        const RegisterGroup *grp = GContext_getRegisterGroup(context, record->offset); \
+        const Register *regs = Array_first_real(grp->registers);                       \
+        const uint32_t count = Array_length(grp->registers);                           \
+        for (uint32_t i = 0; i < count; i++) { Set_add(items, regs[i].name); }         \
+        break;                                                                         \
+      }                                                                                \
+      case enum_Register: {                                                            \
+        const Register *reg = GContext_getRegister(context, record->offset);           \
+        Set_add(items, reg->name);                                                     \
+        break;                                                                         \
+      }                                                                                \
+      default: {                                                                       \
+        GContext_setErrorMessage(context, "bad record type to translate to set.");     \
+        return nullptr;                                                                \
+      }                                                                                \
+    }                                                                                  \
+  } while (false)
+
+SetExpr *p_SetExpr_0(Token argv[], ParseContext *, const Allocator *) {
+  return (SetExpr *) argv[1].value;
+}
+
+SetExpr *p_SetExpr_1(Token argv[], ParseContext *context, const Allocator *allocator) {
+  SetExpr *expr = (SetExpr *) argv[0].value;
+  enum ENUM_OP optype = (uint64_t) argv[1].value;
+  Identifier *ident = (Identifier *) argv[2].value;
+
+  const Record *record = GContext_findRecord(context, ident);
+  if (!record) {
+    GContext_setErrorMessage(context, "undefined identifier.");
+    return nullptr;
+  }
+  SetItems *items = Set_new(enum_IDENTIFIER, allocator, nullptr);
+  record_translate_to_set(record);
+
+  switch (optype) {
+    case AB_AND: {
+      Set_limit(expr->lhs, items);
+      break;
+    }
+    case AB_XOR: {
+      Set_reduce(expr->lhs, items);
+      break;
+    }
+    case AB_OR: {
+      Set_update(expr->lhs, items);
+      break;
+    }
+    default: {
+      GContext_setErrorMessage(context, "unknown operation between sets.");
+      return nullptr;
+    }
+  }
+  Set_destroy(items);
+
+  return expr;
+}
+
+SetExpr *p_SetExpr_2(Token argv[], ParseContext *context, const Allocator *) {
+  SetExpr *expr = (SetExpr *) argv[0].value;
+  enum ENUM_OP optype = (uint64_t) argv[1].value;
+  SetItems *items = (SetItems *) argv[3].value;
+
+  switch (optype) {
+    case AB_AND: {
+      Set_limit(expr->lhs, items);
+      break;
+    }
+    case AB_XOR: {
+      Set_reduce(expr->lhs, items);
+      break;
+    }
+    case AB_OR: {
+      Set_update(expr->lhs, items);
+      break;
+    }
+    default: {
+      GContext_setErrorMessage(context, "unknown operation between sets.");
+      return nullptr;
+    }
+  }
+  Set_destroy(items);
+
+  return expr;
+}
+
+SetExpr *p_SetExpr_3(Token argv[], ParseContext *, const Allocator *allocator) {
+  SetItems *items = (SetItems *) argv[1].value;
+  SetExpr *expr = allocator->calloc(1, sizeof(SetExpr));
+  expr->type = AS_ID;
+  expr->lhs = items;
+  return expr;
+}
+
+SetExpr *p_SetExpr_4(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Identifier *ident = (Identifier *) argv[0].value;
+
+  const Record *record = GContext_findRecord(context, ident);
+  if (!record) {
+    GContext_setErrorMessage(context, "undefined identifier.");
+    return nullptr;
+  }
+  SetItems *items = Set_new(enum_IDENTIFIER, allocator, nullptr);
+  record_translate_to_set(record);
+
+  SetExpr *expr = allocator->calloc(1, sizeof(SetExpr));
+  expr->type = AS_ID;
+  expr->lhs = items;
+  return expr;
 }
 
 #include "parse.h"

@@ -73,6 +73,7 @@ struct Expression {
 typedef struct Expression Expr, CondExpr, AndCondExpr, SingleCondExpr;
 typedef struct Expression Arith_0_Expr, Arith_1_Expr, Arith_2_Expr, Arith_3_Expr;
 typedef struct Expression Evaluable, Variable;
+typedef struct Expression SetExpr;
 
 typedef struct Condition {
   CondExpr *expr;

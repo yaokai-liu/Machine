@@ -267,6 +267,10 @@ machine x64 {
   register gdr15 [64-bit] {
     dr15: [63-0] = 0b1111;
   };
+  register ip [64-bit] {
+    eip: [32-0] = 0;
+    rip: [64-0] = 0;
+  };
 
   immediate Ib[8 ] unsigned;
   immediate Iw[16] unsigned;
@@ -304,7 +308,7 @@ machine x64 {
   set GExtend {gpr8Extend, gpr16Extend, gpr32Extend, gpr64Extend};
   set GREX { gpr64, GExtend };
 
-  set GAddr {gpr64, gpr32};
+  set GAddr {gpr64, gpr32} ^ {rsp, rbp, esp, ebp};
   memory REFb [1-byte] {
     reg: [4] = GAddr;
   };
@@ -408,7 +412,7 @@ macro primary_instr_r8_m8(code) {
         [5-3] = a,
         [2-0] = b.reg
       };
-    }; 0b00'001'101
+    };
     [gpr8h a, REFb b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
       REX: [8] = {
@@ -583,6 +587,10 @@ macro primary_instr_imm(name, code, gpr1_id) {
 
 
   primary_instr(test, 0x84)
+
+  instruction lea {
+    primary_instr_rv_mv(0x8d)
+  };
 
   instruction push {
     [gpr64 a] = {
@@ -781,26 +789,6 @@ macro primary_instr_imm(name, code, gpr1_id) {
       asoPrefix: [8] = 0x67;
       REX: [8] = 0x48;
       opcode: [8] = 0xab;
-    };
-  };
-
-  instruction lea {
-    [Gv a, REFv b] = {
-      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
-      prefix: [8] = 0x66 @ (a in gpr16);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-3] = 1,
-        [2-2] = a[3-3],
-        [1-1] = 0,
-        [0-0] = b.reg[3-3]
-      } @ (a in gpr64);
-      opcode: [8] = 0x8d;
-      modRM: [8] = {
-        [7-6] = 0b00,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
     };
   };
 

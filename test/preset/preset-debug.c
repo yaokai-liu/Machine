@@ -24,7 +24,7 @@
  * Create Date: 2025-02-21
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
-
+#define USING_INSTR_DIRECTLY
 #include "x64.h"
 #include <stdio.h>
 
@@ -32,7 +32,7 @@ int main() {
   Machine *machine = Machine_new(&STDAllocator);
   useMachine(machine);
   Array *output_array = Array_new(sizeof(uint8_t), -1, &STDAllocator);
-  uint32_t size = add(output_array, MEM_REFv(REG_rax), REG_cx, EOI);
+  uint32_t size = add(output_array, MEM_REFv(REG_ebp), REG_cx, EOI);
   //  uint32_t size = test(output_array, MEM_REFb(REG_eax), REG_al, EOI);
   //  uint32_t size = addi(output_array, REG_r8, IMM_Ib(0x1234), EOI);
   //  uint32_t size = addi(output_array, IMM_Ib(0x1234), EOI);

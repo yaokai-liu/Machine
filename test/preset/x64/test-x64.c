@@ -29,6 +29,14 @@
 #include "x64.h"
 #include <stdio.h>
 
+#define testing_assert(expr)                                           \
+  do {                                                                 \
+    if (!(expr)) {                                                     \
+      fprintf(stderr, "assert failed in %s:%u\n", __FILE__, __LINE__); \
+      n_failed++;                                                      \
+    }                                                                  \
+  } while (false)
+
 #define test_encoding(bytes, expected_size, instr, ...)                                         \
   do {                                                                                          \
     bool matched = true;                                                                        \
@@ -41,7 +49,7 @@
       );                                                                                        \
       matched = false;                                                                          \
     }                                                                                           \
-    const uint8_t * const buffer = ((uint8_t *)Array_first_real(output_array)) + old_len;       \
+    const uint8_t * const buffer = ((uint8_t *) Array_first_real(output_array)) + old_len;      \
     for (uint32_t i = 0; i < actual_size && matched; i++) {                                     \
       if (bytes[i] != buffer[i]) {                                                              \
         fprintf(                                                                                \
@@ -66,6 +74,18 @@
 
 #define add_test(test_name) \
   do { n_failed += test_name(machine, output_array); } while (false)
+
+NEW_TEST(test_memory_model_REF) {
+  uint32_t n_failed = 0;
+  testing_assert(nullptr == MEM_REFb(REG_rsp));
+  testing_assert(nullptr == MEM_REFb(REG_rbp));
+  testing_assert(nullptr == MEM_REFb(REG_esp));
+  testing_assert(nullptr == MEM_REFb(REG_ebp));
+
+  testing_assert(nullptr == MEM_REFv(REG_ebp));
+  if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
+  return n_failed;
+}
 
 NEW_TEST(test_primary_instr_r8_r8) {
   uint32_t n_failed = 0;
@@ -299,7 +319,6 @@ NEW_TEST(test_primary_instr_r16_m16) {
   return n_failed;
 }
 
-
 NEW_TEST(test_primary_instr_r32_m32) {
   uint32_t n_failed = 0;
   // test by varying operands
@@ -330,7 +349,6 @@ NEW_TEST(test_primary_instr_r32_m32) {
   return n_failed;
 }
 
-
 NEW_TEST(test_primary_instr_r64_m64) {
   uint32_t n_failed = 0;
   // test by varying operands
@@ -356,6 +374,8 @@ NEW_TEST(test_primary_instr_r64_m64) {
   test_encoding(bytes9, 4, INSTR_rsbb, REG_r9, MEM_REFv(REG_r14d));
   uint8_t bytes10[] = {0x67, 0x4d, 0x8b, 0x0e};
   test_encoding(bytes10, 4, INSTR_rmov, REG_r9, MEM_REFv(REG_r14d));
+  uint8_t bytes11[] = {0x4d, 0x8d, 0x0e};
+  test_encoding(bytes11, 3, INSTR_lea, REG_r9, MEM_REFv(REG_r14));
 
   if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
   return n_failed;
@@ -363,6 +383,7 @@ NEW_TEST(test_primary_instr_r64_m64) {
 
 uint32_t test_primary_instructions(Machine *machine, Array *output_array) {
   uint32_t n_failed = 0;
+  add_test(test_memory_model_REF);
   add_test(test_primary_instr_r8_r8);
   add_test(test_primary_instr_rv_rv);
   add_test(test_primary_instr_m8_r8);

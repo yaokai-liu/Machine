@@ -19,8 +19,8 @@ target_link_libraries(preset-x64 PRIVATE meman)
 
 add_executable(preset-debug preset-debug.c )
 target_include_directories(preset-debug PRIVATE output)
+target_include_directories(preset-debug PRIVATE x64)
 target_link_libraries(preset-debug PRIVATE meman preset-x64)
-target_include_directories(preset-debug PRIVATE .)
 
 file(GLOB_RECURSE TEST_PRESET_X64_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} x64/test-*.c x64/test-*.h)
 add_executable(test-preset-x64 test-preset-x64.c ${TEST_PRESET_X64_SRC})
