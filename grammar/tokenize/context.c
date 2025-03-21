@@ -37,7 +37,7 @@ MacroContext *MacroContext_new(const Allocator *allocator) {
   context->current_params = nullptr;
   context->current_args = nullptr;
   context->end_parse = false;
-  context->in_parse = false;
+  context->in_macro = false;
   context->depth = 0;
   return context;
 }
@@ -80,11 +80,11 @@ inline MacroCallFrame *
 }
 
 void set_in_parse_true(MacroContext *context, void *) {
-  context->in_parse = true;
+  context->in_macro = true;
 }
 
 void set_in_parse_false(MacroContext *context, void *) {
-  context->in_parse = false;
+  context->in_macro = false;
 }
 
 void set_end_parse_true(MacroContext *context, void *) {

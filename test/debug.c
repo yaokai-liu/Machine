@@ -30,7 +30,7 @@
 #include "terminal.h"
 #include "tokenize.h"
 #include "tokenize/tokenizer.h"
-#include "tokens.gen.h"
+#include "generated/tokens.gen.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>

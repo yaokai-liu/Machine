@@ -34,7 +34,9 @@
 #include <stdint.h>
 
 enum TOKEN_TYPE_ENUM_MACRO_EXTEND {
-  enum_PLACE_HOLDER = MAX_REAL_TOKEN + 1
+  enum_PLACE_HOLDER = MAX_REAL_TOKEN + 1,
+
+  enum_BAD_TOKEN = -1
 };
 
 typedef struct {

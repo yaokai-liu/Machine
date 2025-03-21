@@ -172,11 +172,14 @@ Tokens *p_Tokens_1(Token argv[], MacroContext *, const Allocator *) {
   Tokens *tokens = (Tokens *) argv[0].value;
   Concat *_concat = (Concat *) argv[1].value;
 
+  const Token * *first = Array_first_real(_concat);
+  const Token * *last = Array_last_real(_concat);
   Token token = {
       .type = enum_Concat,
       .value = _concat,
-      .position = {_concat->left.position[0], _concat->right.position[1]}
+      .position = {(*first)->position[0], (*last)->position[1]}
   };
+
   Array_append(tokens, &token, 1);
 
   return tokens;
@@ -197,10 +200,12 @@ Tokens *p_Tokens_2(Token argv[], MacroContext *context, const Allocator *allocat
 Tokens *p_Tokens_3(Token argv[], MacroContext *, const Allocator *allocator) {
   Concat *_concat = (Concat *) argv[0].value;
 
+  const Token * *first = Array_first_real(_concat);
+  const Token * *last = Array_last_real(_concat);
   Token token = {
       .type = enum_Concat,
       .value = _concat,
-      .position = {_concat->left.position[0], _concat->right.position[1]}
+      .position = {(*first)->position[0], (*last)->position[1]}
   };
 
   Tokens *tokens = Array_new(sizeof(Token), enum_TOKEN, allocator);
@@ -210,14 +215,24 @@ Tokens *p_Tokens_3(Token argv[], MacroContext *, const Allocator *allocator) {
 }
 
 Concat *p_Concat_0(Token argv[], MacroContext *context, const Allocator *allocator) {
-  Token left = argv[0];
-  Token right = argv[1];
+  Token *left = argv[0].value;
+  Token *right = argv[2].value;
 
-  identToPlaceHolder(&left);
-  identToPlaceHolder(&right);
+  identToPlaceHolder(left);
+  identToPlaceHolder(right);
 
-  Concat *_concat = allocator->calloc(1, sizeof(Concat));
-  _concat->left = left;
-  _concat->right = right;
+  Concat *_concat = Array_new(sizeof(Token *), enum_TOKEN, allocator);
+  Array_append(_concat, &left, 1);
+  Array_append(_concat, &right, 1);
+  return _concat;
+}
+
+Concat *p_Concat_1(Token argv[], MacroContext *context, const Allocator *) {
+  Concat *_concat = argv[0].value;
+  Token *token = argv[2].value;
+
+  identToPlaceHolder(token);
+
+  Array_append(_concat, &token, 1);
   return _concat;
 }

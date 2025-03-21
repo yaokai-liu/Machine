@@ -63,12 +63,7 @@ typedef struct MacroCallFrame {
   TokenPos position;
 } MacroCallFrame;
 
-typedef struct Concat {
-  Token left;
-  Token right;
-} Concat;
-
-void concat_to_token(Concat *concat, Token *token, Array *ident_array);
+typedef Array Concat; // Array<Token>
 
 void releaseMacro(Macro *macro, const Allocator *allocator);
 void releaseMacroArg(MacroArg *arg, const Allocator *allocator);

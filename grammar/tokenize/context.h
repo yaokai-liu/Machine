@@ -43,7 +43,7 @@ typedef struct MacroContext {
   MacroParams *current_params;
   MacroArgs *current_args;
   bool end_parse;
-  bool in_parse;
+  bool in_macro;
   uint32_t depth;
 } MacroContext;
 

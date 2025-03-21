@@ -27,7 +27,7 @@ The C library generated contains these functions:
 15.  `void* getCurrentMachine(void)` to get the address of the current context machine;
 16.  `void setCurrentMachine(void*)` to set the current context machine;
 
-## Build and Dependence
+## Build and dependence
 
 This project using a python script to generate some source files.
 And it is written in C and request standard of C23, built with cmake.
@@ -46,7 +46,7 @@ and an executable file named `machine-c` in it.
 
 Then write some script to experience it!
 
-## Grammar of assembler script
+## Grammar of machine script
 
 The assembler is supposed to be defined with a special text grammar.
 

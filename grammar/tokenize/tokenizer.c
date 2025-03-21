@@ -35,6 +35,7 @@
 #include "stack.h"
 #include "tokenize.h"
 #include "trie.h"
+#include <string.h>
 
 typedef struct Tokenizer {
   const Allocator *allocator;
@@ -57,6 +58,7 @@ uint32_t Tokenizer_macro_next(Tokenizer *tokenizer, Token *token, ErrInfo *err_i
 void Tokenizer_next_in_tokens(Tokenizer *tokenizer, Token *token);
 void Tokenizer_enter_macro(Tokenizer *tokenizer, Token *token, REFER(Macro) v_macro);
 void Tokenizer_try_exit_macro(Tokenizer *tokenizer);
+void Tokenizer_concat_to_token(Tokenizer *tokenizer, Concat *concat, Token *token);
 
 inline Tokenizer *Tokenizer_new(const char_t *src, Array *ident_array, const Allocator *allocator) {
   Tokenizer *tokenizer = allocator->calloc(1, sizeof(Tokenizer));
@@ -133,28 +135,11 @@ inline uint32_t
   return cost;
 }
 
-#define setConcatAsArg(_part)                                           \
-  do {                                                                  \
-    if (_part.type == enum_PLACE_HOLDER) {                              \
-      const uint32_t index = (uint32_t) (uint64_t) tp->value;           \
-      MacroArg *arg = Array_real_addr(tokenizer->frame.args, index);    \
-      if (arg->type != enum_IDENTIFIER) {                               \
-        token->type = enum_Concat;                                      \
-        token->value = nullptr;                                         \
-        return;                                                         \
-      }                                                                 \
-      tokenizer->allocator->memcpy(&_part, arg->target, sizeof(Token)); \
-    }                                                                   \
-  } while (0)
-
 inline void Tokenizer_next_in_tokens(Tokenizer *tokenizer, Token * const token) {
   const Token *tp = Array_real_addr(tokenizer->frame.tokens, tokenizer->frame.index++);
   TokenPos position = {tp->position[0], tp->position[1]};
   if (tp->type == enum_Concat) {
-    Concat *concat = tp->value;
-    setConcatAsArg(concat->left);
-    setConcatAsArg(concat->right);
-    concat_to_token(concat, token, tokenizer->ident_array);
+    Tokenizer_concat_to_token(tokenizer, tp->value, token);
     token->position[0] = position[0];
     token->position[1] = position[1];
     return;
@@ -176,6 +161,43 @@ inline void Tokenizer_next_in_tokens(Tokenizer *tokenizer, Token * const token) 
   token->value = tp->value;
   token->position[0] = position[0];
   token->position[1] = position[1];
+}
+void Tokenizer_concat_to_token(Tokenizer *tokenizer, Concat *concat, Token * const token) {
+  const Token * *tokens = Array_first_real(concat);
+  const uint32_t count = Array_length(concat);
+
+  // push strings to ident_array
+  Array *ident_array = Array_new(sizeof(char_t), enum_IDENTIFIER, tokenizer->allocator);
+  for (uint32_t i = 0; i < count; i ++) {
+    const Token *tp = tokens[i];
+    if (tokens[i]->type == enum_PLACE_HOLDER) {
+      const uint32_t index = (uint32_t) (uint64_t) tokens[i]->value;
+      MacroArg *arg = Array_real_addr(tokenizer->frame.args, index);
+      tp = arg->target;
+    }
+    if (tp->type != enum_IDENTIFIER) {
+      releasePrimeArray(ident_array);
+      token->type = enum_BAD_TOKEN;
+      token->value = nullptr;
+      return;
+    }
+    const char_t *sym_str = Array_virt2real(tokenizer->ident_array, tp->value);
+    const uint32_t sym_len = strlen(sym_str);
+    Array_append(ident_array, sym_str, sym_len);
+  }
+  Array_append(ident_array, "\0", 1);
+
+  const char_t *sym_str = Array_first_real(ident_array);
+  REFER(Identifier) v_sym = Trie_get(tokenizer->ident_trie, sym_str);
+  if (!v_sym) {
+    // add an identifier record
+    v_sym = ((char_t *) Array_last_virt(tokenizer->ident_array)) + 1;
+    Array_append(tokenizer->ident_array, sym_str, strlen(sym_str));
+    Array_append(tokenizer->ident_array, "\0", 1);
+    Trie_set(tokenizer->ident_trie, sym_str, v_sym);
+  }
+  token->type = enum_IDENTIFIER;
+  token->value = v_sym;
 }
 
 inline void Tokenizer_enter_macro(Tokenizer *tokenizer, Token * const token, REFER(Macro) v_macro) {
@@ -229,7 +251,8 @@ inline uint32_t Tokenizer_macro_next(Tokenizer *tokenizer, Token * const token, 
   const uint32_t cost = tokenizer->frame.tokens ? Tokenizer_next_in_tokens(tokenizer, token),
                  0 : Tokenizer_single_tokenize(tokenizer, token, err_info);
   switch (token->type) {
-    case enum_MACRO: {
+    case enum_MACRO:
+    case enum_CONCAT: {
       return cost;
     }
     case enum_LEFT_BRACKET: {
@@ -245,7 +268,7 @@ inline uint32_t Tokenizer_macro_next(Tokenizer *tokenizer, Token * const token, 
     case enum_LEFT_PAREN:
     case enum_RIGHT_PAREN:
     case enum_IDENTIFIER: {
-      if (!tokenizer->context->in_parse) { return cost; }
+      if (!tokenizer->context->in_macro) { return cost; }
       break;
     }
     default: {
@@ -282,7 +305,7 @@ inline uint32_t Tokenizer_parse(Tokenizer *tokenizer, Token * const token, ErrIn
   Stack *token_stack = Stack_new(allocator);
   Stack_push(state_stack, &state, sizeof(int32_t));
   MacroContext * const context = tokenizer->context;
-  context->in_parse = false;
+  context->in_macro = false;
   context->end_parse = false;
   context->depth = 0;
   uint32_t cost = 0;
