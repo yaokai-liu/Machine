@@ -34,6 +34,7 @@ MacroContext *MacroContext_new(const Allocator *allocator) {
   context->allocator = allocator;
   context->macroArray = Array_new(sizeof(Macro), enum_Macro, allocator);
   context->macroTree = AVLTree_new(allocator, nullptr);
+  context->current_concatArray = nullptr;
   context->current_params = nullptr;
   context->current_args = nullptr;
   context->end_parse = false;
@@ -46,6 +47,15 @@ void MacroContext_destroy(MacroContext *context) {
   Array_reset(context->macroArray, (destruct_t *) releaseMacro);
   Array_destroy(context->macroArray);
   AVLTree_destroy(context->macroTree, nullptr);
+  if (context->current_params) { releasePrimeArray(context->current_params); }
+  if (context->current_args) {
+    Array_reset(context->current_args, (destruct_t *) releaseMacroArg);
+    Array_destroy(context->current_args);
+  }
+  if (context->current_concatArray) {
+    Array_reset(context->current_concatArray, (destruct_t *) releaseConcat);
+    Array_destroy(context->current_concatArray);
+  }
   context->allocator->free(context);
 }
 
@@ -73,9 +83,14 @@ inline uint32_t MacroContext_getIdentParamIndex(MacroContext *context, REFER(Ide
 inline MacroCallFrame *
     MacroContext_makeFrame(MacroContext *context, MacroCallFrame *frame, REFER(Macro) v_macro) {
   const Macro *macro = Array_virt2real(context->macroArray, v_macro);
+  frame->concatArray = macro->concatArray;
   frame->args = context->current_args;
+  frame->macroName = macro->name;
   frame->tokens = macro->tokens;
   frame->index = 0;
+
+  context->current_args = nullptr;
+
   return frame;
 }
 
@@ -91,11 +106,24 @@ void set_end_parse_true(MacroContext *context, void *) {
   context->end_parse = true;
 }
 
+void create_current_concat_array(MacroContext *context, void *) {
+  context->current_concatArray = Array_new(sizeof_array, enum_Concat, context->allocator);
+  set_in_parse_true(context, nullptr);
+}
+
+void clear_current_arrays(MacroContext *context, void *) {
+  context->current_concatArray = nullptr;
+  context->current_params = nullptr;
+  // not set context->current_args to nullptr, because MacroCall is executed directly.
+}
+
 fn_ctx_act *macro_get_after_stack_action(uint32_t state) {
   switch (state) {
-    case __IDENTIFIER_LEFT_PAREN_LEFT_BRACKET:
-    case __MACRO_IDENTIFIER_LEFT_PAREN_MacroParams_RIGHT_PAREN_LEFT_BRACKET: {
+    case __IDENTIFIER_LEFT_PAREN_LEFT_BRACKET: {
       return set_in_parse_true;
+    }
+    case __MACRO_IDENTIFIER_LEFT_PAREN_MacroParams_RIGHT_PAREN_LEFT_BRACKET: {
+      return create_current_concat_array;
     }
     case __IDENTIFIER_LEFT_PAREN_LEFT_BRACKET_Tokens_RIGHT_BRACKET: {
       return set_in_parse_false;
@@ -112,6 +140,9 @@ fn_ctx_act *macro_get_after_stack_action(uint32_t state) {
 
 fn_ctx_act *macro_get_after_reduce_action(uint32_t state) {
   switch (state) {
+    case __MacroEntry: {
+      return clear_current_arrays;
+    }
     default: {
     }
   }

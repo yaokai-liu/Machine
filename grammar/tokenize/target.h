@@ -40,6 +40,8 @@ typedef struct MacroCall MacroCall;
 typedef struct Array MacroParams;  // Array<REFER(Identifier)>
 typedef Array Tokens;              // Array<Token>
 
+typedef Array Concat;  // Array<Token>
+
 struct MacroArg {
   uint32_t type;
   void *target;
@@ -54,19 +56,23 @@ struct Macro {
   Identifier *name;
   MacroParams *params;
   Tokens *tokens;
+  Array *concatArray;  // Array<Concat>
 };
 
 typedef struct MacroCallFrame {
-  const Tokens *tokens;
-  uint32_t index;
+  Identifier *macroName;
   MacroArgs *args;
+  const Tokens *tokens;
+  Array *concatArray;
   TokenPos position;
+  uint32_t index;
 } MacroCallFrame;
 
-typedef Array Concat; // Array<Token>
+void MacroCallFrame_init(MacroCallFrame *frame);
 
 void releaseMacro(Macro *macro, const Allocator *allocator);
 void releaseMacroArg(MacroArg *arg, const Allocator *allocator);
 void releaseMacroToken(Token *token, const Allocator *allocator);
+void releaseConcat(Concat *concat, const Allocator *allocator);
 
 #endif  // MACHINE_TOKENIZE_TARGET_H

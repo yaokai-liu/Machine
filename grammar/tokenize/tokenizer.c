@@ -58,7 +58,7 @@ uint32_t Tokenizer_macro_next(Tokenizer *tokenizer, Token *token, ErrInfo *err_i
 void Tokenizer_next_in_tokens(Tokenizer *tokenizer, Token *token);
 void Tokenizer_enter_macro(Tokenizer *tokenizer, Token *token, REFER(Macro) v_macro);
 void Tokenizer_try_exit_macro(Tokenizer *tokenizer);
-void Tokenizer_concat_to_token(Tokenizer *tokenizer, Concat *concat, Token *token);
+void Tokenizer_concat_to_token(Tokenizer *tokenizer, const Concat *concat, Token *token);
 
 inline Tokenizer *Tokenizer_new(const char_t *src, Array *ident_array, const Allocator *allocator) {
   Tokenizer *tokenizer = allocator->calloc(1, sizeof(Tokenizer));
@@ -67,10 +67,8 @@ inline Tokenizer *Tokenizer_new(const char_t *src, Array *ident_array, const All
   tokenizer->ident_trie = Trie_new(sizeof(char_t), get_char, allocator);
   tokenizer->context = MacroContext_new(allocator);
   tokenizer->framestack = Stack_new(allocator);
+  MacroCallFrame_init(&tokenizer->frame);
   tokenizer->ident_array = ident_array;
-  tokenizer->frame.tokens = nullptr;
-  tokenizer->frame.args = nullptr;
-  tokenizer->frame.index = 0;
   tokenizer->lineno = 1;
   tokenizer->column = 1;
   tokenizer->src = src;
@@ -136,10 +134,11 @@ inline uint32_t
 }
 
 inline void Tokenizer_next_in_tokens(Tokenizer *tokenizer, Token * const token) {
-  const Token *tp = Array_real_addr(tokenizer->frame.tokens, tokenizer->frame.index++);
+  Token *tp = Array_real_addr(tokenizer->frame.tokens, tokenizer->frame.index++);
   TokenPos position = {tp->position[0], tp->position[1]};
   if (tp->type == enum_Concat) {
-    Tokenizer_concat_to_token(tokenizer, tp->value, token);
+    const Concat *concat = Array_virt2real(tokenizer->frame.concatArray, tp->value);
+    Tokenizer_concat_to_token(tokenizer, concat, token);
     token->position[0] = position[0];
     token->position[1] = position[1];
     return;
@@ -162,16 +161,16 @@ inline void Tokenizer_next_in_tokens(Tokenizer *tokenizer, Token * const token) 
   token->position[0] = position[0];
   token->position[1] = position[1];
 }
-void Tokenizer_concat_to_token(Tokenizer *tokenizer, Concat *concat, Token * const token) {
-  const Token * *tokens = Array_first_real(concat);
+void Tokenizer_concat_to_token(Tokenizer *tokenizer, const Concat *concat, Token * const token) {
+  const Token *tokens = Array_first_real(concat);
   const uint32_t count = Array_length(concat);
 
   // push strings to ident_array
   Array *ident_array = Array_new(sizeof(char_t), enum_IDENTIFIER, tokenizer->allocator);
-  for (uint32_t i = 0; i < count; i ++) {
-    const Token *tp = tokens[i];
-    if (tokens[i]->type == enum_PLACE_HOLDER) {
-      const uint32_t index = (uint32_t) (uint64_t) tokens[i]->value;
+  for (uint32_t i = 0; i < count; i++) {
+    const Token *tp = &tokens[i];
+    if (tokens[i].type == enum_PLACE_HOLDER) {
+      const uint32_t index = (uint32_t) (uint64_t) tokens[i].value;
       MacroArg *arg = Array_real_addr(tokenizer->frame.args, index);
       tp = arg->target;
     }
@@ -196,6 +195,8 @@ void Tokenizer_concat_to_token(Tokenizer *tokenizer, Concat *concat, Token * con
     Array_append(tokenizer->ident_array, "\0", 1);
     Trie_set(tokenizer->ident_trie, sym_str, v_sym);
   }
+
+  releasePrimeArray(ident_array);
   token->type = enum_IDENTIFIER;
   token->value = v_sym;
 }

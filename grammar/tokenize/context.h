@@ -42,6 +42,7 @@ typedef struct MacroContext {
 
   MacroParams *current_params;
   MacroArgs *current_args;
+  Array *current_concatArray;  // Array<Concat>
   bool end_parse;
   bool in_macro;
   uint32_t depth;

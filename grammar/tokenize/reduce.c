@@ -42,11 +42,13 @@ Macro *p_Macro_0(Token argv[], MacroContext *context, const Allocator *) {
   MacroParams *params = (MacroParams *) argv[3].value;
   Tokens *tokens = (Tokens *) argv[6].value;
 
+  if (MacroContext_findMacro(context, ident)) { return nullptr; }
+
   params = (params == (void *) enum_MacroParams) ? nullptr : params;
 
-  Macro macro = {.name = ident, .params = params, .tokens = tokens};
-
-  if (MacroContext_findMacro(context, ident)) { return nullptr; }
+  Macro macro = {
+      .name = ident, .params = params, .tokens = tokens, .concatArray = context->current_concatArray
+  };
 
   return MacroContext_addMacro(context, &macro);
 }
@@ -118,7 +120,7 @@ MacroCall *p_MacroCall_0(Token argv[], MacroContext *context, const Allocator *)
 
   context->current_args = args;
 
-  return (void *) enum_MacroParams;
+  return (void *) enum_MacroCall;
 }
 
 MacroParams *p_MacroParams_0(Token argv[], MacroContext *, const Allocator *) {
@@ -168,19 +170,21 @@ Tokens *p_Tokens_0(Token argv[], MacroContext *context, const Allocator *allocat
   return tokens;
 }
 
-Tokens *p_Tokens_1(Token argv[], MacroContext *, const Allocator *) {
+Tokens *p_Tokens_1(Token argv[], MacroContext *context, const Allocator *) {
   Tokens *tokens = (Tokens *) argv[0].value;
   Concat *_concat = (Concat *) argv[1].value;
 
-  const Token * *first = Array_first_real(_concat);
-  const Token * *last = Array_last_real(_concat);
+  Array_append(context->current_concatArray, _concat, 1);
+  const Token *first = Array_first_real(_concat);
+  const Token *last = Array_last_real(_concat);
   Token token = {
       .type = enum_Concat,
-      .value = _concat,
-      .position = {(*first)->position[0], (*last)->position[1]}
+      .value = Array_last_virt(context->current_concatArray),
+      .position = {first->position[0], last->position[1]}
   };
 
   Array_append(tokens, &token, 1);
+  Array_destroy(_concat);
 
   return tokens;
 }
@@ -197,19 +201,21 @@ Tokens *p_Tokens_2(Token argv[], MacroContext *context, const Allocator *allocat
   return tokens;
 }
 
-Tokens *p_Tokens_3(Token argv[], MacroContext *, const Allocator *allocator) {
+Tokens *p_Tokens_3(Token argv[], MacroContext *context, const Allocator *allocator) {
   Concat *_concat = (Concat *) argv[0].value;
 
-  const Token * *first = Array_first_real(_concat);
-  const Token * *last = Array_last_real(_concat);
+  Array_append(context->current_concatArray, _concat, 1);
+  const Token *first = Array_first_real(_concat);
+  const Token *last = Array_last_real(_concat);
   Token token = {
       .type = enum_Concat,
-      .value = _concat,
-      .position = {(*first)->position[0], (*last)->position[1]}
+      .value = Array_last_virt(context->current_concatArray),
+      .position = {first->position[0], last->position[1]}
   };
 
   Tokens *tokens = Array_new(sizeof(Token), enum_TOKEN, allocator);
   Array_append(tokens, &token, 1);
+  Array_destroy(_concat);
 
   return tokens;
 }
@@ -221,18 +227,22 @@ Concat *p_Concat_0(Token argv[], MacroContext *context, const Allocator *allocat
   identToPlaceHolder(left);
   identToPlaceHolder(right);
 
-  Concat *_concat = Array_new(sizeof(Token *), enum_TOKEN, allocator);
-  Array_append(_concat, &left, 1);
-  Array_append(_concat, &right, 1);
+  Concat *_concat = Array_new(sizeof(Token), enum_TOKEN, allocator);
+  Array_append(_concat, left, 1);
+  Array_append(_concat, right, 1);
+  allocator->free(left);
+  allocator->free(right);
   return _concat;
 }
 
-Concat *p_Concat_1(Token argv[], MacroContext *context, const Allocator *) {
+Concat *p_Concat_1(Token argv[], MacroContext *context, const Allocator *allocator) {
   Concat *_concat = argv[0].value;
   Token *token = argv[2].value;
 
   identToPlaceHolder(token);
 
-  Array_append(_concat, &token, 1);
+  Array_append(_concat, token, 1);
+  allocator->free(token);
+
   return _concat;
 }

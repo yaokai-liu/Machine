@@ -82,7 +82,7 @@ constexpr char_t MACHINE_NEW_DEC[] = "Machine *Machine_new(const Allocator *allo
 constexpr char_t MACHINE_DESTROY_DEC[] = "void Machine_destroy(Machine *machine);\n";
 constexpr char_t USE_MACHINE_DEC[] = "void useMachine(Machine *machine);\n";
 constexpr char_t ENCODING_INSTR_DEC[] =
-    "// Note: arguments of this function must be ended with an EOI.\n"
+    "// Notice: arguments of this function must end with an EOI.\n"
     "uint32_t encodingInstr(Array *buffer, uint32_t instr, ...);\n";
 
 constexpr char_t INSTR_ENUM_HEAD[] = "enum INSTR_ENUM {\n";

@@ -206,6 +206,7 @@ macro primary_instr_rv_rv(code) {
       };
     };
 }
+
 macro primary_instr_m8_r8(code) {
     [REFb a, gpr8 b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
@@ -224,6 +225,7 @@ macro primary_instr_m8_r8(code) {
       };
     };
 }
+
 macro primary_instr_mv_rv(code) {
     [REFv a, Gv b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
@@ -243,6 +245,7 @@ macro primary_instr_mv_rv(code) {
       };
     };
 }
+
 macro primary_instr_r8_m8(code) {
     [gpr8 a, REFb b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
@@ -411,6 +414,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
   primary_instr(sbb, 0x18)
   primary_instr(sub, 0x28)
   primary_instr(cmp, 0x38)
+
   primary_instr(mov, 0x88)
 
   primary_instr_rev(radd, 0x02)
@@ -421,6 +425,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
   primary_instr_rev(rsbb, 0x1a)
   primary_instr_rev(rsub, 0x2a)
   primary_instr_rev(rcmp, 0x3a)
+
   primary_instr_rev(rmov, 0x8a)
 
   primary_instr_imm(addi, 0x04, 0)
@@ -431,7 +436,6 @@ macro primary_instr_imm(name, code, gpr1_id) {
   primary_instr_imm(sbbi, 0x1c, 3)
   primary_instr_imm(subi, 0x2c, 5)
   primary_instr_imm(cmpi, 0x3c, 7)
-
 
   primary_instr(test, 0x84)
 
@@ -720,6 +724,9 @@ macro primary_instr_imm(name, code, gpr1_id) {
 
   instruction ret {
     [] = { opcode: [8] = 0xc3; };
-    [Iw a] = { opcode: [8] = 0xc2; addr: [16] = a; };
+    [Iw a] = {
+      opcode: [8] = 0xc2;
+      offset: [16] = a;
+    };
   };
 };

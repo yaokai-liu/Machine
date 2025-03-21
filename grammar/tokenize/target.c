@@ -28,23 +28,38 @@
 #include "target.h"
 #include <string.h>
 
+void MacroCallFrame_init(MacroCallFrame *frame) {
+  frame->concatArray = nullptr;
+  frame->macroName = nullptr;
+  frame->tokens = nullptr;
+  frame->args = nullptr;
+  frame->index = 0;
+}
+
 void releaseMacro(Macro *macro, const Allocator *) {
   releasePrimeArray(macro->params);
   releasePrimeArray(macro->tokens);
+  Array_reset(macro->concatArray, (destruct_t *) releaseConcat);
+  Array_destroy(macro->concatArray);
 }
 
 void releaseMacroArg(MacroArg *arg, const Allocator *allocator) {
-  allocator->free(arg->target);
+  if (arg->type == enum_Tokens) {
+    releasePrimeArray(arg->target);
+  } else {
+    allocator->free(arg->target);
+  }
   arg->target = nullptr;
 }
 
 void releaseMacroToken(Token *token, const Allocator *allocator) {
   switch (token->type) {
-    case enum_MACRO: {
+    case enum_Macro: {
       releaseMacro(token->value, allocator);
       allocator->free(token->value);
       break;
     }
+    case enum_Concat:
     case enum_Tokens:
     case enum_MacroParams: {
       releasePrimeArray(token->value);
@@ -57,4 +72,8 @@ void releaseMacroToken(Token *token, const Allocator *allocator) {
     default: {
     }
   }
+}
+
+void releaseConcat(Concat *concat, const Allocator *) {
+  Array_reset(concat, nullptr);
 }
