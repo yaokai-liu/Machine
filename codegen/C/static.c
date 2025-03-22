@@ -150,9 +150,9 @@ constexpr char_t CONVERT_INSTR_TO_BYTES_DEF[] =
     "  return state->fn_encoding(buffer, entries);\n"
     "}\n";
 
-#define ctx_push_string(type, s)                                                     \
-  do {                                                                               \
-    Array_append(Generator_getOutputBuffer(generator, GenBuf_##type), s, strlen(s)); \
+#define ctx_push_string(type, s)                                                   \
+  do {                                                                             \
+    Array_append(Generator_getOutputBuffer(generator, GenC_##type), s, strlen(s)); \
   } while (false)
 
 #define push_string(s) \
@@ -168,7 +168,7 @@ void gen_static_definitions(Generator *generator, const Machine *machine) {
     name = Array_virt2real(generator->ident_array, machine->name);
   }
   sprintf(temp_buffer, INCLUDES, name);
-  Array * const out_buffer = Generator_getOutputBuffer(generator, GenBuf_includes);
+  Array * const out_buffer = Generator_getOutputBuffer(generator, GenC_includes);
   const char_t *filename = "";
   if (generator->headpath) {
     filename = strrchr(generator->headpath, '/');

@@ -155,18 +155,18 @@ int main(int argc, char *argv[]) {
 
   file = fopen(headpath, "w");
   if (!file) { return -1; }
-  print(GenBuf_exports);
+  print(GenC_exports);
   fclose(file);
 
   file = fopen(libpath, "w");
   if (!file) { return -1; }
-  print(GenBuf_includes);
-  print(GenBuf_macros);
-  print(GenBuf_enums);
-  print(GenBuf_types);
-  print(GenBuf_declares);
-  print(GenBuf_definitions);
-  print(GenBuf_tables);
+  print(GenC_includes);
+  print(GenC_macros);
+  print(GenC_enums);
+  print(GenC_types);
+  print(GenC_declares);
+  print(GenC_definitions);
+  print(GenC_tables);
   fclose(file);
 
   fprintf(stdout, "time cost: %fms\n", (double) (end - start) / CLOCKS_PER_SEC * 1000);

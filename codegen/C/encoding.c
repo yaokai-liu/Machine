@@ -55,9 +55,9 @@ constexpr char_t ENCODING_NAME_FMT[] = "encoding_%s_%u";
 
 #define ctx_ident_real(ptr) Array_virt2real(ident_array, ptr)
 
-#define ctx_push_string(type, s)                                                     \
-  do {                                                                               \
-    Array_append(Generator_getOutputBuffer(generator, GenBuf_##type), s, strlen(s)); \
+#define ctx_push_string(type, s)                                                   \
+  do {                                                                             \
+    Array_append(Generator_getOutputBuffer(generator, GenC_##type), s, strlen(s)); \
   } while (false)
 
 #define _push_string(buffer, s) \
@@ -156,8 +156,8 @@ void gen_instr_exec(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
-  Array *dec_buffer = Generator_getOutputBuffer(generator, GenBuf_declares);
-  Array *def_buffer = Generator_getOutputBuffer(generator, GenBuf_definitions);
+  Array *dec_buffer = Generator_getOutputBuffer(generator, GenC_declares);
+  Array *def_buffer = Generator_getOutputBuffer(generator, GenC_definitions);
   Array *encoding_dec_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
   Array *encoding_def_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
 

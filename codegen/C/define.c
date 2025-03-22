@@ -36,9 +36,9 @@
 
 #define ctx_ident_real(ptr) Array_virt2real(ident_array, ptr)
 
-#define ctx_push_string(type, s)                                                     \
-  do {                                                                               \
-    Array_append(Generator_getOutputBuffer(generator, GenBuf_##type), s, strlen(s)); \
+#define ctx_push_string(type, s)                                                   \
+  do {                                                                             \
+    Array_append(Generator_getOutputBuffer(generator, GenC_##type), s, strlen(s)); \
   } while (false)
 
 #define _push_string(buffer, s) \
@@ -91,7 +91,7 @@ void gen_enum_item(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256] = {};
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
-  Array *buffer = Generator_getOutputBuffer(generator, GenBuf_enums);
+  Array *buffer = Generator_getOutputBuffer(generator, GenC_enums);
   push_string("enum ENTRY_TYPE_ENUM {\n");
   push_string("  enum_NONE,\n");
   gen_type_enum_item(Memory, MEM, mem);
@@ -218,7 +218,7 @@ void gen_context_dec(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
-  Array *buffer = Generator_getOutputBuffer(generator, GenBuf_exports);
+  Array *buffer = Generator_getOutputBuffer(generator, GenC_exports);
   push_string("extern const Entry *const EOI;\n");
   gen_mem_dec(context, ident_array, buffer);
   gen_imm_sprintf(IMM_DEC_FMT, ctx_ident_real(entries[i].name));
@@ -232,7 +232,7 @@ void gen_context_def(Generator *generator, const Machine *machine) {
   char_t temp_buffer[1024] = {};
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
-  Array *buffer = Generator_getOutputBuffer(generator, GenBuf_definitions);
+  Array *buffer = Generator_getOutputBuffer(generator, GenC_definitions);
 
   push_string("static const Entry Entry_EOI = { .type = enum_NONE, .value = 0x0 };\n");
   gen_reg_sprintf(
@@ -315,7 +315,7 @@ void gen_set_grp_jump_table(Generator *generator, const Machine *machine) {
   _push_string(val_buffer, "};\n");
   _push_string(sta_buffer, "};\n");
 
-  Array *buffer = Generator_getOutputBuffer(generator, GenBuf_definitions);
+  Array *buffer = Generator_getOutputBuffer(generator, GenC_definitions);
   Array_concat(buffer, val_buffer);
   Array_concat(buffer, sta_buffer);
   releasePrimeArray(val_buffer);

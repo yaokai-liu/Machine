@@ -112,18 +112,18 @@ int main() {
 
   //  pFile = fopen("machine-x64.h", "w");
   //  if (!pFile) { return -1; }
-  //  print(GenBuf_exports);
+  //  print(GenC_exports);
   //  fclose(pFile);
   //
   //  pFile = fopen("machine-x64.c", "w");
   //  if (!pFile) { return -1; }
-  //  print(GenBuf_includes);
-  //  print(GenBuf_macros);
-  //  print(GenBuf_enums);
-  //  print(GenBuf_types);
-  //  print(GenBuf_declares);
-  //  print(GenBuf_definitions);
-  //  print(GenBuf_tables);
+  //  print(GenC_includes);
+  //  print(GenC_macros);
+  //  print(GenC_enums);
+  //  print(GenC_types);
+  //  print(GenC_declares);
+  //  print(GenC_definitions);
+  //  print(GenC_tables);
   //  fclose(pFile);
   //
   //  printf("time cost: %fms\n", (double) (end - start) / CLOCKS_PER_SEC * 1000);

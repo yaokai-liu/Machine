@@ -44,15 +44,28 @@ typedef struct Generator {
   Array /*<char_t>*/ *buffers[16];
 } Generator;
 
-enum Gen_ByteBuffer {
-  GenBuf_exports,
-  GenBuf_includes,
-  GenBuf_macros,
-  GenBuf_enums,
-  GenBuf_types,
-  GenBuf_declares,
-  GenBuf_definitions,
-  GenBuf_tables
+enum GenC_ByteBuffer {
+  GenC_exports,
+  GenC_includes,
+  GenC_macros,
+  GenC_enums,
+  GenC_types,
+  GenC_declares,
+  GenC_definitions,
+  GenC_tables
+};
+
+enum GenElf_ByteBuffer {
+  GenElf_bss,
+  GenElf_data,
+  GenElf_rodata,
+  GenElf_text,
+  GenElf_comment,
+  GenElf_rel,
+  GenElf_rela,
+  GenElf_strtab,
+  GenElf_symtab,
+  GenElf_exports
 };
 
 typedef struct Generator Generator;
