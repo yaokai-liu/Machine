@@ -67,9 +67,9 @@ MacroArg *p_MacroArg_1(Token argv[], MacroContext *, const Allocator *allocator)
 
   MacroArg *arg = allocator->calloc(1, sizeof(MacroArg));
   Token *tp = allocator->calloc(1, sizeof(Token));
-  allocator->memcpy(tp, token, sizeof(Token));
   arg->type = enum_IDENTIFIER;
   arg->target = tp;
+  *tp = *token;
 
   return arg;
 }
@@ -79,9 +79,9 @@ MacroArg *p_MacroArg_2(Token argv[], MacroContext *, const Allocator *allocator)
 
   MacroArg *arg = allocator->calloc(1, sizeof(MacroArg));
   Token *tp = allocator->calloc(1, sizeof(Token));
-  allocator->memcpy(tp, token, sizeof(Token));
   arg->type = enum_NUMBER;
   arg->target = tp;
+  *tp = *token;
 
   return arg;
 }

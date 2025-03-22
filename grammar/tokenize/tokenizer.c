@@ -191,8 +191,7 @@ void Tokenizer_concat_to_token(Tokenizer *tokenizer, const Concat *concat, Token
   if (!v_sym) {
     // add an identifier record
     v_sym = ((char_t *) Array_last_virt(tokenizer->ident_array)) + 1;
-    Array_append(tokenizer->ident_array, sym_str, strlen(sym_str));
-    Array_append(tokenizer->ident_array, "\0", 1);
+    Array_concat(tokenizer->ident_array, ident_array);
     Trie_set(tokenizer->ident_trie, sym_str, v_sym);
   }
 
@@ -277,7 +276,8 @@ inline uint32_t Tokenizer_macro_next(Tokenizer *tokenizer, Token * const token, 
   }
 
   Token *tp = tokenizer->allocator->calloc(1, sizeof(Token));
-  tokenizer->allocator->memcpy(tp, token, sizeof(Token));
+  *tp = *token;
+
   token->type = enum_TOKEN;
   token->value = tp;
   return cost;
@@ -362,7 +362,7 @@ inline uint32_t Tokenizer_parse(Tokenizer *tokenizer, Token * const token, ErrIn
       // never be touched
     }
   }
-  allocator->memcpy(token, &result, sizeof(Token));
+  *token = result;
   Stack_clear(token_stack);
   Stack_clear(state_stack);
   allocator->free(token_stack);
