@@ -47,8 +47,8 @@ macro mmx_register(name, code) {
    };
 }
 macro xmm_register(name, code) {
-   register g`name [64-bit] {
-     name: [63-0] = code;
+   register g`name [128-bit] {
+     name: [127-0] = code;
    };
 }
   mmx_register(mm0, 0)
@@ -76,43 +76,43 @@ macro xmm_register(name, code) {
   xmm_register(xmm14, 14)
   xmm_register(xmm15, 15)
 
-macro functional_register(prefix, name, code) {
-  register g`prefix`name [64-bit] {
-    prefix`name: [63-0] = code;
+macro functional_register(name, code) {
+  register g`name [64-bit] {
+    name: [63-0] = code;
   };
 }
-  functional_register(c, r0 , 0 )
-  functional_register(c, r1 , 1 )
-  functional_register(c, r2 , 2 )
-  functional_register(c, r3 , 3 )
-  functional_register(c, r4 , 4 )
-  functional_register(c, r5 , 5 )
-  functional_register(c, r6 , 6 )
-  functional_register(c, r7 , 7 )
-  functional_register(c, r8 , 8 )
-  functional_register(c, r9 , 9 )
-  functional_register(c, r10, 10)
-  functional_register(c, r11, 11)
-  functional_register(c, r12, 12)
-  functional_register(c, r13, 13)
-  functional_register(c, r14, 14)
-  functional_register(c, r15, 15)
-  functional_register(d, r0 , 0 )
-  functional_register(d, r1 , 1 )
-  functional_register(d, r2 , 2 )
-  functional_register(d, r3 , 3 )
-  functional_register(d, r4 , 4 )
-  functional_register(d, r5 , 5 )
-  functional_register(d, r6 , 6 )
-  functional_register(d, r7 , 7 )
-  functional_register(d, r8 , 8 )
-  functional_register(d, r9 , 9 )
-  functional_register(d, r10, 10)
-  functional_register(d, r11, 11)
-  functional_register(d, r12, 12)
-  functional_register(d, r13, 13)
-  functional_register(d, r14, 14)
-  functional_register(d, r15, 15)
+  functional_register(cr0 , 0 )
+  functional_register(cr1 , 1 )
+  functional_register(cr2 , 2 )
+  functional_register(cr3 , 3 )
+  functional_register(cr4 , 4 )
+  functional_register(cr5 , 5 )
+  functional_register(cr6 , 6 )
+  functional_register(cr7 , 7 )
+  functional_register(cr8 , 8 )
+  functional_register(cr9 , 9 )
+  functional_register(cr10, 10)
+  functional_register(cr11, 11)
+  functional_register(cr12, 12)
+  functional_register(cr13, 13)
+  functional_register(cr14, 14)
+  functional_register(cr15, 15)
+  functional_register(dr0 , 0 )
+  functional_register(dr1 , 1 )
+  functional_register(dr2 , 2 )
+  functional_register(dr3 , 3 )
+  functional_register(dr4 , 4 )
+  functional_register(dr5 , 5 )
+  functional_register(dr6 , 6 )
+  functional_register(dr7 , 7 )
+  functional_register(dr8 , 8 )
+  functional_register(dr9 , 9 )
+  functional_register(dr10, 10)
+  functional_register(dr11, 11)
+  functional_register(dr12, 12)
+  functional_register(dr13, 13)
+  functional_register(dr14, 14)
+  functional_register(dr15, 15)
 
   register ip [64-bit] {
     eip: [32-0] = 0;
