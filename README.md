@@ -46,6 +46,10 @@ and an executable file named `machine-c` in it.
 
 Then write some script to experience it!
 
+## Presets
+
+[x86_64](preset/x64): prefabricated machine script for x86_64 architecture.
+
 ## Grammar of machine script
 
 The assembler is supposed to be defined with a special text grammar.
@@ -263,12 +267,17 @@ An identifier is a text string consists with letters, digits or `_`, but starts 
 
 #### pattern of instruction form
 
-A pattern of an InstructionForm is consist of identifiers seperated with comma and bracketed with `[` and `]`.
-Items of a pattern called arguments or parameters.
+A pattern of an instruction form is consist of identifiers seperated with comma and bracketed with `[` and `]`.
+Items of a pattern are called parameters. Every parameter has two part: type and name.
+
+Type of parameter can be a register, a register group, a set, an immediate or a memory.
+
+Name of parameter commonly is an identifier, but it should not be any other record's name, 
+also not be other same pattern parameter's name.
 
 Example
 ```
-[ax, local, bx]
+[ax a, local b, bx c]
 ```
 the order of the parameters does matter.
 
@@ -278,13 +287,19 @@ The machine entries grammar is:
 ```
 Machine = MACHINE IDENTIFIER LEFT_BRACKET Entries RIGHT_BRACKET SEMICOLON;
 Entries = Entries Entry | Entry;
-Entry = RegisterGroup | Instruction | Memory | Immediate | Set;
+Entry = RegisterGroup | Instruction | Memory | Immediate | EntrySet;
 
 RegisterGroup = REGISTER IDENTIFIER WIDTH LEFT_BRACKET Registers RIGHT_BRACKET SEMICOLON;
 Memory = MEMORY IDENTIFIER WIDTH LEFT_BRACKET MemItems RIGHT_BRACKET SEMICOLON;
 Instruction = INSTRUCTION IDENTIFIER LEFT_BRACKET InstrForms RIGHT_BRACKET SEMICOLON;
 Immediate = IMMEDIATE IDENTIFIER WIDTH TYPE SEMICOLON;
-Set = SET IDENTIFIER LEFT_BRACKET SetItems RIGHT_BRACKET SEMICOLON;
+EntrySet = SET IDENTIFIER SetExpr SEMICOLON;
+
+SetExpr = LEFT_PAREN SetExpr RIGHT_PAREN
+        | SetExpr ARITH_2_BIN_OP IDENTIFIER
+        | SetExpr ARITH_2_BIN_OP LEFT_BRACKET SetItems RIGHT_BRACKET
+        | LEFT_BRACKET SetItems RIGHT_BRACKET
+        | IDENTIFIER;
 
 Registers = Registers Register | Register;
 InstrForms = InstrForms InstrForm | InstrForm;
@@ -317,6 +332,7 @@ Condition = AT LEFT_PAREN CondExpr RIGHT_PAREN;
 
 Options = Options COLON Arith_0_Expr | Arith_0_Expr;
 Parameter = IDENTIFIER IDENTIFIER;
+
 ```
 
 and the arithemetic expression grammar is:
@@ -368,7 +384,9 @@ MacroArg = LEFT_BRACKET Tokens RIGHT_BRACKET | IDENTIFIER | NUMBER;
 
 Tokens = Tokens TOKEN | Tokens Concat | TOKEN | Concat;
 
-Concat = TOKEN CONCAT TOKEN;
+Concat = TOKEN CONCAT TOKEN
+       | Concat CONCAT TOKEN;
+
 ```
 
 It is defined in [macro.xnf](https://github.com/yaokai-liu/Xnf/blob/liu-machine/macro.xnf).
