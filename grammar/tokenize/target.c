@@ -37,10 +37,12 @@ void MacroCallFrame_init(MacroCallFrame *frame) {
 }
 
 void releaseMacro(Macro *macro, const Allocator *) {
-  releasePrimeArray(macro->params);
+  if ((uint64_t) macro->params > enum_MacroParams) { releasePrimeArray(macro->params); }
   releasePrimeArray(macro->tokens);
-  Array_reset(macro->concatArray, (destruct_t *) releaseConcat);
-  Array_destroy(macro->concatArray);
+  if (macro->concatArray) {
+    Array_reset(macro->concatArray, (destruct_t *) releaseConcat);
+    Array_destroy(macro->concatArray);
+  }
 }
 
 void releaseMacroArg(MacroArg *arg, const Allocator *allocator) {

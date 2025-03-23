@@ -52,8 +52,9 @@ MacroContext *MacroContext_new(const Allocator *allocator);
 
 REFER(Macro) MacroContext_addMacro(MacroContext *context, Macro *macro);
 REFER(Macro) MacroContext_findMacro(MacroContext *context, REFER(Identifier) ident);
+const Macro *MacroContext_macroReal(MacroContext *context, REFER(Macro) v_macro);
 
-uint32_t MacroContext_getIdentParamIndex(MacroContext *context, Identifier *ident);
+uint32_t MacroContext_getIdentParamIndex(MacroContext *context, const Identifier *ident);
 MacroCallFrame *
     MacroContext_makeFrame(MacroContext *context, MacroCallFrame *frame, REFER(Macro) v_macro);
 

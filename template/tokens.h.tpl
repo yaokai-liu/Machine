@@ -27,9 +27,12 @@
 #define MACHINE_TOKENS_H
 
 #include "char_t.h"
+#include <stdint.h>
 
-enum __TOKEN_TYPE_ENUM__ {
-  ${enums}
+enum TOKEN_TYPE_ENUM: uint32_t {
+  ${enums},
+  enum_PLACE_HOLDER,
+  enum_BAD_TOKEN = UINT32_MAX
 };
 extern const char_t *TOKEN_NAMES[];
 #endif  // MACHINE_TOKENS_H

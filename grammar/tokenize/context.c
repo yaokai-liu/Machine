@@ -70,7 +70,12 @@ inline REFER(Macro) MacroContext_findMacro(MacroContext *context, REFER(Identifi
   return AVLTree_get(context->macroTree, (uint64_t) ident);
 }
 
-inline uint32_t MacroContext_getIdentParamIndex(MacroContext *context, REFER(Identifier) ident) {
+inline const Macro *MacroContext_macroReal(MacroContext *context, REFER(Macro) v_macro) {
+  return Array_virt2real(context->macroArray, v_macro);
+}
+
+inline uint32_t
+    MacroContext_getIdentParamIndex(MacroContext *context, const REFER(Identifier) ident) {
   if (!context->current_params) { return 0; }
   REFER(Identifier) * const idents = Array_first_real(context->current_params);
   const uint32_t count = Array_length(context->current_params);
@@ -106,6 +111,11 @@ void set_end_parse_true(MacroContext *context, void *) {
   context->end_parse = true;
 }
 
+void set_in_parse_false_end_parse_true(MacroContext *context, void *) {
+  context->in_macro = false;
+  context->end_parse = true;
+}
+
 void create_current_concat_array(MacroContext *context, void *) {
   context->current_concatArray = Array_new(sizeof_array, enum_Concat, context->allocator);
   set_in_parse_true(context, nullptr);
@@ -119,6 +129,7 @@ void clear_current_arrays(MacroContext *context, void *) {
 
 fn_ctx_act *macro_get_after_stack_action(uint32_t state) {
   switch (state) {
+    case __MACRO_IDENTIFIER_LEFT_BRACKET:
     case __IDENTIFIER_LEFT_PAREN_LEFT_BRACKET: {
       return set_in_parse_true;
     }
@@ -127,6 +138,9 @@ fn_ctx_act *macro_get_after_stack_action(uint32_t state) {
     }
     case __IDENTIFIER_LEFT_PAREN_LEFT_BRACKET_Tokens_RIGHT_BRACKET: {
       return set_in_parse_false;
+    }
+    case __MACRO_IDENTIFIER_LEFT_BRACKET_Tokens_RIGHT_BRACKET: {
+      return set_in_parse_false_end_parse_true;
     }
     case __IDENTIFIER_LEFT_PAREN_MacroArgs_RIGHT_PAREN:
     case __MACRO_IDENTIFIER_LEFT_PAREN_MacroParams_RIGHT_PAREN_LEFT_BRACKET_Tokens_RIGHT_BRACKET: {

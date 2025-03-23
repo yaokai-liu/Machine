@@ -210,7 +210,7 @@ inline void Tokenizer_enter_macro(Tokenizer *tokenizer, Token * const token, REF
 inline void Tokenizer_try_exit_macro(Tokenizer *tokenizer) {
   while (tokenizer->frame.tokens && tokenizer->frame.index >= Array_length(tokenizer->frame.tokens)
   ) {
-    if (tokenizer->frame.args) {
+    if ((uint64_t) tokenizer->frame.args > enum_MacroArgs) {
       Array_reset(tokenizer->frame.args, (destruct_t *) releaseMacroArg);
       Array_destroy(tokenizer->frame.args);
     }
@@ -229,7 +229,8 @@ inline uint32_t Tokenizer_next(Tokenizer *tokenizer, Token * const token, ErrInf
   if (token->type != enum_IDENTIFIER) { return cost; }
   REFER(Macro) v_macro = MacroContext_findMacro(tokenizer->context, token->value);
   if (!v_macro) { return cost; }
-  cost += Tokenizer_parse(tokenizer, token, err_info);
+  const Macro *macro = MacroContext_macroReal(tokenizer->context, v_macro);
+  if (macro->params) { cost += Tokenizer_parse(tokenizer, token, err_info); }
   Tokenizer_enter_macro(tokenizer, token, v_macro);
   return cost;
 }

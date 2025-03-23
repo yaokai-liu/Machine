@@ -190,7 +190,7 @@ macro primary_instr_r8_r8(code) {
 macro primary_instr_rv_rv(code) {
     [Gv a, Gv b] = {
       @ ( #a == #b );
-      prefix: [8] = 0x66 @ (#a == 16);
+      osoPrefix: [8] = 0x66 @ (#a == 16);
       REX: [8] = {
         [7-4] = 0x4,
         [3-3] = (#a == 64) ?  1 : 0,
@@ -229,7 +229,7 @@ macro primary_instr_m8_r8(code) {
 macro primary_instr_mv_rv(code) {
     [REFv a, Gv b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
-      prefix: [8] = 0x66 @ (b in gpr16);
+      osoPrefix: [8] = 0x66 @ (b in gpr16);
       REX: [8] = {
         [7-4] = 0x4,
         [3-3] = (#b == 64) ?  1 : 0,
@@ -281,7 +281,7 @@ macro primary_instr_r8_m8(code) {
 macro primary_instr_rv_mv(code) {
     [Gv a, REFv b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
-      prefix: [8] = 0x66 @ (a in gpr16);
+      osoPrefix: [8] = 0x66 @ (a in gpr16);
       REX: [8] = {
         [7-4] = 0x4,
         [3-3] = (#a == 64) ?  1 : 0,
@@ -348,7 +348,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
     }
     [Gv a, Iz b] = {
       @ (#a == #b);
-      prefix: [8] = 0x66 @ (a in gpr16);
+      osoPrefix: [8] = 0x66 @ (a in gpr16);
       REX: [8] = {
         [7-4] = 0x4,
         [3-3] = (a in gpr64) ? 1 : 0,
@@ -376,7 +376,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
       imm: [?] = b;
     }
     [Gv a, Ib b] = {
-      prefix: [8] = 0x66 @ (a in gpr16);
+      osoPrefix: [8] = 0x66 @ (a in gpr16);
       REX: [8] = {
         [7-4] = 0x4,
         [3-3] = (a in gpr64) ? 1 : 0,
@@ -471,7 +471,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
         imm: [8] = b;
     }
     [gpr16 a, Iw b] = {
-      prefix: [8] = 0x66;
+      osoPrefix: [8] = 0x66;
       REX: [8] = 0x41 @ (a in gpr16Extend);
       opcode: [8] = 0xb8 + (a - ax) % 8;
       imm: [16] = b;
@@ -499,7 +499,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
       imm: [8] = b;
     }
     [gpr16 a, Iw b] = {
-      prefix: [8] = 0x66;
+      osoPrefix: [8] = 0x66;
       REX: [8] = 0x41 @ (a in gpr8Extend);
       opcode: [8] = 0xc7;
       modRM: [8] = {
@@ -531,12 +531,12 @@ macro primary_instr_imm(name, code, gpr1_id) {
   }
   instruction movsw {
     [rdi a, rsi b] = {
-      prefix: [8] = 0x66;
+      osoPrefix: [8] = 0x66;
       opcode: [8] = 0xa5;
     }
     [edi a, esi b] = {
       asoPrefix: [8] = 0x67;
-      prefix: [8] = 0x66;
+      osoPrefix: [8] = 0x66;
       opcode: [8] = 0xa5;
     }
   }
@@ -572,12 +572,12 @@ macro primary_instr_imm(name, code, gpr1_id) {
   }
   instruction cmpsw {
     [rdi a, rsi b] = {
-      prefix: [8] = 0x66;
+      osoPrefix: [8] = 0x66;
       opcode: [8] = 0xa7;
     }
     [edi a, esi b] = {
       asoPrefix: [8] = 0x67;
-      prefix: [8] = 0x66;
+      osoPrefix: [8] = 0x66;
       opcode: [8] = 0xa7;
     }
   }
@@ -613,12 +613,12 @@ macro primary_instr_imm(name, code, gpr1_id) {
   }
   instruction stosw {
     [rdi a, ax b] = {
-      prefix: [8] = 0x66;
+      osoPrefix: [8] = 0x66;
       opcode: [8] = 0xab;
     }
     [edi a, ax b] = {
       asoPrefix: [8] = 0x67;
-      prefix: [8] = 0x66;
+      osoPrefix: [8] = 0x66;
       opcode: [8] = 0xab;
     }
   }
@@ -675,7 +675,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
       imm: [8] = b;
     }
     [ax a, Iw b] = {
-      prefix: [8] = 0x66;
+      osoPrefix: [8] = 0x66;
       opcode: [8] = 0xa9;
       imm: [16] = b;
     }
@@ -701,7 +701,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
     }
     [Gv a, Gv b] = {
       @ ( #a == #b );
-      prefix: [8] = 0x66 @ (a in gpr16);
+      osoPrefix: [8] = 0x66 @ (a in gpr16);
       REX: [8] = {
         [7-4] = 0x4,
         [3-3] = 1,

@@ -44,10 +44,24 @@ Macro *p_Macro_0(Token argv[], MacroContext *context, const Allocator *) {
 
   if (MacroContext_findMacro(context, ident)) { return nullptr; }
 
-  params = (params == (void *) enum_MacroParams) ? nullptr : params;
-
   Macro macro = {
       .name = ident, .params = params, .tokens = tokens, .concatArray = context->current_concatArray
+  };
+
+  return MacroContext_addMacro(context, &macro);
+}
+
+Macro *p_Macro_1(Token argv[], MacroContext *context, const Allocator *) {
+  Identifier *ident = (Identifier *) argv[1].value;
+  Tokens *tokens = (Tokens *) argv[3].value;
+
+  if (MacroContext_findMacro(context, ident)) { return nullptr; }
+
+  Macro macro = {
+      .name = ident,
+      .params = nullptr,
+      .tokens = tokens,
+      .concatArray = context->current_concatArray
   };
 
   return MacroContext_addMacro(context, &macro);
@@ -116,7 +130,9 @@ MacroCall *p_MacroCall_0(Token argv[], MacroContext *context, const Allocator *)
   REFER(Macro) v_macro = AVLTree_get(context->macroTree, (uint64_t) ident);
   const Macro *macro = Array_virt2real(context->macroArray, v_macro);
   const MacroParams *params = macro->params;
-  if (Array_length(args) != Array_length(params)) { return nullptr; }
+  const uint32_t param_count = ((uint64_t) params > enum_MacroParams) ? Array_length(params) : 0;
+  const uint32_t arg_count = ((uint64_t) args > enum_MacroArgs) ? Array_length(args) : 0;
+  if (arg_count != param_count) { return nullptr; }
 
   context->current_args = args;
 
