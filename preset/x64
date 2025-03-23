@@ -151,6 +151,8 @@ macro functional_register(name, code) {
   set gpr32Extend { r8d, r9d, r10d, r11d, r12d, r13d, r14d, r15d };
   set gpr64Extend { r8, r9, r10, r11, r12, r13, r14, r15 };
 
+  set gprBase { gpr64Base, gpr32Base, gpr16Base, gpr8Base };
+
   set Gv {gpr64, gpr32, gpr16};
   set GExtend {gpr8Extend, gpr16Extend, gpr32Extend, gpr64Extend};
   set GREX { gpr64, GExtend };
@@ -443,6 +445,13 @@ macro primary_instr_imm(name, code, gpr1_id) {
     primary_instr_rv_mv(0x8d)
   }
 
+  instruction xchg {
+    primary_instr_r8_r8(0x86)
+    primary_instr_m8_r8(0x86)
+    primary_instr_rv_rv(0x87)
+    primary_instr_mv_rv(0x87)
+  }
+
   instruction push {
     [gpr64 a] = {
       REX: [8] = 0x41 @ (a in gpr64Extend);
@@ -690,36 +699,19 @@ macro primary_instr_imm(name, code, gpr1_id) {
     }
   }
 
-  instruction xchg {
-    [gpr8 a, gpr8 b] = {
-      opcode: [8] = 0x86;
-      modRM: [8] = {
-        [7-6] = 0b11,
-        [5-3] = b,
-        [2-0] = a
-      };
-    }
-    [Gv a, Gv b] = {
-      @ ( #a == #b );
-      osoPrefix: [8] = 0x66 @ (a in gpr16);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-3] = 1,
-        [2-2] = b[3-3],
-        [1-1] = 0,
-        [0-0] = a[3-3]
-      } @ (a in gpr64);
-      opcode: [8] = 0x87;
-      modRM: [8] = {
-        [7-6] = 0b11,
-        [5-3] = b,
-        [2-0] = a
-      };
-    }
-  }
-
   instruction nop {
     [] = { opcode: [8] = 0x90; }
+  }
+  instruction xchgExtend {
+    [gpr64Extend a, rax b] = {
+      REX: [8] = 0x49;
+      opcode: [8] = 0x90 + a - r8;
+    }
+    [gpr64Base a, rax b] = {
+      @ (a != rax);
+      REX: [8] = 0x48;
+      opcode: [8] = 0x90 + a - rax;
+    }
   }
 
   instruction ret {

@@ -132,6 +132,13 @@ NEW_TEST(test_primary_instr_rv_rv) {
   test_encoding(bytes7, 3, INSTR_rcmp, REG_r10, REG_r13);
   uint8_t bytes8[] = {0x49, 0x8b, 0xea};
   test_encoding(bytes8, 3, INSTR_rmov, REG_r10, REG_rbp);
+  uint8_t bytes9[] = {0x49, 0x87, 0xc0};
+  test_encoding(bytes9, 3, INSTR_xchg, REG_r8, REG_rax);
+  uint8_t bytes10[] = {0x48, 0x93};
+  test_encoding(bytes10, 2, INSTR_xchgExtend, REG_rbx, REG_rax);
+  uint8_t bytes11[] = {0x49, 0x95};
+  test_encoding(bytes11, 2, INSTR_xchgExtend, REG_r13, REG_rax);
+
 
   if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
   return n_failed;
@@ -162,6 +169,8 @@ NEW_TEST(test_primary_instr_m8_r8) {
   test_encoding(bytes9, 4, INSTR_adc, MEM_REFb(REG_r9d), REG_r13b);
   uint8_t bytes10[] = {0x67, 0x45, 0x88, 0x29};
   test_encoding(bytes10, 4, INSTR_mov, MEM_REFb(REG_r9d), REG_r13b);
+  uint8_t bytes11[] = {0x67, 0x45, 0x86, 0x29};
+  test_encoding(bytes11, 4, INSTR_xchg, MEM_REFb(REG_r9d), REG_r13b);
 
   if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
   return n_failed;
@@ -252,6 +261,8 @@ NEW_TEST(test_primary_instr_m64_r64) {
   test_encoding(bytes9, 4, INSTR_sbb, MEM_REFv(REG_r9d), REG_r13);
   uint8_t bytes10[] = {0x67, 0x4d, 0x89, 0x29};
   test_encoding(bytes10, 4, INSTR_mov, MEM_REFv(REG_r9d), REG_r13);
+  uint8_t bytes11[] = {0x67, 0x4d, 0x87, 0x29};
+  test_encoding(bytes11, 4, INSTR_xchg, MEM_REFv(REG_r9d), REG_r13);
 
   if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
   return n_failed;
