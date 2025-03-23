@@ -708,7 +708,26 @@ uint32_t pass_whitespace(const char_t * const input) {
   while (*pText && stridx_o(*pText, " \t\n\f\v\r") < lenof(" \t\n\f\v\r")) { pText++; }
   return pText - input;
 }
-
+uint32_t
+    try_pass_comment(const char * const input, uint32_t * const lineno, uint32_t * const column) {
+  const char *pText = input + 1;
+  if (*pText == '/') {
+    do { pText++; } while (*pText != '\n');
+  } else if (*pText == '*') {
+    pText++;
+    do {
+      while (*pText != '*') {
+        if (*pText == '\n') { (*lineno)++, *column = 1; }
+        pText++;
+      }
+    } while (*(++pText) != '/');
+    pText++;
+  } else {
+    return 0;
+  }
+  *column += pText - input;
+  return pText - input;
+}
 uint32_t pass_space(const char * const input, uint32_t * const lineno, uint32_t * const column) {
   uint32_t l = lineno ? *lineno : 0;
   uint32_t c = column ? *column : 0;
@@ -726,6 +745,13 @@ uint32_t pass_space(const char * const input, uint32_t * const lineno, uint32_t 
       case '\t': {
         c++;
         break;
+      }
+      case '/': {
+        uint32_t passed = try_pass_comment(pText, &l, &c);
+        if (passed) {
+          pText += passed;
+          continue;
+        }
       }
       default: {
         goto __return;

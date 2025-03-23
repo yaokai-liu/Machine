@@ -6,7 +6,7 @@ macro basic_general_purpose_register(name, code, extend_code) {
       name`x: [15-0] = code;
       name`h: [15-8] = extend_code;
       name`l: [07-0] = code;
-  };
+  }
 }
 macro primary_general_purpose_register(name, code) {
   register g`name [64-bit] {
@@ -14,7 +14,7 @@ macro primary_general_purpose_register(name, code) {
     e`name: [31-0] = code;
       name: [15-0] = code;
     name`l: [07-0] = code;
-  };
+  }
 }
 macro extend_general_purpose_register(name, code) {
   register g`name [64-bit] {
@@ -22,7 +22,7 @@ macro extend_general_purpose_register(name, code) {
     name`d: [31-0] = code;
     name`w: [15-0] = code;
     name`b: [07-0] = code;
-  };
+  }
 }
   basic_general_purpose_register(a, 0, 4)
   basic_general_purpose_register(c, 1, 5)
@@ -44,12 +44,12 @@ macro extend_general_purpose_register(name, code) {
 macro mmx_register(name, code) {
    register g`name [64-bit] {
      name: [63-0] = code;
-   };
+   }
 }
 macro xmm_register(name, code) {
    register g`name [128-bit] {
      name: [127-0] = code;
-   };
+   }
 }
   mmx_register(mm0, 0)
   mmx_register(mm1, 1)
@@ -79,7 +79,7 @@ macro xmm_register(name, code) {
 macro functional_register(name, code) {
   register g`name [64-bit] {
     name: [63-0] = code;
-  };
+  }
 }
   functional_register(cr0 , 0 )
   functional_register(cr1 , 1 )
@@ -117,7 +117,7 @@ macro functional_register(name, code) {
   register ip [64-bit] {
     eip: [32-0] = 0;
     rip: [64-0] = 0;
-  };
+  }
 
   immediate Ib[8 ] unsigned;
   immediate Iw[16] unsigned;
@@ -158,16 +158,16 @@ macro functional_register(name, code) {
   set GAddr {gpr64, gpr32} ^ {rsp, rbp, esp, ebp};
   memory REFb [1-byte] {
     reg: [4] = GAddr;
-  };
+  }
 
   memory REFv [1-byte] {
     reg: [4] = GAddr;
-  };
+  }
 
   memory SIBv [1-byte] {
     index: [4] = Gv;
     base: [4] = Gv;
-  };
+  }
 
 macro primary_instr_r8_r8(code) {
     [gpr8 a, gpr8 b] = {
@@ -184,7 +184,7 @@ macro primary_instr_r8_r8(code) {
         [5-3] = b,
         [2-0] = a
       };
-    };
+    }
 }
 
 macro primary_instr_rv_rv(code) {
@@ -204,7 +204,7 @@ macro primary_instr_rv_rv(code) {
         [5-3] = b,
         [2-0] = a
       };
-    };
+    }
 }
 
 macro primary_instr_m8_r8(code) {
@@ -223,7 +223,7 @@ macro primary_instr_m8_r8(code) {
         [5-3] = b,
         [2-0] = a.reg
       };
-    };
+    }
 }
 
 macro primary_instr_mv_rv(code) {
@@ -243,7 +243,7 @@ macro primary_instr_mv_rv(code) {
         [5-3] = b,
         [2-0] = a.reg
       };
-    };
+    }
 }
 
 macro primary_instr_r8_m8(code) {
@@ -262,7 +262,7 @@ macro primary_instr_r8_m8(code) {
         [5-3] = a,
         [2-0] = b.reg
       };
-    };
+    }
     [gpr8h a, REFb b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
       REX: [8] = {
@@ -276,7 +276,7 @@ macro primary_instr_r8_m8(code) {
         [5-3] = a,
         [2-0] = b.reg
       };
-    };
+    }
 }
 macro primary_instr_rv_mv(code) {
     [Gv a, REFv b] = {
@@ -295,7 +295,7 @@ macro primary_instr_rv_mv(code) {
         [5-3] = a,
         [2-0] = b.reg
       };
-    };
+    }
 }
 
 macro primary_instr(name, code) {
@@ -304,7 +304,7 @@ macro primary_instr(name, code) {
     primary_instr_rv_rv({code + 1})
     primary_instr_m8_r8(code)
     primary_instr_mv_rv({code + 1})
-  };
+  }
 }
 macro primary_instr_rev(name, code) {
   instruction name {
@@ -312,7 +312,7 @@ macro primary_instr_rev(name, code) {
     primary_instr_rv_rv({code + 1})
     primary_instr_r8_m8(code)
     primary_instr_rv_mv({code + 1})
-  };
+  }
 }
 
 macro primary_instr_imm(name, code, gpr1_id) {
@@ -320,11 +320,11 @@ macro primary_instr_imm(name, code, gpr1_id) {
     [Ib a] = {
       opcode: [8] = code;
       imm: [8] = a;
-    };
+    }
     [Id a] = {
       opcode: [8] = code + 1;
       imm: [32] = a;
-    };
+    }
     [gpr8 a, Ib b] = {
       REX: [8] = 0x41 @ (a in gpr8Extend);
       opcode: [8] = 0x80;
@@ -334,7 +334,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
         [2-0] = a
       };
       imm: [8] = b;
-    };
+    }
     [REFb a, Ib b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
       REX: [8] = 41 @ (a.reg in GREX);
@@ -345,7 +345,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
         [2-0] = a.reg
       };
       imm: [8] = b;
-    };
+    }
     [Gv a, Iz b] = {
       @ (#a == #b);
       prefix: [8] = 0x66 @ (a in gpr16);
@@ -363,7 +363,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
         [2-0] = a
       };
       imm: [?] = b;
-    };
+    }
     [REFv a, I b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
       REX: [8] = 0x41 @ (a.reg in GExtend);
@@ -374,7 +374,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
         [2-0] = a.reg
       };
       imm: [?] = b;
-    };
+    }
     [Gv a, Ib b] = {
       prefix: [8] = 0x66 @ (a in gpr16);
       REX: [8] = {
@@ -391,7 +391,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
         [2-0] = a
       };
       imm: [8] = b;
-    };
+    }
     [REFv a, Ib b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
       REX: [8] = 0x41 @ (a.reg in GREX);
@@ -402,8 +402,8 @@ macro primary_instr_imm(name, code, gpr1_id) {
         [2-0] = a.reg
       };
       imm: [8] = b;
-    };
-  };
+    }
+  }
 }
 
   primary_instr(add, 0x00)
@@ -441,7 +441,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
 
   instruction lea {
     primary_instr_rv_mv(0x8d)
-  };
+  }
 
   instruction push {
     [gpr64 a] = {
@@ -451,8 +451,8 @@ macro primary_instr_imm(name, code, gpr1_id) {
         [3-3] = 0,
         [2-0] = a[0-2]
       };
-    };
-  };
+    }
+  }
   instruction pop {
     [gpr64 a] = {
       REX: [8] = 0x41 @ (a in gpr64Extend);
@@ -461,32 +461,32 @@ macro primary_instr_imm(name, code, gpr1_id) {
         [3-3] = 1,
         [2-0] = a[0-2]
       };
-    };
-  };
+    }
+  }
 
   instruction movabs {
     [gpr8v a, Ib b] = {
         REX: [8] = 0x41 @ (a in gpr8Extend);
         opcode: [8] = 0xb0 + (a - al) % 8;
         imm: [8] = b;
-    };
+    }
     [gpr16 a, Iw b] = {
       prefix: [8] = 0x66;
       REX: [8] = 0x41 @ (a in gpr16Extend);
       opcode: [8] = 0xb8 + (a - ax) % 8;
       imm: [16] = b;
-    };
+    }
     [gpr32 a, Id b] = {
       REX: [8] = 0x41 @ (a in gpr32Extend);
       opcode: [8] = 0xb8 + (a - eax) % 8;
       imm: [32] = b;
-    };
+    }
     [gpr64 a, Ir b] = {
       REX: [8] = (a in gpr64Extend) ? 0x49 : 0x48;
       opcode: [8] = 0xb8 + (a - rax) % 8;
       imm: [64] = b;
-    };
-  };
+    }
+  }
   instruction movi {
     [gpr8v a, Ib b] = {
       REX: [8] = 0x41 @ (a in gpr8Extend);
@@ -497,7 +497,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
         [0-2] = 0
       };
       imm: [8] = b;
-    };
+    }
     [gpr16 a, Iw b] = {
       prefix: [8] = 0x66;
       REX: [8] = 0x41 @ (a in gpr8Extend);
@@ -508,7 +508,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
         [0-2] = 0
       };
       imm: [32] = b;
-    };
+    }
     [Gv a, Id b] = {
       REX: [8] = (a in gpr64Extend) ? 0x49 : 0x48 @ (a in gpr64);
       opcode: [8] = 0xc7;
@@ -518,138 +518,138 @@ macro primary_instr_imm(name, code, gpr1_id) {
         [0-2] = 0
       };
       imm: [32] = b;
-    };
-  };
+    }
+  }
   instruction movsb {
     [rdi a, rsi b] = {
       opcode: [8] = 0xa4;
-    };
+    }
     [edi a, esi b] = {
       asoPrefix: [8] = 0x67;
       opcode: [8] = 0xa4;
-    };
-  };
+    }
+  }
   instruction movsw {
     [rdi a, rsi b] = {
       prefix: [8] = 0x66;
       opcode: [8] = 0xa5;
-    };
+    }
     [edi a, esi b] = {
       asoPrefix: [8] = 0x67;
       prefix: [8] = 0x66;
       opcode: [8] = 0xa5;
-    };
-  };
+    }
+  }
   instruction movsd {
     [rdi a, rsi b] = {
       opcode: [8] = 0xa5;
-    };
+    }
     [edi a, esi b] = {
       asoPrefix: [8] = 0x67;
       opcode: [8] = 0xa5;
-    };
-  };
+    }
+  }
   instruction movsq {
     [rdi a, rsi b] = {
       REX: [8] = 0x48;
       opcode: [8] = 0xa5;
-    };
+    }
     [edi a, esi b] = {
       asoPrefix: [8] = 0x67;
       REX: [8] = 0x48;
       opcode: [8] = 0xa5;
-    };
-  };
+    }
+  }
 
   instruction cmpsb {
     [rdi a, rsi b] = {
       opcode: [8] = 0xa6;
-    };
+    }
     [edi a, esi b] = {
       asoPrefix: [8] = 0x67;
       opcode: [8] = 0xa6;
-    };
-  };
+    }
+  }
   instruction cmpsw {
     [rdi a, rsi b] = {
       prefix: [8] = 0x66;
       opcode: [8] = 0xa7;
-    };
+    }
     [edi a, esi b] = {
       asoPrefix: [8] = 0x67;
       prefix: [8] = 0x66;
       opcode: [8] = 0xa7;
-    };
-  };
+    }
+  }
   instruction cmpsd {
     [rdi a, rsi b] = {
       opcode: [8] = 0xa7;
-    };
+    }
     [edi a, esi b] = {
       asoPrefix: [8] = 0x67;
       opcode: [8] = 0xa7;
-    };
-  };
+    }
+  }
   instruction cmpsq {
     [rdi a, rsi b] = {
       REX: [8] = 0x48;
       opcode: [8] = 0xa7;
-    };
+    }
     [edi a, esi b] = {
       asoPrefix: [8] = 0x67;
       REX: [8] = 0x48;
       opcode: [8] = 0xa7;
-    };
-  };
+    }
+  }
 
   instruction stosb {
     [rdi a, al b] = {
       opcode: [8] = 0xaa;
-    };
+    }
     [edi a, al b] = {
       asoPrefix: [8] = 0x67;
       opcode: [8] = 0xab;
-    };
-  };
+    }
+  }
   instruction stosw {
     [rdi a, ax b] = {
       prefix: [8] = 0x66;
       opcode: [8] = 0xab;
-    };
+    }
     [edi a, ax b] = {
       asoPrefix: [8] = 0x67;
       prefix: [8] = 0x66;
       opcode: [8] = 0xab;
-    };
-  };
+    }
+  }
   instruction stosd {
     [rdi a, eax b] = {
       opcode: [8] = 0xab;
-    };
+    }
     [edi a, eax b] = {
       asoPrefix: [8] = 0x67;
       opcode: [8] = 0xab;
-    };
-  };
+    }
+  }
   instruction stosq {
     [rdi a, rax b] = {
       REX: [8] = 0x48;
       opcode: [8] = 0xab;
-    };
+    }
     [edi a, rax b] = {
       asoPrefix: [8] = 0x67;
       REX: [8] = 0x48;
       opcode: [8] = 0xab;
-    };
-  };
+    }
+  }
 
   macro jmp_near_imm(name, code) {
       instruction name {
         [Ib a] = {
           opcode: [8] = code;
           imm: [8] = a;
-        };
-      };
+        }
+      }
   }
 
   jmp_near_imm(jo, 0x70)
@@ -673,22 +673,22 @@ macro primary_instr_imm(name, code, gpr1_id) {
     [al a, Ib b] = {
       opcode: [8] = 0xa8;
       imm: [8] = b;
-    };
+    }
     [ax a, Iw b] = {
       prefix: [8] = 0x66;
       opcode: [8] = 0xa9;
       imm: [16] = b;
-    };
+    }
     [eax a, Id b] = {
       opcode: [8] = 0xa9;
       imm: [32] = b;
-    };
+    }
     [rax a, Id b] = {
       REX: [8] = 0x48;
       opcode: [8] = 0xa9;
       imm: [32] = b;
-    };
-  };
+    }
+  }
 
   instruction xchg {
     [gpr8 a, gpr8 b] = {
@@ -698,7 +698,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
         [5-3] = b,
         [2-0] = a
       };
-    };
+    }
     [Gv a, Gv b] = {
       @ ( #a == #b );
       prefix: [8] = 0x66 @ (a in gpr16);
@@ -715,18 +715,18 @@ macro primary_instr_imm(name, code, gpr1_id) {
         [5-3] = b,
         [2-0] = a
       };
-    };
-  };
+    }
+  }
 
   instruction nop {
-    [] = { opcode: [8] = 0x90; };
-  };
+    [] = { opcode: [8] = 0x90; }
+  }
 
   instruction ret {
-    [] = { opcode: [8] = 0xc3; };
+    [] = { opcode: [8] = 0xc3; }
     [Iw a] = {
       opcode: [8] = 0xc2;
       offset: [16] = a;
-    };
-  };
-};
+    }
+  }
+}
