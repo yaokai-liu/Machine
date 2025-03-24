@@ -30,10 +30,10 @@
 
 #include "parse/context.h"
 
-void gen_enum_item(Generator *generator, const Machine *machine);
-void gen_set_grp_jump_table(Generator *generator, const Machine *machine);
+void GenC_gen_enum_item(Generator *generator, const Machine *machine);
+void GenC_gen_set_grp_jump_table(Generator *generator, const Machine *machine);
 
-void gen_context_dec(Generator *generator, const Machine *machine);
-void gen_context_def(Generator *generator, const Machine *machine);
+void GenC_gen_context_dec(Generator *generator, const Machine *machine);
+void GenC_gen_context_def(Generator *generator, const Machine *machine);
 
 #endif  // MACHINE_DEFINE_H

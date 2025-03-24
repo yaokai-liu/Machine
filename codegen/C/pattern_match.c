@@ -29,12 +29,12 @@
 #include "encoding.h"
 #include "generate.h"
 
-void gen_pattern_match(Generator *generator, const Machine *machine) {
+void GenC_gen_pattern_match(Generator *generator, const Machine *machine) {
   ParseContext *context = machine->context;
-  gen_jump_table_dec(generator, machine);
+  GenC_gen_jump_table_dec(generator, machine);
   Array *key_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
   Array *state_buffer = Array_new(sizeof(char_t), -1, GContext_getAllocator(context));
-  gen_jump_table_def(generator, machine, key_buffer, state_buffer);
+  GenC_gen_jump_table_def(generator, machine, key_buffer, state_buffer);
   Array *buffer = Generator_getOutputBuffer(generator, GenC_definitions);
   Array_concat(buffer, key_buffer);
   Array_concat(buffer, state_buffer);

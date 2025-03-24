@@ -36,14 +36,20 @@
 
 int32_t codegen(Generator *generator, const Machine *machine) {
   gen_export_header(generator, machine);
-  gen_static_definitions(generator, machine);
-  gen_context_dec(generator, machine);
-  gen_context_def(generator, machine);
-  gen_pattern_match(generator, machine);
-  gen_enum_item(generator, machine);
-  gen_instr_exec(generator, machine);
-  gen_set_grp_jump_table(generator, machine);
-  gen_driver(generator, machine);
+  gen_export_record_declare(generator, machine);
   gen_export_tail(generator, machine);
+  switch (generator->gen_type) {
+    case GT_C: {
+      GenC_gen_static_definitions(generator, machine);
+      GenC_gen_context_dec(generator, machine);
+      GenC_gen_context_def(generator, machine);
+      GenC_gen_pattern_match(generator, machine);
+      GenC_gen_enum_item(generator, machine);
+      GenC_gen_instr_exec(generator, machine);
+      GenC_gen_set_grp_jump_table(generator, machine);
+      GenC_gen_driver(generator, machine);
+      break;
+    }
+  }
   return 0;
 }

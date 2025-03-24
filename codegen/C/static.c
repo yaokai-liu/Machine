@@ -158,7 +158,7 @@ constexpr char_t CONVERT_INSTR_TO_BYTES_DEF[] =
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
 
-void gen_static_definitions(Generator *generator, const Machine *machine) {
+void GenC_gen_static_definitions(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
   const char_t *name = generator->outname;
   if (name) {
@@ -189,7 +189,7 @@ void gen_static_definitions(Generator *generator, const Machine *machine) {
   ctx_push_string(declares, ENTRY_TYPE_CHECK_DEC);
   ctx_push_string(declares, CONVERT_INSTR_TO_BYTES_DEC);
 }
-void gen_driver(Generator *generator, const Machine *machine) {
+void GenC_gen_driver(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
   sprintf(temp_buffer, MAX_ARGS_FMT, machine->context->maxArgCount);
   ctx_push_string(definitions, temp_buffer);

@@ -27,10 +27,15 @@
 
 #include "generator.h"
 
-Generator *Generator_new(const Array *ident_array, const Allocator *allocator) {
+Generator *Generator_new(
+    enum GEN_TYPE_ENUM gen_type, const Array *ident_array, const Allocator *allocator
+) {
   Generator *generator = allocator->calloc(1, sizeof(Generator));
+  generator->enum_array = Array_new(sizeof(uint32_t), -1, allocator);
+  generator->enum_tree = AVLTree_new(allocator, nullptr);
   generator->ident_array = ident_array;
   generator->allocator = allocator;
+  generator->gen_type = gen_type;
   return generator;
 }
 void Generator_setCopyright(
@@ -56,5 +61,7 @@ void Generator_destroy(Generator *generator) {
   for (uint32_t i = 0; i < 16; i++) {
     if (generator->buffers[i]) { releasePrimeArray(generator->buffers[i]); }
   }
+  if (generator->enum_array) { releasePrimeArray(generator->enum_array); }
+  if (generator->enum_tree) { AVLTree_destroy(generator->enum_tree, nullptr); }
   generator->allocator->free(generator);
 }

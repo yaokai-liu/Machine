@@ -119,16 +119,16 @@ macro functional_register(name, code) {
     rip: [64-0] = 0;
   }
 
-  immediate Ib[8 ] unsigned;
-  immediate Iw[16] unsigned;
-  immediate Id[32] unsigned;
-  immediate Ir[64] unsigned;
+  immediate Ib[8 ] unsigned; // byte
+  immediate Iw[16] unsigned; // word
+  immediate Id[32] unsigned; // doubleword
+  immediate Ir[64] unsigned; // quadword
 
-  set Iz { Id, Iw };
-  set Iv { Ir, Id };
-  set I { Ir, Id, Iw };
+  // doubleword for quadword register
+  immediate Ird[32] unsigned;
 
-  set va { rax, eax, ax };
+  set Iz { Ird, Id, Iw };
+  set Iv { Ir, Id, Iw };
 
   set gpr64 { rax, rcx, rdx, rbx, rsp, rbp, rsi, rdi, r8, r9, r10, r11, r12, r13, r14, r15 };
   set gpr32 { eax, ecx, edx, ebx, esp, ebp, esi, edi, r8d, r9d, r10d, r11d, r12d, r13d, r14d, r15d };
@@ -317,22 +317,34 @@ macro primary_instr_rev(name, code) {
   }
 }
 
-macro primary_instr_imm(name, code, gpr1_id) {
-  instruction name {
+macro primary_instr_imm_ax_iz(code) {
     [Ib a] = {
       opcode: [8] = code;
       imm: [8] = a;
+    }
+    [Iw a] = {
+      osoPrefix: [8] = 0x66;
+      opcode: [8] = code + 1;
+      imm: [16] = a;
     }
     [Id a] = {
       opcode: [8] = code + 1;
       imm: [32] = a;
     }
+    [Ird a] = {
+      REX: [8] = 0x48;
+      opcode: [8] = code + 1;
+      imm: [32] = a;
+    }
+}
+
+macro primary_instr_imm_in_grp1(grp1_id) {
     [gpr8 a, Ib b] = {
       REX: [8] = 0x41 @ (a in gpr8Extend);
       opcode: [8] = 0x80;
       modRM: [8] = {
         [7-6] = 0b11,
-        [5-3] = gpr1_id,
+        [5-3] = grp1_id,
         [2-0] = a
       };
       imm: [8] = b;
@@ -343,12 +355,12 @@ macro primary_instr_imm(name, code, gpr1_id) {
       opcode: [8] = 0x80;
       modRM: [8] = {
         [7-6] = 0b00,
-        [5-3] = gpr1_id,
+        [5-3] = grp1_id,
         [2-0] = a.reg
       };
       imm: [8] = b;
     }
-    [Gv a, Iz b] = {
+    [Gv a, Iv b] = {
       @ (#a == #b);
       osoPrefix: [8] = 0x66 @ (a in gpr16);
       REX: [8] = {
@@ -361,18 +373,18 @@ macro primary_instr_imm(name, code, gpr1_id) {
       opcode: [8] = 0x81;
       modRM: [8] = {
         [7-6] = 0b11,
-        [5-3] = gpr1_id,
+        [5-3] = grp1_id,
         [2-0] = a
       };
       imm: [?] = b;
     }
-    [REFv a, I b] = {
+    [REFv a, Iz b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
       REX: [8] = 0x41 @ (a.reg in GExtend);
       opcode: [8] = 0x81;
       modRM: [8] = {
         [7-6] = 0b00,
-        [5-3] = gpr1_id,
+        [5-3] = grp1_id,
         [2-0] = a.reg
       };
       imm: [?] = b;
@@ -389,7 +401,7 @@ macro primary_instr_imm(name, code, gpr1_id) {
       opcode: [8] = 0x83;
       modRM: [8] = {
         [7-6] = 0b11,
-        [5-3] = gpr1_id,
+        [5-3] = grp1_id,
         [2-0] = a
       };
       imm: [8] = b;
@@ -400,11 +412,17 @@ macro primary_instr_imm(name, code, gpr1_id) {
       opcode: [8] = 0x83;
       modRM: [8] = {
         [7-6] = 0b00,
-        [5-3] = gpr1_id,
+        [5-3] = grp1_id,
         [2-0] = a.reg
       };
       imm: [8] = b;
     }
+}
+
+macro primary_instr_imm(name, code, grp1_id) {
+  instruction name {
+    primary_instr_imm_ax_iz(code)
+    primary_instr_imm_in_grp1(grp1_id)
   }
 }
 
@@ -440,6 +458,10 @@ macro primary_instr_imm(name, code, gpr1_id) {
   primary_instr_imm(cmpi, 0x3c, 7)
 
   primary_instr(test, 0x84)
+
+  instruction testi {
+    primary_instr_imm_ax_iz(0xa8)
+  }
 
   instruction lea {
     primary_instr_rv_mv(0x8d)
@@ -678,30 +700,10 @@ macro primary_instr_imm(name, code, gpr1_id) {
   jmp_near_imm(jle, 0x7e)
   jmp_near_imm(jnle, 0x7f)
 
-  instruction testi {
-    [al a, Ib b] = {
-      opcode: [8] = 0xa8;
-      imm: [8] = b;
-    }
-    [ax a, Iw b] = {
-      osoPrefix: [8] = 0x66;
-      opcode: [8] = 0xa9;
-      imm: [16] = b;
-    }
-    [eax a, Id b] = {
-      opcode: [8] = 0xa9;
-      imm: [32] = b;
-    }
-    [rax a, Id b] = {
-      REX: [8] = 0x48;
-      opcode: [8] = 0xa9;
-      imm: [32] = b;
-    }
-  }
-
   instruction nop {
     [] = { opcode: [8] = 0x90; }
   }
+
   instruction xchgExtend {
     [gpr64Extend a, rax b] = {
       REX: [8] = 0x49;

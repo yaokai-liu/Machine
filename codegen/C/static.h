@@ -30,7 +30,7 @@
 
 #include "gen-export.h"
 
-void gen_static_definitions(Generator *generator, const Machine *machine);
-void gen_driver(Generator *generator, const Machine *machine);
+void GenC_gen_static_definitions(Generator *generator, const Machine *machine);
+void GenC_gen_driver(Generator *generator, const Machine *machine);
 
 #endif  // MACHINE_STATIC_H

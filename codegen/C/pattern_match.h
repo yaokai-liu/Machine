@@ -30,6 +30,6 @@
 
 #include "generate.h"
 #include "parse/context.h"
-void gen_pattern_match(Generator *generator, const Machine *machine);
+void GenC_gen_pattern_match(Generator *generator, const Machine *machine);
 
 #endif  // MACHINE_PATTERN_MATCH_H

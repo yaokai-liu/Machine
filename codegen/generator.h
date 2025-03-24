@@ -29,6 +29,7 @@
 #define MACHINE_GENERATOR_H
 
 #include "array.h"
+#include "avl-tree.h"
 #include "char_t.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -42,10 +43,22 @@ typedef struct Generator {
   const char_t *cr_holder;
   const char_t *year;
   Array /*<char_t>*/ *buffers[16];
+
+  AVLTree /*<Identifier*, uint32_t>*/ *enum_tree;
+  Array /*<uint32_t>*/ *enum_array;
+  uint32_t count_of_single_entries;
+  uint32_t count_of_total_entries;
+  uint32_t gen_type;
 } Generator;
+
+enum GEN_TYPE_ENUM {
+  GT_C,
+  GT_X86_64,
+};
 
 enum GenC_ByteBuffer {
   GenC_exports,
+
   GenC_includes,
   GenC_macros,
   GenC_enums,
@@ -56,6 +69,8 @@ enum GenC_ByteBuffer {
 };
 
 enum GenElf_ByteBuffer {
+  GenElf_exports,
+
   GenElf_bss,
   GenElf_data,
   GenElf_rodata,
@@ -64,12 +79,13 @@ enum GenElf_ByteBuffer {
   GenElf_rel,
   GenElf_rela,
   GenElf_strtab,
-  GenElf_symtab,
-  GenElf_exports
+  GenElf_symtab
 };
 
 typedef struct Generator Generator;
-Generator *Generator_new(const Array *ident_array, const Allocator *allocator);
+Generator *Generator_new(
+    enum GEN_TYPE_ENUM gen_type, const Array *ident_array, const Allocator *allocator
+);
 void Generator_setCopyright(
     Generator *generator, const char_t *outname, const char_t *headpath, const char_t *libpath,
     const char_t *cr_holder, const char_t *year

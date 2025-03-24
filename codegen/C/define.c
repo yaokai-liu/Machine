@@ -26,6 +26,7 @@
  **/
 
 #include "char_t.h"
+#include "declare-fmt.h"
 #include "generate.h"
 #include "generated/tokens.gen.h"
 #include "parse/context.h"
@@ -47,9 +48,6 @@
 #define push_string(s) \
   do { Array_append(buffer, s, strlen(s)); } while (false)
 
-constexpr char_t MEM_DEC_NAME_FMT[] = "const Entry *MEM_%s";
-constexpr char_t IMM_DEC_FMT[] = "const Entry *IMM_%s(uint64_t val);\n";
-constexpr char_t REG_DEC_FMT[] = "extern const Entry *const REG_%s;\n";
 constexpr char_t MEM_DEF_HEAD_FMT[] =
     " {\n"
     "  Entry * entry = &CURRENT_MACHINE->entries[CURRENT_MACHINE->argCount];\n"
@@ -74,7 +72,7 @@ constexpr char_t REG_ENTRY_DEF_FMT[] = "static const Entry Entry_REG_%s = {\n"
                                        "};\n";
 constexpr char_t REG_DEF_FMT[] = "const Entry * const REG_%s = &Entry_REG_%s;\n";
 
-#define gen_type_sprintf(Type, var, ...)                           \
+#define GenC_gen_type_sprintf(Type, var, ...)                      \
   do {                                                             \
     const uint32_t count = Array_length(context->var##Array);      \
     const Type *entries = Array_real_addr(context->var##Array, 0); \
@@ -84,64 +82,23 @@ constexpr char_t REG_DEF_FMT[] = "const Entry * const REG_%s = &Entry_REG_%s;\n"
     }                                                              \
   } while (false)
 
-#define gen_type_enum_item(Type, FMT, var) \
-  gen_type_sprintf(Type, var, "  enum_" #FMT "_%s,\n", ctx_ident_real(entries[i].name))
+#define GenC_gen_type_enum_item(Type, FMT, var) \
+  GenC_gen_type_sprintf(Type, var, "  enum_" #FMT "_%s,\n", ctx_ident_real(entries[i].name))
 
-void gen_enum_item(Generator *generator, const Machine *machine) {
+void GenC_gen_enum_item(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256] = {};
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
   Array *buffer = Generator_getOutputBuffer(generator, GenC_enums);
   push_string("enum ENTRY_TYPE_ENUM {\n");
   push_string("  enum_NONE,\n");
-  gen_type_enum_item(Memory, MEM, mem);
-  gen_type_enum_item(Immediate, IMM, imm);
-  gen_type_enum_item(Register, REG, reg);
+  GenC_gen_type_enum_item(Memory, MEM, mem);
+  GenC_gen_type_enum_item(Immediate, IMM, imm);
+  GenC_gen_type_enum_item(Register, REG, reg);
   push_string("  enum_BEGIN_SET_GRP,\n");
-  gen_type_enum_item(RegisterGroup, GRP, grp);
-  gen_type_enum_item(EntrySet, SET, set);
+  GenC_gen_type_enum_item(RegisterGroup, GRP, grp);
+  GenC_gen_type_enum_item(EntrySet, SET, set);
   push_string("  enum_TYPE_ENUM_UPPER_BOUND\n};\n");
-}
-
-void gen_mem_dec_sprintf(
-    const Memory *mem, const ParseContext *context, const Array *ident_array, char_t *temp_buffer,
-    Array *buffer
-) {
-  sprintf(temp_buffer, MEM_DEC_NAME_FMT, ctx_ident_real(mem->name));
-  push_string(temp_buffer);
-  push_string("(");
-  const uint32_t n_items = Array_length(mem->items);
-  const MemItem *items = Array_real_addr(mem->items, 0);
-  for (uint32_t i = 0; i < n_items; i++) {
-    const Identifier *ident = ctx_ident_real(items[i].name);
-    if (items[i].type) {
-      const Record *record = GContext_findRecord(context, items[i].type);
-      if (record->typeid == enum_Immediate) {
-        sprintf(temp_buffer, "uint64_t *%s", ident);
-      } else {
-        sprintf(temp_buffer, "const Entry *%s", ident);
-      }
-    } else {
-      sprintf(temp_buffer, "uint64_t %s", ident);
-    }
-    push_string(temp_buffer);
-    if (i < n_items - 1) {
-      push_string(", ");
-    } else {
-      push_string(")");
-    }
-  }
-}
-
-void gen_mem_dec(const ParseContext *context, const Array *ident_array, Array *buffer) {
-  char_t temp_buffer[512] = {};
-  const uint32_t count = Array_length(context->memArray);
-  const Memory *memories = Array_real_addr(context->memArray, 0);
-  for (uint32_t i = 0; i < count; i++) {
-    const Memory *mem = &memories[i];
-    gen_mem_dec_sprintf(mem, context, ident_array, temp_buffer, buffer);
-    push_string(";\n");
-  }
 }
 
 const char_t *type_string(uint32_t id) {
@@ -154,13 +111,16 @@ const char_t *type_string(uint32_t id) {
     default: return nullptr;
   }
 }
-
+extern void gen_mem_dec_sprintf(
+    const Memory *mem, const ParseContext *context, const Array *ident_array, char_t *temp_buffer,
+    Array *buffer
+);
 constexpr char_t ENTRY_TYPE_CHECK_FMT[] =
     "  if (!entry_type_check(enum_%s_%s, %s->type)) { return nullptr; }\n";
 constexpr char_t ENTRY_TYPE_ADD_FMT[] = "  entry->subtypes[%u] = %s->type;\n";
 constexpr char_t ENTRY_VALUE_SET_FMT[] = "  number = numSetBits(number, %d, %d, %s->value);\n";
 constexpr char_t VALUE_SET_FMT[] = "  number = numSetBits(number, %d, %d, %s);\n";
-void gen_mem_def_sprintf(
+void GenC_gen_mem_def_sprintf(
     const Memory *mem, const ParseContext *context, const Array *ident_array, char_t *temp_buffer,
     Array *buffer
 ) {
@@ -198,13 +158,13 @@ void gen_mem_def_sprintf(
   }
   push_string(MEM_DEF_TAIL);
 }
-void gen_mem_def(const ParseContext *context, const Array *ident_array, Array *buffer) {
+void GenC_gen_mem_def(const ParseContext *context, const Array *ident_array, Array *buffer) {
   char_t temp_buffer[512] = {};
   const uint32_t count = Array_length(context->memArray);
   const Memory *memories = Array_real_addr(context->memArray, 0);
   for (uint32_t i = 0; i < count; i++) {
     const Memory *mem = &memories[i];
-    gen_mem_def_sprintf(mem, context, ident_array, temp_buffer, buffer);
+    GenC_gen_mem_def_sprintf(mem, context, ident_array, temp_buffer, buffer);
   }
 }
 
@@ -212,23 +172,24 @@ constexpr char_t SET_GRP_VAL_TABLE_DEC_FMT[] = "static const enum ENTRY_TYPE_ENU
                                                "SET_GRP_VAL_TABLE[];\n";
 constexpr char_t SET_GRP_STATE_TABLE_DEC_FMT[] = "static const struct set_grp_jump_state\n"
                                                  "SET_GRP_STATE_TABLE[];\n";
-#define gen_imm_sprintf(...) gen_type_sprintf(Immediate, imm, __VA_ARGS__)
-#define gen_reg_sprintf(...) gen_type_sprintf(Register, reg, __VA_ARGS__)
-void gen_context_dec(Generator *generator, const Machine *machine) {
-  char_t temp_buffer[512] = {};
-  const ParseContext *context = machine->context;
-  const Array *ident_array = generator->ident_array;
-  Array *buffer = Generator_getOutputBuffer(generator, GenC_exports);
-  push_string("extern const Entry *const EOI;\n");
-  gen_mem_dec(context, ident_array, buffer);
-  gen_imm_sprintf(IMM_DEC_FMT, ctx_ident_real(entries[i].name));
-  gen_reg_sprintf(REG_DEC_FMT, ctx_ident_real(entries[i].name));
-
+void GenC_gen_context_dec(Generator *generator, const Machine *) {
   ctx_push_string(declares, SET_GRP_VAL_TABLE_DEC_FMT);
   ctx_push_string(declares, SET_GRP_STATE_TABLE_DEC_FMT);
 }
 
-void gen_context_def(Generator *generator, const Machine *machine) {
+#define gen_record_sprintf(Type, var, ...)                         \
+  do {                                                             \
+    const uint32_t count = Array_length(context->var##Array);      \
+    const Type *entries = Array_real_addr(context->var##Array, 0); \
+    for (uint32_t i = 0; i < count; i++) {                         \
+      sprintf(temp_buffer, __VA_ARGS__);                           \
+      push_string(temp_buffer);                                    \
+    }                                                              \
+  } while (false)
+
+#define gen_imm_sprintf(...) gen_record_sprintf(Immediate, imm, __VA_ARGS__)
+#define gen_reg_sprintf(...) gen_record_sprintf(Register, reg, __VA_ARGS__)
+void GenC_gen_context_def(Generator *generator, const Machine *machine) {
   char_t temp_buffer[1024] = {};
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
@@ -241,7 +202,7 @@ void gen_context_def(Generator *generator, const Machine *machine) {
   );
 
   push_string("const Entry *const EOI = &Entry_EOI;\n");
-  gen_mem_def(context, ident_array, buffer);
+  GenC_gen_mem_def(context, ident_array, buffer);
   gen_imm_sprintf(
       IMM_DEF_FMT, ctx_ident_real(entries[i].name), ctx_ident_real(entries[i].name),
       entries[i].width
@@ -263,9 +224,7 @@ constexpr char_t SET_GRP_STATE_TABLE_HEAD_FMT[] = "static const struct set_grp_j
     _push_string(val_buffer, temp_buffer);                                    \
     break;                                                                    \
   }
-#define gen_grp_sprintf(...) gen_type_sprintf(RegisterGroup, grp, __VA_ARGS__)
-#define gen_set_sprintf(...) gen_type_sprintf(Set, set, __VA_ARGS__)
-void gen_set_grp_jump_table(Generator *generator, const Machine *machine) {
+void GenC_gen_set_grp_jump_table(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;

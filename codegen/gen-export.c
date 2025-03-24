@@ -26,6 +26,7 @@
  **/
 
 #include "gen-export.h"
+#include "declare-fmt.h"
 #include "generator.h"
 #include <stdio.h>
 #include <string.h>
@@ -85,7 +86,7 @@ constexpr char_t ENCODING_INSTR_DEC[] =
     "// Notice: arguments of this function must end with an EOI.\n"
     "uint32_t encodingInstr(Array *buffer, uint32_t instr, ...);\n";
 
-constexpr char_t INSTR_ENUM_HEAD[] = "enum INSTR_ENUM {\n";
+constexpr char_t INSTR_ENUM_HEAD[] = "enum INSTR_ENUM : uint32_t {\n";
 constexpr char_t INSTR_ENUM_ITEM_FNT[] = "  INSTR_%s = %d,\n";
 constexpr char_t INSTR_ENUM_TAIL[] = "};\n";
 
@@ -152,4 +153,73 @@ void gen_export_tail(Generator *generator, const Machine *machine) {
   ;
   sprintf(temp_buffer, EXPORT_TAIL_FMT, name);
   ctx_push_string(exports, temp_buffer);
+}
+
+void gen_mem_dec(const ParseContext *context, const Array *ident_array, Array *buffer);
+void gen_mem_dec_sprintf(
+    const Memory *mem, const ParseContext *context, const Array *ident_array, char_t *temp_buffer,
+    Array *buffer
+);
+#define gen_record_sprintf(Type, var, ...)                         \
+  do {                                                             \
+    const uint32_t count = Array_length(context->var##Array);      \
+    const Type *entries = Array_real_addr(context->var##Array, 0); \
+    for (uint32_t i = 0; i < count; i++) {                         \
+      sprintf(temp_buffer, __VA_ARGS__);                           \
+      push_string(temp_buffer);                                    \
+    }                                                              \
+  } while (false)
+
+#define gen_imm_sprintf(...) gen_record_sprintf(Immediate, imm, __VA_ARGS__)
+#define gen_reg_sprintf(...) gen_record_sprintf(Register, reg, __VA_ARGS__)
+void gen_export_record_declare(Generator *generator, const Machine *machine) {
+  char_t temp_buffer[512] = {};
+  const ParseContext *context = machine->context;
+  const Array *ident_array = generator->ident_array;
+  Array *buffer = Generator_getOutputBuffer(generator, GenC_exports);
+  push_string("extern const Entry *const EOI;\n");
+  gen_mem_dec(context, ident_array, buffer);
+  gen_imm_sprintf(IMM_DEC_FMT, ctx_ident_real(entries[i].name));
+  gen_reg_sprintf(REG_DEC_FMT, ctx_ident_real(entries[i].name));
+}
+
+inline void gen_mem_dec_sprintf(
+    const Memory *mem, const ParseContext *context, const Array *ident_array, char_t *temp_buffer,
+    Array *buffer
+) {
+  sprintf(temp_buffer, MEM_DEC_NAME_FMT, ctx_ident_real(mem->name));
+  push_string(temp_buffer);
+  push_string("(");
+  const uint32_t n_items = Array_length(mem->items);
+  const MemItem *items = Array_real_addr(mem->items, 0);
+  for (uint32_t i = 0; i < n_items; i++) {
+    const Identifier *ident = ctx_ident_real(items[i].name);
+    if (items[i].type) {
+      const Record *record = GContext_findRecord(context, items[i].type);
+      if (record->typeid == enum_Immediate) {
+        sprintf(temp_buffer, "uint64_t *%s", ident);
+      } else {
+        sprintf(temp_buffer, "const Entry *%s", ident);
+      }
+    } else {
+      sprintf(temp_buffer, "uint64_t %s", ident);
+    }
+    push_string(temp_buffer);
+    if (i < n_items - 1) {
+      push_string(", ");
+    } else {
+      push_string(")");
+    }
+  }
+}
+
+void gen_mem_dec(const ParseContext *context, const Array *ident_array, Array *buffer) {
+  char_t temp_buffer[512] = {};
+  const uint32_t count = Array_length(context->memArray);
+  const Memory *memories = Array_real_addr(context->memArray, 0);
+  for (uint32_t i = 0; i < count; i++) {
+    const Memory *mem = &memories[i];
+    gen_mem_dec_sprintf(mem, context, ident_array, temp_buffer, buffer);
+    push_string(";\n");
+  }
 }

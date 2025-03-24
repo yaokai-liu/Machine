@@ -392,6 +392,44 @@ NEW_TEST(test_primary_instr_r64_m64) {
   return n_failed;
 }
 
+NEW_TEST(test_primary_instr_imm_ax_iz) {
+  uint32_t n_failed = 0;
+
+  // test by varying operands
+  uint8_t bytes1[] = {0x04, 0x12};
+  test_encoding(bytes1, 2, INSTR_addi, IMM_Ib(0x12));
+  uint8_t bytes2[] = {0x66, 0x05, 0x12, 0x34};
+  test_encoding(bytes2, 4, INSTR_addi, IMM_Iw(0x3412));
+  uint8_t bytes3[] = {0x05, 0x12, 0x34, 0x56, 0x78};
+  test_encoding(bytes3, 5, INSTR_addi, IMM_Id(0x78563412));
+  uint8_t bytes4[] = {0x48, 0x05, 0x12, 0x34, 0x56, 0x78};
+  test_encoding(bytes4, 6, INSTR_addi, IMM_Ird(0x78563412));
+  // test by varying opcode
+  uint8_t bytes5[] = {0x14, 0x12};
+  test_encoding(bytes5, 2, INSTR_adci, IMM_Ib(0x12));
+  uint8_t bytes6[] = {0x66, 0x15, 0x12, 0x34};
+  test_encoding(bytes6, 4, INSTR_adci, IMM_Iw(0x3412));
+
+  if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
+  return n_failed;
+}
+
+NEW_TEST(test_other_instructions) {
+  uint32_t n_failed = 0;
+
+  uint8_t bytes1[] = {0x90};
+  test_encoding(bytes1, 1, INSTR_nop, EOI);
+  uint8_t bytes2[] = {0xc3};
+  test_encoding(bytes2, 1, INSTR_ret, EOI);
+  uint8_t bytes3[] = {0xc2, 0x44, 0x33}; // little endian byte order
+  test_encoding(bytes3, 3, INSTR_ret, IMM_Iw(0x11223344)); // immediate auto cut off
+  uint8_t bytes4[] = {0x70, 0x11};
+  test_encoding(bytes4, 2, INSTR_jo, IMM_Ib(0x11));
+
+  if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
+  return n_failed;
+}
+
 uint32_t test_primary_instructions(Machine *machine, Array *output_array) {
   uint32_t n_failed = 0;
   add_test(test_memory_model_REF);
@@ -405,6 +443,8 @@ uint32_t test_primary_instructions(Machine *machine, Array *output_array) {
   add_test(test_primary_instr_r16_m16);
   add_test(test_primary_instr_r32_m32);
   add_test(test_primary_instr_r64_m64);
+  add_test(test_primary_instr_imm_ax_iz);
+  add_test(test_other_instructions);
   return n_failed;
 }
 
