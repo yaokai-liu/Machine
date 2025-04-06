@@ -171,23 +171,27 @@ For example, the
 ```
 instruction foo {
     [local aaa, rax bbb] = [10-byte] (4-tick) {
-        ^: [8] = 0x12;
-        &: [8] = aaa.xxx;
-        ~: [32] = {
+        prefix: [8] = 0x12;
+        arguments: [32] = {
             [0-5] = 0x34,
             [31-24] = bbb[13-20],
             [22-11] = aaa.yyy,
             [...] = 0
         }
+        opcode: [8] = aaa.xxx;
     };
 };
 ```
 defines an Instruction `foo` with only one form. The form in binary will be like
 ```
-+--------+------+-----+------------+-+--------+--------+
-|00010010|110100|00000|yyyyyyyyyyyy|0|bbbbbbbb|xxxxxxxx|
-+--------+------+-----+------------+-+--------+--------+
-   0x12    0x34          aaa.yyy        bbb     aaa.xxx
+┌────────┬──────┬─────┬────────────┬─┬────────┬────────┐
+│00010010│110100│00000│yyyyyyyyyyyy│0│bbbbbbbb│xxxxxxxx│
+├────────┼──────┼─────┼────────────┼─┼────────┼────────┤
+│  0x12  │ 0x34 │     │  aaa.yyy   │ │  bbb   │ aaa.xxx│
+├────────┼──────┴─────┴────────────┴─┴────────┼────────┤
+│ prefix │              arguments             │ opcode │
+└────────┴────────────────────────────────────┴────────┘
+
 ```
 and it will cost 4 cpu [time tick](#width-bit-field-and-time-tick) to execute.
 
