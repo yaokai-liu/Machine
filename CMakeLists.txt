@@ -49,16 +49,12 @@ target_include_directories(codegen_C PRIVATE codegen codegen/C)
 aux_source_directory(codegen/elf CODEGEN_ELF_SRC)
 
 aux_source_directory(codegen/elf/x64 CODEGEN_x86_64_SRC)
-add_library(codegen_x86_64 ${CODEGEN_SRC} ${CODEGEN_ELF_SRC} ${CODEGEN_x86_64_SRC})
-target_include_directories(codegen_x86_64 PRIVATE codegen codegen/elf codegen/elf/x64)
+add_library(codegen_elf_x86_64 ${CODEGEN_SRC} ${CODEGEN_ELF_SRC} ${CODEGEN_x86_64_SRC})
+target_include_directories(codegen_elf_x86_64 PRIVATE codegen codegen/elf codegen/elf/x64)
 
-add_executable(machine-c compiler/compile.c)
-target_link_libraries(machine-c PRIVATE grammar codegen_C)
-target_include_directories(machine-c PRIVATE codegen codegen/C)
-
-add_executable(machine-elf compiler/compile.c)
-target_link_libraries(machine-elf PRIVATE grammar codegen_elf)
-target_include_directories(machine-elf PRIVATE codegen codegen/elf)
+add_executable(machine compiler/compile.c)
+target_link_libraries(machine PRIVATE grammar codegen_C codegen_elf_x86_64)
+target_include_directories(machine PRIVATE codegen codegen/C codegen/elf codegen/elf/x64)
 
 add_executable(debug test/debug.c)
 target_link_libraries(debug PRIVATE grammar)

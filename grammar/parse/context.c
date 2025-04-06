@@ -50,9 +50,9 @@ inline ParseContext *GContext_new(const Allocator *allocator) {
   context->setArray = Array_new(sizeof(EntrySet), enum_EntrySet, allocator);
   context->grpArray = Array_new(sizeof(RegisterGroup), enum_RegisterGroup, allocator);
   context->instrArray = Array_new(sizeof(Instruction), enum_Instruction, allocator);
-  context->recordArray = Array_new(sizeof(Record), INT32_MAX - 1, allocator);
-  context->keyArray = Array_new(sizeof(TrieKeyItem), INT32_MAX - 2, allocator);
-  context->stateArray = Array_new(sizeof(TrieNodeItem), INT32_MAX - 3, allocator);
+  context->recordArray = Array_new(sizeof(Record), enum_Record, allocator);
+  context->keyArray = Array_new(sizeof(TrieKeyItem), enum_JumpKey, allocator);
+  context->stateArray = Array_new(sizeof(TrieNodeItem), enum_JumpState, allocator);
   context->recordMap = AVLTree_new(allocator, nullptr);
   context->opcodeMap = AVLTree_new(allocator, nullptr);
   context->widthStack = Stack_new(allocator);

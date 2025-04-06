@@ -30,7 +30,8 @@
 
 #include "generator.h"
 #include "parse/context.h"
-void GenElf_gen_enum_item(Generator *generator, const Machine *machine);
-void GenElf_gen_set_grp_jump_table(Generator *generator, const Machine *machine);
+void GenElf_cache_enum_item(Elf64Generator *generator, const Machine *machine);
+void GenElf_gen_reg_def(Elf64Generator *generator, const Machine *machine);
+void GenElf_gen_set_grp_jump_table(Elf64Generator *generator, const Machine *machine);
 
 #endif  // MACHINE_DEFINE_H

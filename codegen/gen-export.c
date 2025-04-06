@@ -92,9 +92,9 @@ constexpr char_t INSTR_ENUM_TAIL[] = "};\n";
 
 constexpr char_t EXPORT_TAIL_FMT[] = "\n#endif  // MACHINE_%s_H\n";
 
-#define ctx_push_string(type, s)                                                   \
-  do {                                                                             \
-    Array_append(Generator_getOutputBuffer(generator, GenC_##type), s, strlen(s)); \
+#define ctx_push_string(type, s)                                                                   \
+  do {                                                                                             \
+    Array_append(CGenerator_getOutputBuffer((CGenerator *) generator, GenC_##type), s, strlen(s)); \
   } while (false)
 
 #define push_string(s) \
@@ -114,7 +114,7 @@ void gen_license(Generator *generator, Array *buffer, const char_t *filename) {
 
 void gen_export_header(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
-  Array * const out_buffer = Generator_getOutputBuffer(generator, GenC_exports);
+  Array * const out_buffer = CGenerator_getOutputBuffer((CGenerator *) generator, GenC_exports);
   const char_t * const name = Array_virt2real(generator->ident_array, machine->name);
   const char_t *filename;
   if (generator->headpath) {
@@ -176,7 +176,7 @@ void gen_export_record_declare(Generator *generator, const Machine *machine) {
   char_t temp_buffer[512] = {};
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
-  Array *buffer = Generator_getOutputBuffer(generator, GenC_exports);
+  Array *buffer = CGenerator_getOutputBuffer((CGenerator *) generator, GenC_exports);
   push_string("extern const Entry *const EOI;\n");
   gen_mem_dec(context, ident_array, buffer);
   gen_imm_sprintf(IMM_DEC_FMT, ctx_ident_real(entries[i].name));

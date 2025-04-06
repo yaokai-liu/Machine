@@ -37,9 +37,9 @@
 
 #define ctx_ident_real(ptr) Array_virt2real(ident_array, ptr)
 
-#define ctx_push_string(type, s)                                                   \
-  do {                                                                             \
-    Array_append(Generator_getOutputBuffer(generator, GenC_##type), s, strlen(s)); \
+#define ctx_push_string(type, s)                                                                   \
+  do {                                                                                             \
+    Array_append(CGenerator_getOutputBuffer((CGenerator *) generator, GenC_##type), s, strlen(s)); \
   } while (false)
 
 #define _push_string(buffer, s) \
@@ -89,7 +89,7 @@ void GenC_gen_enum_item(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256] = {};
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
-  Array *buffer = Generator_getOutputBuffer(generator, GenC_enums);
+  Array *buffer = CGenerator_getOutputBuffer((CGenerator *) generator, GenC_enums);
   push_string("enum ENTRY_TYPE_ENUM {\n");
   push_string("  enum_NONE,\n");
   GenC_gen_type_enum_item(Memory, MEM, mem);
@@ -193,7 +193,7 @@ void GenC_gen_context_def(Generator *generator, const Machine *machine) {
   char_t temp_buffer[1024] = {};
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
-  Array *buffer = Generator_getOutputBuffer(generator, GenC_definitions);
+  Array *buffer = CGenerator_getOutputBuffer((CGenerator *) generator, GenC_definitions);
 
   push_string("static const Entry Entry_EOI = { .type = enum_NONE, .value = 0x0 };\n");
   gen_reg_sprintf(
@@ -274,7 +274,7 @@ void GenC_gen_set_grp_jump_table(Generator *generator, const Machine *machine) {
   _push_string(val_buffer, "};\n");
   _push_string(sta_buffer, "};\n");
 
-  Array *buffer = Generator_getOutputBuffer(generator, GenC_definitions);
+  Array *buffer = CGenerator_getOutputBuffer((CGenerator *) generator, GenC_definitions);
   Array_concat(buffer, val_buffer);
   Array_concat(buffer, sta_buffer);
   releasePrimeArray(val_buffer);

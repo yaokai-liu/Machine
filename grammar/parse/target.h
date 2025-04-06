@@ -33,6 +33,13 @@
 #include "set.h"
 #include "terminal.h"
 
+enum PARSE_SPECIFIED_OBJECT_ENUM : uint32_t {
+  enum_Record = MAX_TOTAL_TOKEN + 1,
+  enum_JumpKey,
+  enum_JumpState,
+  enum_VInstrFormIndex,
+};
+
 typedef struct Entry {
   uint32_t type;
   REFER(void) target;
@@ -54,8 +61,8 @@ typedef struct Immediate {
 } Immediate;
 
 typedef struct Parameter {
-  Identifier *type;
   Identifier *name;
+  Identifier *type;
   uint32_t used;
 } Parameter;
 

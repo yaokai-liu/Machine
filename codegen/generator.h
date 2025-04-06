@@ -31,6 +31,7 @@
 #include "array.h"
 #include "avl-tree.h"
 #include "char_t.h"
+#include "elf/compositor.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -42,12 +43,6 @@ typedef struct Generator {
   const char_t *libpath;
   const char_t *cr_holder;
   const char_t *year;
-  Array /*<char_t>*/ *buffers[16];
-
-  AVLTree /*<Identifier*, uint32_t>*/ *enum_tree;
-  Array /*<uint32_t>*/ *enum_array;
-  uint32_t count_of_single_entries;
-  uint32_t count_of_total_entries;
   uint32_t gen_type;
 } Generator;
 
@@ -70,6 +65,7 @@ enum GenC_ByteBuffer {
 
 enum GenElf_ByteBuffer {
   GenElf_exports,
+  GenElf_enums,
 
   GenElf_bss,
   GenElf_data,
@@ -77,20 +73,32 @@ enum GenElf_ByteBuffer {
   GenElf_text,
   GenElf_comment,
   GenElf_rel,
-  GenElf_rela,
-  GenElf_strtab,
-  GenElf_symtab
+  GenElf_rela_rodata,
+  GenElf_rela_text,
+  GenElf_symtab,
+  GenElf_strtab
 };
 
 typedef struct Generator Generator;
-Generator *Generator_new(
-    enum GEN_TYPE_ENUM gen_type, const Array *ident_array, const Allocator *allocator
-);
+typedef struct CGenerator CGenerator;
+typedef struct Elf64Generator Elf64Generator;
+
+CGenerator *Generator_new_C(const Array *ident_array, const Allocator *allocator);
+Elf64Generator *Generator_new_elf64(const Array *ident_array, const Allocator *allocator);
+
 void Generator_setCopyright(
     Generator *generator, const char_t *outname, const char_t *headpath, const char_t *libpath,
     const char_t *cr_holder, const char_t *year
 );
-Array *Generator_getOutputBuffer(Generator *generator, uint32_t index);
 void Generator_destroy(Generator *generator);
+
+Array *CGenerator_getOutputBuffer(CGenerator *generator, uint32_t index);
+AVLTree *Elf64Generator_getInstrFormTree(Elf64Generator *generator);
+AVLTree *Elf64Generator_getEnumTree(Elf64Generator *generator);
+Array *Elf64Generator_getEnumArray(Elf64Generator *generator);
+Elf64Compositor *Elf64Generator_getCompositor(Elf64Generator *generator);
+void Elf64Generator_set_cose(Elf64Generator *generator, uint32_t val);
+void Elf64Generator_set_cote(Elf64Generator *generator, uint32_t val);
+uint32_t Elf64Generator_get_sym_index(Elf64Generator *generator, uint64_t v_form_ndx);
 
 #endif  // MACHINE_GENERATOR_H

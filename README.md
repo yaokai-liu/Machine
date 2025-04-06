@@ -170,7 +170,7 @@ The actual layout of these three parts can be numbers, variables, attributes, or
 For example, the
 ```
 instruction foo {
-    [aaa, bbb] = [10-byte] (4-tick) {
+    [local aaa, rax bbb] = [10-byte] (4-tick) {
         ^: [8] = 0x12;
         &: [8] = aaa.xxx;
         ~: [32] = {
@@ -232,7 +232,23 @@ set imm { offset, index, bimp };
 
 Sets only used in Instructions.
 
-### Appendix
+#### Pattern of Instruction Form
+
+A pattern of an instruction form is consist of identifiers seperated with comma and bracketed with `[` and `]`.
+Items of a pattern are called parameters. Every parameter has two part: type and name.
+
+Type of parameter can be a register, a register group, a set, an immediate or a memory.
+
+Name of parameter commonly is an identifier, but it should not be any other record's name,
+also not be other same pattern parameter's name.
+
+Example
+```
+[ax a, local b, bx c]
+```
+the order of the parameters does matter.
+
+### Appendix 1 - Terminal Token
 
 #### width, bit field and time tick
 
@@ -265,23 +281,7 @@ Examples:
 
 An identifier is a text string consists with letters, digits or `_`, but starts with `_` is not allowed.
 
-#### pattern of instruction form
-
-A pattern of an instruction form is consist of identifiers seperated with comma and bracketed with `[` and `]`.
-Items of a pattern are called parameters. Every parameter has two part: type and name.
-
-Type of parameter can be a register, a register group, a set, an immediate or a memory.
-
-Name of parameter commonly is an identifier, but it should not be any other record's name, 
-also not be other same pattern parameter's name.
-
-Example
-```
-[ax a, local b, bx c]
-```
-the order of the parameters does matter.
-
-#### total grammar
+### Appendix 2 - Total Grammar
 
 The machine entries grammar is:
 ```

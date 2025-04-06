@@ -40,12 +40,13 @@
 #include <string.h>
 #include <time.h>
 
-#define print(ndx)                                                                   \
-  do {                                                                               \
-    char_t c = '\0';                                                                 \
-    Array_append(Generator_getOutputBuffer(generator, ndx), &c, 1);                  \
-    char_t *outputs = Array_real_addr(Generator_getOutputBuffer(generator, ndx), 0); \
-    fprintf(file, "%s\n", outputs);                                                  \
+#define print(ndx)                                                                     \
+  do {                                                                                 \
+    char_t c = '\0';                                                                   \
+    Array_append(CGenerator_getOutputBuffer((CGenerator *) generator, ndx), &c, 1);    \
+    char_t *outputs =                                                                  \
+        Array_real_addr(CGenerator_getOutputBuffer((CGenerator *) generator, ndx), 0); \
+    fprintf(file, "%s\n", outputs);                                                    \
   } while (0)
 
 int main(int argc, char *argv[]) {
@@ -128,7 +129,7 @@ int main(int argc, char *argv[]) {
   }
   Array *ident_array = Array_new(sizeof(Identifier), enum_IDENTIFIER, &STDAllocator);
   Tokenizer *tokenizer = Tokenizer_new(text, ident_array, &STDAllocator);
-  Generator *generator = Generator_new(GT_C, ident_array, &STDAllocator);
+  CGenerator *generator = Generator_new_C(ident_array, &STDAllocator);
 
   clock_t start = clock();
 
@@ -148,8 +149,8 @@ int main(int argc, char *argv[]) {
     STDAllocator.free(text);
     return 0;
   }
-  Generator_setCopyright(generator, outname, headpath, libpath, cr_holder, year);
-  codegen(generator, machine);
+  Generator_setCopyright((Generator *) generator, outname, headpath, libpath, cr_holder, year);
+  codegen((Generator *) generator, machine);
 
   clock_t end = clock();
 
@@ -173,7 +174,7 @@ int main(int argc, char *argv[]) {
 
   releaseMachine((Machine *) machine, &STDAllocator);
   STDAllocator.free((void *) machine);
-  Generator_destroy(generator);
+  Generator_destroy((Generator *) generator);
   releasePrimeArray(ident_array);
   Tokenizer_destroy(tokenizer);
   STDAllocator.free(text);

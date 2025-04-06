@@ -139,7 +139,6 @@ NEW_TEST(test_primary_instr_rv_rv) {
   uint8_t bytes11[] = {0x49, 0x95};
   test_encoding(bytes11, 2, INSTR_xchgExtend, REG_r13, REG_rax);
 
-
   if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
   return n_failed;
 }
@@ -421,8 +420,8 @@ NEW_TEST(test_other_instructions) {
   test_encoding(bytes1, 1, INSTR_nop, EOI);
   uint8_t bytes2[] = {0xc3};
   test_encoding(bytes2, 1, INSTR_ret, EOI);
-  uint8_t bytes3[] = {0xc2, 0x44, 0x33}; // little endian byte order
-  test_encoding(bytes3, 3, INSTR_ret, IMM_Iw(0x11223344)); // immediate auto cut off
+  uint8_t bytes3[] = {0xc2, 0x44, 0x33};                    // little endian byte order
+  test_encoding(bytes3, 3, INSTR_ret, IMM_Iw(0x11223344));  // immediate auto cut off
   uint8_t bytes4[] = {0x70, 0x11};
   test_encoding(bytes4, 2, INSTR_jo, IMM_Ib(0x11));
 
