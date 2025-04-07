@@ -28,6 +28,7 @@
 #include "compositor.h"
 #include <string.h>
 
+const uint8_t TEXT_TAG[] = {enum_elf_text, 0};
 const uint8_t RODATA_TAG[] = {enum_elf_rodata, 0};
 const uint8_t SYMTAB_TAG[] = {enum_elf_sym, 0};
 const uint8_t STRTAB_TAG[] = {enum_elf_str, 0};

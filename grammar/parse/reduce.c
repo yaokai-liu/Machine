@@ -534,6 +534,13 @@ InstrForm *p_InstrForm_0(Token argv[], ParseContext *, const Allocator *allocato
   for (const InstrPart *part = first; part <= last; part++) {
     width += part->width > 256 ? 256 : part->width;
   }
+  if (pattern->args) {
+    const uint32_t n_args = Array_length(pattern->args);
+    const Parameter *args = Array_real_addr(pattern->args, 0);
+    for (uint32_t i = 0; i < n_args; i++) {
+      if (args[i].used) { pattern->used_args++; }
+    }
+  }
 
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
   form->width = width;
@@ -556,6 +563,13 @@ InstrForm *p_InstrForm_1(Token argv[], ParseContext *, const Allocator *allocato
   const InstrPart *last = Array_last_real(part_array);
   for (const InstrPart *part = first; part <= last; part++) {
     width += part->width > 256 ? 256 : part->width;
+  }
+  if (pattern->args) {
+    const uint32_t n_args = Array_length(pattern->args);
+    const Parameter *args = Array_real_addr(pattern->args, 0);
+    for (uint32_t i = 0; i < n_args; i++) {
+      if (args[i].used) { pattern->used_args++; }
+    }
   }
 
   InstrForm *form = allocator->calloc(1, sizeof(InstrForm));
@@ -913,15 +927,15 @@ Parameter *p_Parameter_0(Token argv[], ParseContext *context, const Allocator *a
 }
 
 Pattern *p_Pattern_0(Token argv[], ParseContext *context, const Allocator *allocator) {
-  PatternArgs *args = (PatternArgs *) argv[1].value;
+  PatternArgs *arg_array = (PatternArgs *) argv[1].value;
 
-  if (GContext_testPattern(context, args)) {
+  if (GContext_testPattern(context, arg_array)) {
     GContext_setErrorMessage(context, "duplicated instruction pattern.");
     return nullptr;
   }
 
   Pattern *pattern = allocator->calloc(1, sizeof(Pattern));
-  pattern->args = args;
+  pattern->args = arg_array;
 
   GContext_addPattern(context, pattern);
 

@@ -98,7 +98,7 @@ void GenElf_gen_reg_def(Elf64Generator *generator, const Machine *machine) {
   const uint32_t n_regs = Array_length(context->regArray);
 
   const uint64_t pointer_rel = 0;
-  char_t name_buffer[512] = {};
+  char_t name_buffer[256] = {};
   RegEntry entry = {0, 0, 0};
   const uint32_t start_of_const_entries = Array_length(symtab);
 

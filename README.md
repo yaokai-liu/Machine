@@ -158,9 +158,9 @@ A form consists with a [pattern](#pattern-of-instruction-form) and a description
 The pattern given arguments the form used and the description provides the width, the time cost and the main body of the form.
 
 contents of a form body will be bracketed with `{` and `}`.
-In the form body, a prefix can be set with `^` and a suffix can be set with `&`. And a required part of a form will be led with `~`.
+In the form body, every part has a name and a value.
 
-A `:` should follow the part's leader and a [width](#width-bit-field-and-time-tick) should be provided.
+A `:` should follow part's leader and a [width](#width-bit-field-and-time-tick) should be provided.
 Each part of the form body should provide a [bit field](#width-bit-field-and-time-tick) preceded by `=`, means the part's layout. 
 In formal grammar, it would be
 ```
@@ -184,13 +184,13 @@ instruction foo {
 ```
 defines an Instruction `foo` with only one form. The form in binary will be like
 ```
-┌────────┬──────┬─────┬────────────┬─┬────────┬────────┐
-│00010010│110100│00000│yyyyyyyyyyyy│0│bbbbbbbb│xxxxxxxx│
-├────────┼──────┼─────┼────────────┼─┼────────┼────────┤
-│  0x12  │ 0x34 │     │  aaa.yyy   │ │  bbb   │ aaa.xxx│
-├────────┼──────┴─────┴────────────┴─┴────────┼────────┤
-│ prefix │              arguments             │ opcode │
-└────────┴────────────────────────────────────┴────────┘
+─────┬────────┬──────┬─────┬────────────┬─┬────────┬────────┬─────
+ ... │00010010│110100│00000│yyyyyyyyyyyy│0│bbbbbbbb│xxxxxxxx│ ...
+─────┼────────┼──────┼─────┼────────────┼─┼────────┼────────┼─────
+ ... │  0x12  │ 0x34 │     │  aaa.yyy   │ │  bbb   │ aaa.xxx│ ...
+─────┼────────┼──────┴─────┴────────────┴─┴────────┼────────┼─────
+ ... │ prefix │              arguments             │ opcode │ ...
+─────┴────────┴────────────────────────────────────┴────────┴─────
 
 ```
 and it will cost 4 cpu [time tick](#width-bit-field-and-time-tick) to execute.
@@ -265,6 +265,8 @@ For examples
 ```
 [16-bit], [7-byte], [32]
 ```
+Specially, a variable width can be set as `[?]` means the width is determined by the value,
+but it can only be used in definition of instruction forms.
 
 A bit field are two number contacted with `-`.
 These two number are called left(highest) bound and right(lowest) bound of the bit field.

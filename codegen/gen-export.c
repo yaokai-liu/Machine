@@ -76,12 +76,12 @@ constexpr char_t LICENSE_FMT[] =
 constexpr char_t EXPORT_INCLUDES[] = "#include <stdint.h>\n"
                                      "#include \"array.h\"\n";
 
-constexpr char_t EXPORT_DECLARE[] = "typedef struct Machine Machine;\n"
-                                    "typedef struct Entry Entry;\n";
+constexpr char_t EXPORT_DECLARE_FMT[] = "typedef struct %sMachine %sMachine;\n"
+                                        "typedef struct Entry Entry;\n";
 
-constexpr char_t MACHINE_NEW_DEC[] = "Machine *Machine_new(const Allocator *allocator);\n";
-constexpr char_t MACHINE_DESTROY_DEC[] = "void Machine_destroy(Machine *machine);\n";
-constexpr char_t USE_MACHINE_DEC[] = "void useMachine(Machine *machine);\n";
+constexpr char_t MACHINE_NEW_DEC_FMT[] = "%sMachine *%sMachine_new(const Allocator *allocator);\n";
+constexpr char_t MACHINE_DESTROY_DEC_FMT[] = "void %sMachine_destroy(%sMachine *machine);\n";
+constexpr char_t USE_MACHINE_DEC_FMT[] = "void useMachine(%sMachine *machine);\n";
 constexpr char_t ENCODING_INSTR_DEC[] =
     "// Notice: arguments of this function must end with an EOI.\n"
     "uint32_t encodingInstr(Array *buffer, uint32_t instr, ...);\n";
@@ -127,10 +127,14 @@ void gen_export_header(Generator *generator, const Machine *machine) {
   sprintf(temp_buffer, EXPORT_HEADER_FMT, name, name);
   ctx_push_string(exports, temp_buffer);
   ctx_push_string(exports, EXPORT_INCLUDES);
-  ctx_push_string(exports, EXPORT_DECLARE);
-  ctx_push_string(exports, MACHINE_NEW_DEC);
-  ctx_push_string(exports, MACHINE_DESTROY_DEC);
-  ctx_push_string(exports, USE_MACHINE_DEC);
+  sprintf(temp_buffer, EXPORT_DECLARE_FMT, name, name);
+  ctx_push_string(exports, temp_buffer);
+  sprintf(temp_buffer, MACHINE_NEW_DEC_FMT, name, name);
+  ctx_push_string(exports, temp_buffer);
+  sprintf(temp_buffer, MACHINE_DESTROY_DEC_FMT, name, name);
+  ctx_push_string(exports, temp_buffer);
+  sprintf(temp_buffer, USE_MACHINE_DEC_FMT, name);
+  ctx_push_string(exports, temp_buffer);
   ctx_push_string(exports, ENCODING_INSTR_DEC);
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
@@ -150,7 +154,6 @@ void gen_export_header(Generator *generator, const Machine *machine) {
 void gen_export_tail(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
   const char_t * const name = Array_virt2real(generator->ident_array, machine->name);
-  ;
   sprintf(temp_buffer, EXPORT_TAIL_FMT, name);
   ctx_push_string(exports, temp_buffer);
 }

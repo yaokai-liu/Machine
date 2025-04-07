@@ -109,7 +109,7 @@ inline void Elf64Generator_set_cote(Elf64Generator *generator, uint32_t val) {
   generator->count_of_total_entries = val;
 }
 
-uint32_t Elf64Generator_get_sym_index(Elf64Generator *generator, uint64_t v_form_ndx) {
+uint32_t Elf64Generator_get_sym_index(Elf64Generator *, uint64_t) {
   return 0;
 }
 

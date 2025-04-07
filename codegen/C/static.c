@@ -66,13 +66,13 @@ constexpr char_t TYPEDEF_ENTRY_FMT[] = "typedef struct Entry {\n"
                                        "  enum ENTRY_TYPE_ENUM subtypes[%u];\n"
                                        "} Entry;\n";
 
-constexpr char_t TYPEDEF_MACHINE_FMT[] = "typedef struct Machine {\n"
+constexpr char_t TYPEDEF_MACHINE_FMT[] = "typedef struct %sMachine {\n"
                                          "  const Allocator *allocator;"
                                          "  uint32_t argCount;\n"
                                          "  Entry entries[%u];\n"
-                                         "} Machine;\n";
+                                         "} %sMachine;\n";
 
-constexpr char_t CURRENT_MACHINE[] = "Machine *CURRENT_MACHINE;\n";
+constexpr char_t CURRENT_MACHINE_FMT[] = "%sMachine *CURRENT_MACHINE;\n";
 
 constexpr char_t MAX_ARGS_DECLARE[] = "const uint32_t MAX_ARGS;\n";
 constexpr char_t MAX_ARGS_FMT[] = "const uint32_t MAX_ARGS = %u;\n";
@@ -108,19 +108,20 @@ constexpr char_t ENTRY_TYPE_CHECK_DEF[] =
     "  }\n"
     "  return false;\n"
     "}\n";
-constexpr char_t MACHINE_NEW_DEF[] = "inline Machine *Machine_new(const Allocator *allocator) {\n"
-                                     "  Machine *machine = allocator->calloc(1, sizeof(Machine));\n"
-                                     "  machine->allocator = allocator;\n"
-                                     "  return machine;\n"
-                                     "}\n";
-constexpr char_t MACHINE_DESTROY_DEF[] =
-    "inline void Machine_destroy(Machine *machine) {\n"
+constexpr char_t MACHINE_NEW_DEF_FMT[] =
+    "inline %sMachine *%sMachine_new(const Allocator *allocator) {\n"
+    "  %sMachine *machine = allocator->calloc(1, sizeof(%sMachine));\n"
+    "  machine->allocator = allocator;\n"
+    "  return machine;\n"
+    "}\n";
+constexpr char_t MACHINE_DESTROY_DEF_FMT[] =
+    "inline void %sMachine_destroy(%sMachine *machine) {\n"
     "  if (CURRENT_MACHINE == machine) { CURRENT_MACHINE = nullptr; }\n"
     "  machine->allocator->free(machine);\n"
     "}\n";
-constexpr char_t USE_MACHINE_DEF[] = "inline void useMachine(Machine *machine) {\n"
-                                     "  CURRENT_MACHINE = machine;\n"
-                                     "}\n";
+constexpr char_t USE_MACHINE_DEF_FMT[] = "inline void useMachine(%sMachine *machine) {\n"
+                                         "  CURRENT_MACHINE = machine;\n"
+                                         "}\n";
 
 constexpr char_t CONVERT_INSTR_TO_BYTES_DEC[] =
     "uint32_t convert_instr_to_bytes(\n"
@@ -160,13 +161,7 @@ constexpr char_t CONVERT_INSTR_TO_BYTES_DEF[] =
 
 void GenC_gen_static_definitions(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
-  const char_t *name = generator->outname;
-  if (name) {
-    name = strrchr(name, '/');
-    name = name ? name + 1 : generator->outname;
-  } else {
-    name = Array_virt2real(generator->ident_array, machine->name);
-  }
+  const char_t *name = Array_virt2real(generator->ident_array, machine->name);
   sprintf(temp_buffer, INCLUDES, name);
   Array * const out_buffer = CGenerator_getOutputBuffer((CGenerator *) generator, GenC_includes);
   const char_t *filename = "";
@@ -179,23 +174,28 @@ void GenC_gen_static_definitions(Generator *generator, const Machine *machine) {
   ctx_push_string(macros, MACROS);
   sprintf(temp_buffer, TYPEDEF_ENTRY_FMT, machine->context->maxFieldCount);
   ctx_push_string(types, temp_buffer);
-  sprintf(temp_buffer, TYPEDEF_MACHINE_FMT, machine->context->maxArgCount);
+  sprintf(temp_buffer, TYPEDEF_MACHINE_FMT, name, machine->context->maxArgCount, name);
   ctx_push_string(types, temp_buffer);
   ctx_push_string(types, STRUCT_JUMP_ITEM);
   ctx_push_string(types, STRUCT_JUMP_STATE);
   ctx_push_string(types, STRUCT_SET_GRP_JUMP_STATE);
-  ctx_push_string(declares, CURRENT_MACHINE);
+  sprintf(temp_buffer, CURRENT_MACHINE_FMT, name);
+  ctx_push_string(declares, temp_buffer);
   ctx_push_string(declares, MAX_ARGS_DECLARE);
   ctx_push_string(declares, ENTRY_TYPE_CHECK_DEC);
   ctx_push_string(declares, CONVERT_INSTR_TO_BYTES_DEC);
 }
 void GenC_gen_driver(Generator *generator, const Machine *machine) {
   char_t temp_buffer[256];
+  const char_t *name = Array_virt2real(generator->ident_array, machine->name);
   sprintf(temp_buffer, MAX_ARGS_FMT, machine->context->maxArgCount);
   ctx_push_string(definitions, temp_buffer);
-  ctx_push_string(definitions, MACHINE_NEW_DEF);
-  ctx_push_string(definitions, MACHINE_DESTROY_DEF);
-  ctx_push_string(definitions, USE_MACHINE_DEF);
+  sprintf(temp_buffer, MACHINE_NEW_DEF_FMT, name, name, name, name);
+  ctx_push_string(definitions, temp_buffer);
+  sprintf(temp_buffer, MACHINE_DESTROY_DEF_FMT, name, name);
+  ctx_push_string(definitions, temp_buffer);
+  sprintf(temp_buffer, USE_MACHINE_DEF_FMT, name);
+  ctx_push_string(definitions, temp_buffer);
   ctx_push_string(definitions, ENTRY_TYPE_CHECK_DEF);
   ctx_push_string(definitions, CONVERT_INSTR_TO_BYTES_DEF);
 }

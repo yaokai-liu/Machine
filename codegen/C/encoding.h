@@ -50,26 +50,26 @@ void GenC_gen_jump_table_def(
     Generator *generator, const Machine *machine, Array *key_buffer, Array *state_buffer
 );
 
-int32_t codeGenC_gen_instr_form(
+int32_t GenC_gen_instr_form(
     const ParseContext *context, const Array *ident_array, Array *buffer, const InstrForm *form
 );
-void codeGenC_gen_form_check(
+void GenC_gen_form_check(
     const ParseContext *context, const Array *ident_array, Array *buffer, const InstrForm *form,
     char_t *temp_buffer
 );
-int32_t codeGenC_gen_instr_part(
+int32_t GenC_gen_instr_part(
     const ParseContext *context, const Array *ident_array, Array *buffer, const InstrForm *form,
     const InstrPart *part, char_t *temp_buffer
 );
-int32_t codeGenC_gen_layout(
+int32_t GenC_gen_layout(
     const ParseContext *context, const Array *ident_array, Array *buffer, const Layout *layout,
     uint32_t width, const Pattern *pattern, char_t *temp_buffer
 );
-int32_t codeGenC_gen_switchable(
+int32_t GenC_gen_switchable(
     const ParseContext *context, const Array *ident_array, Array *buffer,
     const Switchable *switchable, BitField *bf, const Pattern *pattern, char_t *temp_buffer
 );
-int32_t codeGenC_gen_mapping_item(
+int32_t GenC_gen_mapping_item(
     const ParseContext *context, const Array *ident_array, Array *buffer, MappingItems *items,
     const BitField *bit_field, const Pattern *pattern, char_t *temp_buffer
 );

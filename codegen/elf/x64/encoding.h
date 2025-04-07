@@ -1,6 +1,6 @@
 /* License
  *
- * xMachine - A Backend Generator for Compilers
+ * ${PROJ_DESCRIPTION}
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,18 +19,17 @@
  *
  * Project Name: machine
  * Module Name: codegen/elf/x64
- * Filename: define.h
+ * Filename: encoding.h
  * Creator: Yaokai Liu
- * Create Date: 2025-02-20
+ * Create Date: 2025-04-07
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef MACHINE_DEFINE_H
-#define MACHINE_DEFINE_H
+#ifndef MACHINE_ENCODING_H
+#define MACHINE_ENCODING_H
 
 #include "generator.h"
 #include "parse/context.h"
-void GenElf_gen_reg_def(Elf64Generator *generator, const Machine *machine);
-void GenElf_gen_set_grp_jump_table(Elf64Generator *generator, const Machine *machine);
+void GenElf_gen_encoding(Elf64Generator *generator, const Machine *machine);
 
-#endif  // MACHINE_DEFINE_H
+#endif  // MACHINE_ENCODING_H

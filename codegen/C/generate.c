@@ -37,7 +37,6 @@
 int32_t codegen(Generator *generator, const Machine *machine) {
   gen_export_header(generator, machine);
   gen_export_record_declare(generator, machine);
-  gen_export_tail(generator, machine);
   switch (generator->gen_type) {
     case GT_C: {
       GenC_gen_static_definitions(generator, machine);
@@ -51,5 +50,6 @@ int32_t codegen(Generator *generator, const Machine *machine) {
       break;
     }
   }
+  gen_export_tail(generator, machine);
   return 0;
 }

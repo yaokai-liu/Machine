@@ -49,6 +49,7 @@ enum ELF_SEC_TYPE_ENUM : uint8_t {
   enum_elf_section,
 };
 
+extern const uint8_t TEXT_TAG[];
 extern const uint8_t RODATA_TAG[];
 extern const uint8_t SYMTAB_TAG[];
 extern const uint8_t STRTAB_TAG[];

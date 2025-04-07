@@ -69,6 +69,7 @@ typedef struct Parameter {
 typedef Array PatternArgs;  // Array<Parameter>
 
 typedef struct Pattern {
+  uint32_t used_args;
   PatternArgs *args;
 } Pattern;
 

@@ -39,9 +39,9 @@
 
 constexpr char_t ENCODING_DEF_FMT_HEAD[] = "{\n"
                                            "  uint32_t size = 0;\n"
-                                           "  uint8_t bytes[%u] = {};\n"
+                                           "  uint32_t index = 0;\n"
                                            "  uint64_t value = 0;\n"
-                                           "  uint32_t index = 0;\n";
+                                           "  uint8_t bytes[%u] = {};\n";
 
 constexpr char_t ENCODING_DEF_FMT_TAIL[] = "  Array_append(buffer, bytes, size);\n"
                                            "  return size;\n"
@@ -109,13 +109,14 @@ int32_t GenC_gen_instr_encoding_def(
   char_t head_buffer[sizeof(ENCODING_DEF_FMT_HEAD) + 256];
   for (uint32_t i = 0; i < n_forms; ++i) {
     instr_pattern_to_str(context, ident_array, buffer, instr_op, &forms[i]);
-    const PatternArgs *arg_array = forms[i].pattern->args;
-    const char_t * const encoding_dec_fmt = arg_array ? ENCODING_DEC_FMT : ENCODING_DEC_NO_ARGS_FMT;
+    const char_t * const encoding_dec_fmt =
+        forms[i].pattern->used_args ? ENCODING_DEC_FMT : ENCODING_DEC_NO_ARGS_FMT;
     sprintf(head_buffer, encoding_dec_fmt, instr_op, i);
     push_string(head_buffer);
     const uint32_t n_bytes = forms[i].width / 8;
     sprintf(head_buffer, ENCODING_DEF_FMT_HEAD, n_bytes);
     push_string(head_buffer);
+    const PatternArgs *arg_array = forms[i].pattern->args;
     if (arg_array) {
       const uint32_t n_args = Array_length(arg_array);
       const Parameter *args = Array_real_addr(arg_array, 0);
@@ -125,13 +126,13 @@ int32_t GenC_gen_instr_encoding_def(
         push_string(head_buffer);
       }
     }
-    codeGenC_gen_instr_form(context, ident_array, buffer, &forms[i]);
+    GenC_gen_instr_form(context, ident_array, buffer, &forms[i]);
     push_string(ENCODING_DEF_FMT_TAIL);
   }
   return 0;
 }
 
-const char_t IF_USING_INSTR_DIRECTLY[] = "#ifdef USING_INSTR_DIRECTLY\n";
+const char_t IF_USING_INSTR_DIRECTLY[] = "\n#ifdef USING_INSTR_DIRECTLY\n";
 const char_t END_IF[] = "#endif\n";
 const char_t INSTR_EXEC_DEC[] =
     "#define %s(buffer, ...)  encodingInstr(buffer, INSTR_%s, __VA_ARGS__, EOI)\n";
@@ -473,9 +474,9 @@ int32_t expr_to_val(
   return 0;
 }
 
-// TODO: codeGenC_gen_mapping_item is in a recursive call chain,
+// TODO: GenC_gen_mapping_item is in a recursive call chain,
 //  maybe it will cause a out of memory, please solve it.
-int32_t codeGenC_gen_mapping_item(
+int32_t GenC_gen_mapping_item(
     const ParseContext *context, const Array *ident_array, Array *buffer, MappingItems *items,
     const BitField *bit_field, const Pattern *pattern, char_t *temp_buffer
 ) {
@@ -497,7 +498,7 @@ int32_t codeGenC_gen_mapping_item(
 
   if (bl > bit_field->lower) {
     BitField lower_bf = {.lower = bit_field->lower, .upper = bl - 1};
-    codeGenC_gen_mapping_item(context, ident_array, buffer, items, &lower_bf, pattern, temp_buffer);
+    GenC_gen_mapping_item(context, ident_array, buffer, items, &lower_bf, pattern, temp_buffer);
   }
   if (item->type == enum_Arith_0_Expr) {
     char_t temp_buffer1[512] = {};
@@ -507,11 +508,11 @@ int32_t codeGenC_gen_mapping_item(
   } else if (item->type == enum_Switchable) {
     Switchable *switchable = item->target;
     BitField bf = {.lower = bl, .upper = bu};
-    codeGenC_gen_switchable(context, ident_array, buffer, switchable, &bf, pattern, temp_buffer);
+    GenC_gen_switchable(context, ident_array, buffer, switchable, &bf, pattern, temp_buffer);
   }
   if (bu < bit_field->upper) {
     BitField upper_bf = {.lower = bu + 1, .upper = bit_field->upper};
-    codeGenC_gen_mapping_item(context, ident_array, buffer, items, &upper_bf, pattern, temp_buffer);
+    GenC_gen_mapping_item(context, ident_array, buffer, items, &upper_bf, pattern, temp_buffer);
   }
   return (int32_t) (Array_length(buffer) - pre_len);
 }
@@ -531,7 +532,7 @@ int32_t codeGenC_gen_mapping_item(
     }                                                                                           \
   } while (false)
 
-int32_t codeGenC_gen_switchable(
+int32_t GenC_gen_switchable(
     const ParseContext *context, const Array *ident_array, Array *buffer,
     const Switchable *switchable, BitField *bf, const Pattern *pattern, char_t *temp_buffer
 ) {
@@ -551,7 +552,7 @@ int32_t codeGenC_gen_switchable(
   return 0;
 }
 
-int32_t codeGenC_gen_layout(
+int32_t GenC_gen_layout(
     const ParseContext *context, const Array *ident_array, Array *buffer, const Layout *layout,
     uint32_t width, const Pattern *pattern, char_t *temp_buffer
 ) {
@@ -615,7 +616,7 @@ int32_t codeGenC_gen_layout(
       for (uint32_t i = 0; i < width; i += 64) {
         push_string("    value = 0;\n");
         BitField bf = {.lower = i, .upper = min(i + 63, width - 1)};
-        codeGenC_gen_mapping_item(context, ident_array, buffer, items, &bf, pattern, temp_buffer);
+        GenC_gen_mapping_item(context, ident_array, buffer, items, &bf, pattern, temp_buffer);
         sprintf(temp_buffer, "    pushInstrBytes(%d);\n", min(64, width - i) / 8);
         push_string(temp_buffer);
       }
@@ -624,7 +625,7 @@ int32_t codeGenC_gen_layout(
       break;
     }
     case enum_Switchable: {
-      codeGenC_gen_switchable(
+      GenC_gen_switchable(
           context, ident_array, buffer, layout->target, (void *) (uint64_t) width, pattern,
           temp_buffer
       );
@@ -636,7 +637,7 @@ int32_t codeGenC_gen_layout(
   return (int32_t) (Array_length(buffer) - pre_len);
 }
 
-void codeGenC_gen_form_check(
+void GenC_gen_form_check(
     const ParseContext *context, const Array *ident_array, Array *buffer, const InstrForm *form,
     char_t *temp_buffer
 ) {
@@ -647,7 +648,7 @@ void codeGenC_gen_form_check(
   push_string(") { return 0; }\n");
 }
 
-int32_t codeGenC_gen_instr_part(
+int32_t GenC_gen_instr_part(
     const ParseContext *context, const Array *ident_array, Array *buffer, const InstrForm *form,
     const InstrPart *part, char_t *temp_buffer
 ) {
@@ -665,22 +666,22 @@ int32_t codeGenC_gen_instr_part(
     sprintf(temp_buffer, "  /* %s */ {\n", ctx_ident_real(name));
     push_string(temp_buffer);
   }
-  codeGenC_gen_layout(context, ident_array, buffer, layout, width, form->pattern, temp_buffer);
+  GenC_gen_layout(context, ident_array, buffer, layout, width, form->pattern, temp_buffer);
   sprintf(temp_buffer, "  }\n", width / 8);
   push_string(temp_buffer);
   return 0;
 }
 
-int32_t codeGenC_gen_instr_form(
+int32_t GenC_gen_instr_form(
     const ParseContext *context, const Array *ident_array, Array *buffer, const InstrForm *form
 ) {
   char_t temp_buffer[512] = {};
   const uint32_t pre_len = Array_length(buffer);
   const uint32_t n_parts = Array_length(form->parts);
   const InstrPart * const parts = Array_real_addr(form->parts, 0);
-  if (form->check) { codeGenC_gen_form_check(context, ident_array, buffer, form, temp_buffer); }
+  if (form->check) { GenC_gen_form_check(context, ident_array, buffer, form, temp_buffer); }
   for (uint32_t i = 0; i < n_parts; i++) {
-    codeGenC_gen_instr_part(context, ident_array, buffer, form, &parts[i], temp_buffer);
+    GenC_gen_instr_part(context, ident_array, buffer, form, &parts[i], temp_buffer);
   }
   return (int32_t) (Array_length(buffer) - pre_len);
 }
