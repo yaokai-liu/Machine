@@ -47,7 +47,7 @@ inline ParseContext *GContext_new(const Allocator *allocator) {
   context->regArray = Array_new(sizeof(Register), enum_Register, allocator);
   context->immArray = Array_new(sizeof(Immediate), enum_Immediate, allocator);
   context->memArray = Array_new(sizeof(Memory), enum_Memory, allocator);
-  context->setArray = Array_new(sizeof(EntrySet), enum_EntrySet, allocator);
+  context->setArray = Array_new(sizeof(RecordSet), enum_RecordSet, allocator);
   context->grpArray = Array_new(sizeof(RegisterGroup), enum_RegisterGroup, allocator);
   context->instrArray = Array_new(sizeof(Instruction), enum_Instruction, allocator);
   context->recordArray = Array_new(sizeof(Record), enum_Record, allocator);
@@ -79,7 +79,7 @@ inline void GContext_destroy(ParseContext *context) {
   if (context->mappingTree) { AVLTree_destroy(context->mappingTree, nullptr); }
   if (context->patterns) { releasePrimeArray(context->patterns); }
   contextReleaseArray(memArray, releaseMemory);
-  contextReleaseArray(setArray, releaseEntrySet);
+  contextReleaseArray(setArray, releaseRecordSet);
   contextReleaseArray(grpArray, releaseRegisterGroup);
   contextReleaseArray(instrArray, releaseInstruction);
   releasePrimeArray(context->regArray);
@@ -133,7 +133,7 @@ contextAddRecord_DEF(Immediate, immArray, imm)
 contextAddRecord_DEF(Register, regArray, reg)
 contextAddRecord_DEF(Memory, memArray, mem)
 contextAddRecord_DEF(RegisterGroup, grpArray, grp)
-contextAddRecord_DEF(EntrySet, setArray, set)
+contextAddRecord_DEF(RecordSet, setArray, set)
 
 inline REFER(Instruction) GContext_addInstruction(ParseContext *context, const Instruction *instr) {
   uint32_t ndx = Array_length(context->instrArray);
@@ -152,7 +152,7 @@ contextGetFromOffset_DEF(Immediate, immArray)
 contextGetFromOffset_DEF(Register, regArray)
 contextGetFromOffset_DEF(Memory, memArray)
 contextGetFromOffset_DEF(RegisterGroup, grpArray)
-contextGetFromOffset_DEF(EntrySet, setArray)
+contextGetFromOffset_DEF(RecordSet, setArray)
 
 inline Register *GContext_referToRegister(const ParseContext *context, REFER(Register) v_reg) {
   return Array_virt2real(context->regArray, v_reg);

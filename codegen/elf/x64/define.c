@@ -52,7 +52,7 @@ void GenElf_cache_enum_item(Elf64Generator *generator, const Machine *machine) {
   GenElf_gen_type_enum_item(Register, reg);
   Elf64Generator_set_cose(generator, ++offset);
   GenElf_gen_type_enum_item(RegisterGroup, grp);
-  GenElf_gen_type_enum_item(EntrySet, set);
+  GenElf_gen_type_enum_item(RecordSet, set);
   Elf64Generator_set_cote(generator, offset);
 }
 
@@ -158,7 +158,7 @@ void GenElf_gen_jump_table(Elf64Generator *generator, const Machine *machine) {
       val_case_item(Immediate, imm)
       val_case_item(Register, reg)
       val_case_item(RegisterGroup, grp)
-      val_case_item(EntrySet, set)
+      val_case_item(RecordSet, set)
       default: {
       }
     }

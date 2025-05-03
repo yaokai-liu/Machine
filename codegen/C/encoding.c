@@ -132,10 +132,6 @@ int32_t GenC_gen_instr_encoding_def(
   return 0;
 }
 
-const char_t IF_USING_INSTR_DIRECTLY[] = "\n#ifdef USING_INSTR_DIRECTLY\n";
-const char_t END_IF[] = "#endif\n";
-const char_t INSTR_EXEC_DEC[] =
-    "#define %s(buffer, ...)  encodingInstr(buffer, INSTR_%s, __VA_ARGS__, EOI)\n";
 const char_t INSTR_EXEC_DEF[] =
     "uint32_t encodingInstr(Array *buffer, uint32_t entry_offset, ...) {\n"
     "  const Entry *entries[MAX_ARGS] = {};\n"
@@ -154,7 +150,6 @@ const char_t INSTR_EXEC_DEF[] =
     "}\n";
 
 void GenC_gen_instr_exec(Generator *generator, const Machine *machine) {
-  char_t temp_buffer[512] = {};
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
   Array *dec_buffer = CGenerator_getOutputBuffer((CGenerator *) generator, GenC_declares);
@@ -164,7 +159,6 @@ void GenC_gen_instr_exec(Generator *generator, const Machine *machine) {
 
   const uint32_t n_instr = Array_length(context->instrArray);
   const Instruction *instructions = Array_real_addr(context->instrArray, 0);
-  ctx_push_string(exports, IF_USING_INSTR_DIRECTLY);
   for (uint32_t i = 0; i < n_instr; i++) {
     const uint32_t n_forms = Array_length(instructions[i].forms);
     const InstrForm *forms = Array_real_addr(instructions[i].forms, 0);
@@ -176,11 +170,7 @@ void GenC_gen_instr_exec(Generator *generator, const Machine *machine) {
         context, ident_array, encoding_def_buffer, ctx_ident_real(instructions[i].name), forms,
         n_forms
     );
-    const char_t *instr_name = ctx_ident_real(instructions[i].name);
-    sprintf(temp_buffer, INSTR_EXEC_DEC, instr_name, instr_name);
-    ctx_push_string(exports, temp_buffer);
   }
-  ctx_push_string(exports, END_IF);
   _push_string(def_buffer, INSTR_EXEC_DEF);
   Array_concat(dec_buffer, encoding_dec_buffer);
   Array_concat(def_buffer, encoding_def_buffer);
@@ -230,7 +220,7 @@ void GenC_gen_jump_table_def(
       val_case_item(Immediate, imm, "IMM")
       val_case_item(Register, reg, "REG")
       val_case_item(RegisterGroup, grp, "GRP")
-      val_case_item(EntrySet, set, "SET")
+      val_case_item(RecordSet, set, "SET")
       default: {
       }
     }
@@ -390,7 +380,7 @@ void type_to_val(
     type_case_item(Immediate, imm, "IMM")
     type_case_item(Register, reg, "REG")
     type_case_item(RegisterGroup, grp, "GRP")
-    type_case_item(EntrySet, set, "SET")
+    type_case_item(RecordSet, set, "SET")
   }
 }
 
@@ -637,6 +627,13 @@ int32_t GenC_gen_layout(
   return (int32_t) (Array_length(buffer) - pre_len);
 }
 
+constexpr char_t FORM_CHECK_FAULT[] = "{\n"
+    "    CURRENT_MACHINE->err_type = ERR_FORM_CHECK_FAULT;\n"
+    "    CURRENT_MACHINE->err_info[0] = -1;\n"
+    "    CURRENT_MACHINE->err_info[1] = -1;\n"
+    "    return 0;\n"
+    "  }\n";
+
 void GenC_gen_form_check(
     const ParseContext *context, const Array *ident_array, Array *buffer, const InstrForm *form,
     char_t *temp_buffer
@@ -645,7 +642,8 @@ void GenC_gen_form_check(
   push_string("  /* __FORM_CHECK__ */\n  if (!");
   expr_to_val(context, ident_array, check->expr, form->pattern, temp_buffer);
   push_string(temp_buffer);
-  push_string(") { return 0; }\n");
+  push_string(") ");
+  push_string(FORM_CHECK_FAULT);
 }
 
 int32_t GenC_gen_instr_part(

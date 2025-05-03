@@ -40,12 +40,12 @@ enum PARSE_SPECIFIED_OBJECT_ENUM : uint32_t {
   enum_VInstrFormIndex,
 };
 
-typedef struct Entry {
+typedef struct GrammarEntry {
   uint32_t type;
   REFER(void) target;
-} Entry;
+} GrammarEntry;
 
-typedef Array Entries;  // Array<Entry>
+typedef Array GrammarEntries;  // Array<Entry>
 
 typedef struct ParseContext ParseContext;
 
@@ -173,10 +173,10 @@ typedef struct RegisterGroup {
 
 typedef Set SetItems;  // Set<REFER(Identifier)>
 
-typedef struct EntrySet {
+typedef struct RecordSet {
   Identifier *name;
   SetItems *items;
-} EntrySet;
+} RecordSet;
 
 #include "allocator.h"
 
@@ -192,7 +192,7 @@ void releaseInstrForm(InstrForm *form, const Allocator *allocator);
 void releaseInstruction(Instruction *instr, const Allocator *allocator);
 void releaseMemory(Memory *memory, const Allocator *allocator);
 void releaseRegisterGroup(RegisterGroup *rg, const Allocator *allocator);
-void releaseEntrySet(EntrySet *set, const Allocator *allocator);
+void releaseRecordSet(RecordSet *set, const Allocator *allocator);
 void releaseCondition(Condition *condition, const Allocator *allocator);
 void releaseExpr(CondExpr *expr, const Allocator *allocator);
 

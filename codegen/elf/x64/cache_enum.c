@@ -1,6 +1,6 @@
 /* License
  *
- * ${PROJ_DESCRIPTION}
+ * xMachine - A Backend Generator for Compilers
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -45,6 +45,6 @@ void GenElf_cache_enum_item(Elf64Generator *generator, const Machine *machine) {
   GenElf_gen_type_enum_item(Register, reg);
   Elf64Generator_set_cose(generator, ++offset);
   GenElf_gen_type_enum_item(RegisterGroup, grp);
-  GenElf_gen_type_enum_item(EntrySet, set);
+  GenElf_gen_type_enum_item(RecordSet, set);
   Elf64Generator_set_cote(generator, offset);
 }

@@ -19,17 +19,28 @@
  *
  * Project Name: machine
  * Module Name: codegen/elf/x64
- * Filename: cache_enum.h
+ * Filename: sys-v.h
  * Creator: Yaokai Liu
- * Create Date: 2025-04-07
+ * Create Date: 2025-04-08
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef MACHINE_CACHE_ENUM_H
-#define MACHINE_CACHE_ENUM_H
+#ifndef MACHINE_SYS_V_H
+#define MACHINE_SYS_V_H
 
-#include "generator.h"
-#include "parse/context.h"
-void GenElf_cache_enum_item(Elf64Generator *generator, const Machine *machine);
+#include "x64.h"
 
-#endif  // MACHINE_CACHE_ENUM_H
+const Entry * const *SYS_V_ARG_REGS[6] = {
+  &REG_rdi, &REG_rsi, &REG_rdx, &REG_rcx, &REG_r8, &REG_r9
+};
+
+const Entry * const *SYS_V_CALLER_SAVE_REGS[9] = {
+    &REG_rax, &REG_rdi, &REG_rsi, &REG_rdx, &REG_rcx,
+    &REG_r8, &REG_r9, &REG_r10, &REG_r11
+};
+
+const Entry * const *SYS_V_CALLEE_SAVE_REGS[7] = {
+  &REG_rbx, &REG_rbp, &REG_rsp, &REG_r12, &REG_r13, &REG_r14, &REG_r15
+};
+
+#endif  // MACHINE_SYS_V_H

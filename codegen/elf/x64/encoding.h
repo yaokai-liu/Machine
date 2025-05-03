@@ -1,6 +1,6 @@
 /* License
  *
- * ${PROJ_DESCRIPTION}
+ * xMachine - A Backend Generator for Compilers
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify

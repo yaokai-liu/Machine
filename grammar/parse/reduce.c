@@ -314,32 +314,32 @@ Switchable *p_Switchable_0(Token argv[], ParseContext *, const Allocator *alloca
   return switchable;
 }
 
-Entries *p_Entries_0(Token[], ParseContext *, const Allocator *) {
-  return (REFER(Entries))(uint64_t) (enum_Entries);
+GrammarEntries *p_GrammarEntries_0(Token[], ParseContext *, const Allocator *) {
+  return (REFER(GrammarEntries))(uint64_t) (enum_GrammarEntries);
 }
 
-Entries *p_Entries_1(Token[], ParseContext *, const Allocator *) {
-  return (REFER(Entries))(uint64_t) (enum_Entries);
+GrammarEntries *p_GrammarEntries_1(Token[], ParseContext *, const Allocator *) {
+  return (REFER(GrammarEntries))(uint64_t) (enum_GrammarEntries);
 }
 
-Entry *p_Entry_0(Token[], ParseContext *, const Allocator *) {
-  return (REFER(Entry))(uint64_t) (enum_Entry);
+GrammarEntry *p_GrammarEntry_0(Token[], ParseContext *, const Allocator *) {
+  return (REFER(GrammarEntry))(uint64_t) (enum_GrammarEntry);
 }
 
-Entry *p_Entry_1(Token[], ParseContext *, const Allocator *) {
-  return (REFER(Entry))(uint64_t) (enum_Entry);
+GrammarEntry *p_GrammarEntry_1(Token[], ParseContext *, const Allocator *) {
+  return (REFER(GrammarEntry))(uint64_t) (enum_GrammarEntry);
 }
 
-Entry *p_Entry_2(Token[], ParseContext *, const Allocator *) {
-  return (REFER(Entry))(uint64_t) (enum_Entry);
+GrammarEntry *p_GrammarEntry_2(Token[], ParseContext *, const Allocator *) {
+  return (REFER(GrammarEntry))(uint64_t) (enum_GrammarEntry);
 }
 
-Entry *p_Entry_3(Token[], ParseContext *, const Allocator *) {
-  return (REFER(Entry))(uint64_t) (enum_Entry);
+GrammarEntry *p_GrammarEntry_3(Token[], ParseContext *, const Allocator *) {
+  return (REFER(GrammarEntry))(uint64_t) (enum_GrammarEntry);
 }
 
-Entry *p_Entry_4(Token[], ParseContext *, const Allocator *) {
-  return (REFER(Entry))(uint64_t) (enum_Entry);
+GrammarEntry *p_GrammarEntry_4(Token[], ParseContext *, const Allocator *) {
+  return (REFER(GrammarEntry))(uint64_t) (enum_GrammarEntry);
 }
 
 Variable *p_Variable_0(Token argv[], ParseContext *context, const Allocator *allocator) {
@@ -1019,7 +1019,7 @@ Registers *p_Registers_1(Token argv[], ParseContext *, const Allocator *allocato
   return regs;
 }
 
-EntrySet *p_EntrySet_0(Token argv[], ParseContext *context, const Allocator *allocator) {
+RecordSet *p_RecordSet_0(Token argv[], ParseContext *context, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[1].value;
   SetExpr *expr = (SetExpr *) argv[2].value;
 
@@ -1027,10 +1027,10 @@ EntrySet *p_EntrySet_0(Token argv[], ParseContext *context, const Allocator *all
 
   SetItems *items = expr->lhs;
 
-  EntrySet set = {.name = ident, .items = items};
+  RecordSet set = {.name = ident, .items = items};
   allocator->free(expr);
 
-  return GContext_addEntrySet(context, &set);
+  return GContext_addRecordSet(context, &set);
 }
 
 SetItems *p_SetItems_0(Token argv[], ParseContext *context, const Allocator *) {
@@ -1051,8 +1051,8 @@ SetItems *p_SetItems_0(Token argv[], ParseContext *context, const Allocator *) {
       for (uint32_t i = 0; i < count; i++) { Set_add(items, regs->name); }
       break;
     }
-    case enum_EntrySet: {
-      const EntrySet *set = GContext_getEntrySet(context, record->offset);
+    case enum_RecordSet: {
+      const RecordSet *set = GContext_getRecordSet(context, record->offset);
       Set_update(items, set->items);
       break;
     }
@@ -1080,8 +1080,8 @@ SetItems *p_SetItems_1(Token argv[], ParseContext *context, const Allocator *all
       for (uint32_t i = 0; i < count; i++) { Set_add(items, regs->name); }
       break;
     }
-    case enum_EntrySet: {
-      const EntrySet *set = GContext_getEntrySet(context, record->offset);
+    case enum_RecordSet: {
+      const RecordSet *set = GContext_getRecordSet(context, record->offset);
       Set_update(items, set->items);
       break;
     }
@@ -1095,8 +1095,8 @@ SetItems *p_SetItems_1(Token argv[], ParseContext *context, const Allocator *all
 #define record_translate_to_set(record)                                                \
   do {                                                                                 \
     switch (record->typeid) {                                                          \
-      case enum_EntrySet: {                                                            \
-        const EntrySet *set = GContext_getEntrySet(context, record->offset);           \
+      case enum_RecordSet: {                                                            \
+        const RecordSet *set = GContext_getRecordSet(context, record->offset);           \
         Set_update(items, set->items);                                                 \
         break;                                                                         \
       }                                                                                \
@@ -1279,7 +1279,7 @@ void releaseToken(Token *token, const Allocator *allocator) {
       releaseTokenCase(Memory, Memory)
       releaseTokenCase(Pattern, Pattern)
       releaseTokenCase(RegisterGroup, RegisterGroup)
-      releaseTokenCase(EntrySet, EntrySet)
+      releaseTokenCase(RecordSet, RecordSet)
     case enum_Variable:
     case enum_CondExpr:
     case enum_Evaluable:

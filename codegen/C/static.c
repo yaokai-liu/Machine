@@ -69,6 +69,8 @@ constexpr char_t TYPEDEF_ENTRY_FMT[] = "typedef struct Entry {\n"
 constexpr char_t TYPEDEF_MACHINE_FMT[] = "typedef struct %sMachine {\n"
                                          "  const Allocator *allocator;"
                                          "  uint32_t argCount;\n"
+                                         "  uint32_t err_type;\n"
+                                         "  uint32_t err_info[2];\n"
                                          "  Entry entries[%u];\n"
                                          "} %sMachine;\n";
 
@@ -122,7 +124,6 @@ constexpr char_t MACHINE_DESTROY_DEF_FMT[] =
 constexpr char_t USE_MACHINE_DEF_FMT[] = "inline void useMachine(%sMachine *machine) {\n"
                                          "  CURRENT_MACHINE = machine;\n"
                                          "}\n";
-
 constexpr char_t CONVERT_INSTR_TO_BYTES_DEC[] =
     "uint32_t convert_instr_to_bytes(\n"
     "    uint32_t offset, Array *buffer, const Entry *entries[], uint32_t n_args\n"
@@ -143,11 +144,21 @@ constexpr char_t CONVERT_INSTR_TO_BYTES_DEF[] =
     "        break;\n"
     "      }\n"
     "    }\n"
-    "    if (!matched) { return 0; }\n"
+    "    if (!matched) {\n"
+    "      CURRENT_MACHINE->err_type = ERR_TYPE_MISMATCH;\n"
+    "      CURRENT_MACHINE->err_info[0] = ndx;\n"
+    "      CURRENT_MACHINE->err_info[1] = -1;\n"
+    "      return 0;\n"
+    "    }\n"
     "    state = &JUMP_STATE_TABLE[offset];\n"
     "    ndx++;\n"
     "  }\n"
-    "  if (!state->fn_encoding) { return 0; }\n"
+    "  if (!state->fn_encoding) {\n"
+    "    CURRENT_MACHINE->err_type = ERR_ARGUMENT_MISSING;\n"
+    "    CURRENT_MACHINE->err_info[0] = n_args;\n"
+    "    CURRENT_MACHINE->err_info[1] = -1;\n"
+    "    return 0;\n"
+    "  }\n"
     "  return state->fn_encoding(buffer, entries);\n"
     "}\n";
 

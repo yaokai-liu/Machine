@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#define lenof(a)  (sizeof(a) / sizeof(a[0]))
 #define ctx_ident_real(ptr) Array_virt2real(ident_array, ptr)
 
 constexpr char_t EXPORT_HEADER_FMT[] = "#ifndef MACHINE_%s_H\n"
@@ -81,7 +82,13 @@ constexpr char_t EXPORT_DECLARE_FMT[] = "typedef struct %sMachine %sMachine;\n"
 
 constexpr char_t MACHINE_NEW_DEC_FMT[] = "%sMachine *%sMachine_new(const Allocator *allocator);\n";
 constexpr char_t MACHINE_DESTROY_DEC_FMT[] = "void %sMachine_destroy(%sMachine *machine);\n";
-constexpr char_t USE_MACHINE_DEC_FMT[] = "void useMachine(%sMachine *machine);\n";
+const char_t* MACHINE_FUNCTION_FMTS[] = {
+    "void useMachine(%sMachine *machine);\n",
+    "int32_t activateReg(%sMachine *machine, const Entry *reg_entry);\n",
+    "int32_t inactivateReg(%sMachine *machine, const Entry *reg_entry);\n",
+    "int32_t dumpActiveRegs(%sMachine *machine, void * const *dest);\n",
+    "int32_t loadActiveRegs(%sMachine *machine, void *_from);\n",
+};
 constexpr char_t ENCODING_INSTR_DEC[] =
     "// Notice: arguments of this function must end with an EOI.\n"
     "uint32_t encodingInstr(Array *buffer, uint32_t instr, ...);\n";
@@ -90,7 +97,13 @@ constexpr char_t INSTR_ENUM_HEAD[] = "enum INSTR_ENUM : uint32_t {\n";
 constexpr char_t INSTR_ENUM_ITEM_FNT[] = "  INSTR_%s = %d,\n";
 constexpr char_t INSTR_ENUM_TAIL[] = "};\n";
 
-constexpr char_t EXPORT_TAIL_FMT[] = "\n#endif  // MACHINE_%s_H\n";
+constexpr char_t EXPORT_TAIL_FMT[] = "enum MACHINE_ERROR_TYPE {\n"
+                                     "  ERR_SUCCESS = 0,\n"
+                                     "  ERR_TYPE_MISMATCH = 1,\n"
+                                     "  ERR_ARGUMENT_MISSING = 2,\n"
+                                     "  ERR_FORM_CHECK_FAULT = 3,\n"
+                                     "};\n"
+                                     "#endif  // MACHINE_%s_H\n";
 
 #define ctx_push_string(type, s)                                                                   \
   do {                                                                                             \
@@ -133,8 +146,10 @@ void gen_export_header(Generator *generator, const Machine *machine) {
   ctx_push_string(exports, temp_buffer);
   sprintf(temp_buffer, MACHINE_DESTROY_DEC_FMT, name, name);
   ctx_push_string(exports, temp_buffer);
-  sprintf(temp_buffer, USE_MACHINE_DEC_FMT, name);
-  ctx_push_string(exports, temp_buffer);
+  for (uint32_t i = 0; i < lenof(MACHINE_FUNCTION_FMTS); i++) {
+    sprintf(temp_buffer, MACHINE_FUNCTION_FMTS[i], name);
+    ctx_push_string(exports, temp_buffer);
+  }
   ctx_push_string(exports, ENCODING_INSTR_DEC);
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
@@ -149,6 +164,24 @@ void gen_export_header(Generator *generator, const Machine *machine) {
     ctx_push_string(exports, temp_buffer);
   }
   ctx_push_string(exports, INSTR_ENUM_TAIL);
+}
+const char_t IF_USING_INSTR_DIRECTLY[] = "\n#ifdef USING_INSTR_DIRECTLY\n";
+const char_t END_IF[] = "#endif\n";
+const char_t INSTR_EXEC_DEC[] =
+    "#define %s(...)  encodingInstr(PROG_INSTR_BUFFER, INSTR_%s, __VA_ARGS__, EOI)\n";
+void gen_export_instr_macro(Generator *generator, const Machine *machine) {
+  char_t temp_buffer[512] = {};
+  const ParseContext *context = machine->context;
+  const Array *ident_array = generator->ident_array;
+  const uint32_t n_instr = Array_length(context->instrArray);
+  const Instruction *instructions = Array_real_addr(context->instrArray, 0);
+  ctx_push_string(exports, IF_USING_INSTR_DIRECTLY);
+  for (uint32_t i = 0; i < n_instr; i++) {
+    const char_t *instr_name = ctx_ident_real(instructions[i].name);
+    sprintf(temp_buffer, INSTR_EXEC_DEC, instr_name, instr_name);
+    ctx_push_string(exports, temp_buffer);
+  }
+  ctx_push_string(exports, END_IF);
 }
 
 void gen_export_tail(Generator *generator, const Machine *machine) {

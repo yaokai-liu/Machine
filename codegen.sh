@@ -23,4 +23,4 @@ if [ -d "grammar/generated/macro" ]; then
 else
   mkdir -p grammar/generated/macro
 fi
-python script/codegen.py json template grammar/generated
+python xnf-json2C/codegen.py json template grammar/generated

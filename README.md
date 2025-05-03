@@ -9,23 +9,9 @@ and use this project to generate a C library.
 
 The C library generated contains these functions:
 
-1.  `Array<uint32_t> *listRegisters(void)` to get register-ids of the current machine;
-2.  `Array<uint32_t> *listMemoryModel(void)` to get memory-models of the current machine;
-3.  `Register *getRegisterInfo(uint32_t id)` to get information of a register in the current machine by id;
-4.  `Memory *getMemModelInfo(uint32_t id)` to get information of a memory-model in the current machine by id;
-5.  `uint32_t ${instr}(Array<uint8_t> *, ...)` to encode an instruction and write into an array;
-6.  `uint32_t emit_${instr}(Array<uint8_t> *, ...)` to emit an instruction and record registers' allocation;
-7.  `uint32_t getCycles()` to get cycles count of instructions emitted till now;
-8.  `void setCycles(uint32_t)` to set initial cycles count from now;
-9.  `void usedRegister(uint32_t)` to mark a register as used;
-10.  `void unusedRegister(uint32_t)` to mark a register as unused;
-11.  `bool isUsed(uint32_t)` to query if the register is used.
-12.  `Array<uint32_t> *getUnused(uint32_t)` to get a list of not allocated
-     registers in the set.
-13.  `uint32_t dumpRegAllocation(void *)` to dump the registers' allocation;
-14.  `uint32_t loadRegAllocation(void *)` to load a registers' allocation;
-15.  `void* getCurrentMachine(void)` to get the address of the current context machine;
-16.  `void setCurrentMachine(void*)` to set the current context machine;
+1.  `uint32_t ${instr}(Array<uint8_t> *, ...)` to encode an instruction and write into an array;
+2.  `void* getCurrentMachine(void)` to get the address of the current context machine;
+3.  `void setCurrentMachine(void*)` to set the current context machine;
 
 ## Build and dependence
 

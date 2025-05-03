@@ -97,7 +97,7 @@ void GenC_gen_enum_item(Generator *generator, const Machine *machine) {
   GenC_gen_type_enum_item(Register, REG, reg);
   push_string("  enum_BEGIN_SET_GRP,\n");
   GenC_gen_type_enum_item(RegisterGroup, GRP, grp);
-  GenC_gen_type_enum_item(EntrySet, SET, set);
+  GenC_gen_type_enum_item(RecordSet, SET, set);
   push_string("  enum_TYPE_ENUM_UPPER_BOUND\n};\n");
 }
 
@@ -107,7 +107,7 @@ const char_t *type_string(uint32_t id) {
     case enum_Memory: return "MEM";
     case enum_Register: return "REG";
     case enum_RegisterGroup: return "GRP";
-    case enum_EntrySet: return "SET";
+    case enum_RecordSet: return "SET";
     default: return nullptr;
   }
 }
@@ -251,7 +251,7 @@ void GenC_gen_set_grp_jump_table(Generator *generator, const Machine *machine) {
   }
 
   const uint32_t set_count = Array_length(context->setArray);
-  const EntrySet *sets = Array_real_addr(context->setArray, 0);
+  const RecordSet *sets = Array_real_addr(context->setArray, 0);
   for (uint32_t i = 0; i < set_count; i++) {
     const uint32_t item_count = Set_count(sets[i].items);
     const REFER(Identifier) *items = Set_data(sets[i].items);
@@ -262,7 +262,7 @@ void GenC_gen_set_grp_jump_table(Generator *generator, const Machine *machine) {
         val_case_item(Immediate, imm, IMM)
         val_case_item(Register, reg, REG)
         val_case_item(RegisterGroup, grp, GRP)
-        val_case_item(EntrySet, set, SET)
+        val_case_item(RecordSet, set, SET)
         default: {
         }
       }
@@ -279,4 +279,23 @@ void GenC_gen_set_grp_jump_table(Generator *generator, const Machine *machine) {
   Array_concat(buffer, sta_buffer);
   releasePrimeArray(val_buffer);
   releasePrimeArray(sta_buffer);
+}
+constexpr char_t REG_GRP_TABLE_HEAD[] = "static const enum ENTRY_TYPE_ENUM\n"
+                                        "REG_GRP_VAL_TABLE[] = {\n";
+void GenC_gen_reg_grp_table(Generator *generator, const Machine *machine) {
+  char_t temp_buffer[512] = {};
+  const ParseContext *context = machine->context;
+  const Array *ident_array = generator->ident_array;
+  Array *buffer = CGenerator_getOutputBuffer((CGenerator *) generator, GenC_definitions);
+  _push_string(buffer, REG_GRP_TABLE_HEAD);
+  const Register *regs = Array_first_real(context->regArray);
+  const uint32_t n_regs = Array_length(context->regArray);
+  for (uint32_t i = 0; i < n_regs; i ++) {
+    const char_t *reg_name = Array_virt2real(ident_array, regs[i].name);
+    const RegisterGroup *grp = Array_virt2real(context->grpArray, regs[i].group);
+    const char_t *grp_name = Array_virt2real(ident_array, grp->name);
+    sprintf(temp_buffer, " [enum_REG_%s] = enum_GRP_%s,\n", reg_name, grp_name);
+    _push_string(buffer, temp_buffer);
+  }
+  _push_string(buffer, "};\n");
 }

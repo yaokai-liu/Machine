@@ -32,6 +32,7 @@
 
 void gen_license(Generator *generator, Array *buffer, const char_t *filename);
 void gen_export_header(Generator *generator, const Machine *machine);
+void gen_export_instr_macro(Generator *generator, const Machine *machine);
 void gen_export_record_declare(Generator *generator, const Machine *machine);
 void gen_export_tail(Generator *generator, const Machine *machine);
 
