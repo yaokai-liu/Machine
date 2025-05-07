@@ -46,6 +46,7 @@ uint32_t try_keyword_machine(const char_t *input, Terminal *result, const Alloca
 uint32_t try_keyword_memory(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_register(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_set(const char_t *input, Terminal *result, const Allocator *allocator);
+uint32_t try_keyword_list(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_macro(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_unsigned(const char_t *input, Terminal *result, const Allocator *allocator);
 uint32_t try_keyword_signed(const char_t *input, Terminal *result, const Allocator *allocator);
@@ -230,6 +231,7 @@ fn_try_keyword(instruction, INSTRUCTION)
 fn_try_keyword(machine, MACHINE)
 fn_try_keyword(memory, MEMORY)
 fn_try_keyword(set, SET)
+fn_try_keyword(list, LIST)
 fn_try_keyword(macro, MACRO)
 fn_try_keyword(register, REGISTER)
 fn_try_keyword_val(unsigned, TYPE, IT_UNSIGNED)
@@ -270,6 +272,17 @@ uint32_t tokenize_letter_i(
     }
     case 'n': {
       return tokenize_prefix_in(input + 1, result, allocator);
+    }
+    default: fn_fall_through();
+  }
+}
+
+uint32_t tokenize_letter_l(
+    const char_t * const input, Terminal * const result, const Allocator * const allocator
+) {
+  switch (*input) {
+    case 'i': {
+      return try_keyword_list(input + 1, result, allocator);
     }
     default: fn_fall_through();
   }
@@ -647,6 +660,9 @@ inline uint32_t single_tokenize(
   switch (*input) {
     case 'i': {
       return tokenize_letter_i(input + 1, result, allocator);
+    }
+    case 'l': {
+      return tokenize_letter_l(input + 1, result, allocator);
     }
     case 'm': {
       return tokenize_letter_m(input + 1, result, allocator);

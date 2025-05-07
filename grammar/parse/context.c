@@ -48,6 +48,7 @@ inline ParseContext *GContext_new(const Allocator *allocator) {
   context->immArray = Array_new(sizeof(Immediate), enum_Immediate, allocator);
   context->memArray = Array_new(sizeof(Memory), enum_Memory, allocator);
   context->setArray = Array_new(sizeof(RecordSet), enum_RecordSet, allocator);
+  context->listArray = Array_new(sizeof(List), enum_List, allocator);
   context->grpArray = Array_new(sizeof(RegisterGroup), enum_RegisterGroup, allocator);
   context->instrArray = Array_new(sizeof(Instruction), enum_Instruction, allocator);
   context->recordArray = Array_new(sizeof(Record), enum_Record, allocator);
@@ -134,6 +135,7 @@ contextAddRecord_DEF(Register, regArray, reg)
 contextAddRecord_DEF(Memory, memArray, mem)
 contextAddRecord_DEF(RegisterGroup, grpArray, grp)
 contextAddRecord_DEF(RecordSet, setArray, set)
+contextAddRecord_DEF(List, listArray, list)
 
 inline REFER(Instruction) GContext_addInstruction(ParseContext *context, const Instruction *instr) {
   uint32_t ndx = Array_length(context->instrArray);
@@ -153,6 +155,7 @@ contextGetFromOffset_DEF(Register, regArray)
 contextGetFromOffset_DEF(Memory, memArray)
 contextGetFromOffset_DEF(RegisterGroup, grpArray)
 contextGetFromOffset_DEF(RecordSet, setArray)
+contextGetFromOffset_DEF(List, setArray)
 
 inline Register *GContext_referToRegister(const ParseContext *context, REFER(Register) v_reg) {
   return Array_virt2real(context->regArray, v_reg);

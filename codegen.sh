@@ -10,9 +10,8 @@ if [ -d "json/macro" ]; then
 else
   mkdir -p json/macro
 fi
-
-
 python liu-machine/generate.py json
+
 if [ -d "grammar/generated/machine" ]; then
   echo ''
 else

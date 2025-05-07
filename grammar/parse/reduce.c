@@ -342,6 +342,10 @@ GrammarEntry *p_GrammarEntry_4(Token[], ParseContext *, const Allocator *) {
   return (REFER(GrammarEntry))(uint64_t) (enum_GrammarEntry);
 }
 
+GrammarEntry *p_GrammarEntry_5(Token[], ParseContext *, const Allocator *) {
+  return (REFER(GrammarEntry))(uint64_t) (enum_GrammarEntry);
+}
+
 Variable *p_Variable_0(Token argv[], ParseContext *context, const Allocator *allocator) {
   Identifier *lhs = (Identifier *) argv[0].value;
   Identifier *rhs = (Identifier *) argv[2].value;
@@ -1033,6 +1037,35 @@ RecordSet *p_RecordSet_0(Token argv[], ParseContext *context, const Allocator *a
   return GContext_addRecordSet(context, &set);
 }
 
+List *p_List_0(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Identifier *ident = (Identifier *) argv[1].value;
+  SetExpr *expr = (SetExpr *) argv[2].value;
+
+  grammarAssertNotDeclaredRecord(ident);
+
+  SetItems *items = expr->lhs;
+
+  List list = {.name = ident, .items = items, .width = -1};
+  allocator->free(expr);
+
+  return GContext_addList(context, &list);
+}
+
+List *p_List_1(Token argv[], ParseContext *context, const Allocator *allocator) {
+  Identifier *ident = (Identifier *) argv[1].value;
+  uint64_t width = (uint64_t) argv[2].value;
+  SetExpr *expr = (SetExpr *) argv[3].value;
+
+  grammarAssertNotDeclaredRecord(ident);
+
+  SetItems *items = expr->lhs;
+
+  List list = {.name = ident, .items = items, .width = width};
+  allocator->free(expr);
+
+  return GContext_addList(context, &list);
+}
+
 SetItems *p_SetItems_0(Token argv[], ParseContext *context, const Allocator *) {
   SetItems *items = (SetItems *) argv[0].value;
   Identifier *ident = (Identifier *) argv[2].value;
@@ -1095,8 +1128,8 @@ SetItems *p_SetItems_1(Token argv[], ParseContext *context, const Allocator *all
 #define record_translate_to_set(record)                                                \
   do {                                                                                 \
     switch (record->typeid) {                                                          \
-      case enum_RecordSet: {                                                            \
-        const RecordSet *set = GContext_getRecordSet(context, record->offset);           \
+      case enum_RecordSet: {                                                           \
+        const RecordSet *set = GContext_getRecordSet(context, record->offset);         \
         Set_update(items, set->items);                                                 \
         break;                                                                         \
       }                                                                                \

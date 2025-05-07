@@ -45,6 +45,7 @@ typedef struct ParseContext {
   Array /*<Immediate>*/ *immArray;
   Array /*<Memory>*/ *memArray;
   Array /*<Set>*/ *setArray;
+  Array /*<List>*/ *listArray;
   Array /*<RegisterGroup>*/ *grpArray;
   Array /*<Instruction>*/ *instrArray;
   Array /*<Record>*/ *recordArray;
@@ -87,6 +88,7 @@ REFER(Register) GContext_addRegister(ParseContext *context, const Register *reg)
 REFER(Memory) GContext_addMemory(ParseContext *context, const Memory *mem);
 REFER(RegisterGroup) GContext_addRegisterGroup(ParseContext *context, const RegisterGroup *grp);
 REFER(RecordSet) GContext_addRecordSet(ParseContext *context, const RecordSet *set);
+REFER(List) GContext_addList(ParseContext *context, const List *list);
 REFER(Instruction) GContext_addInstruction(ParseContext *context, const Instruction *instr);
 
 const Immediate *GContext_getImmediate(const ParseContext *context, uint32_t offset);
@@ -95,6 +97,7 @@ const Memory *GContext_getMemory(const ParseContext *context, uint32_t offset);
 const RegisterGroup *GContext_getRegisterGroup(const ParseContext *context, uint32_t offset);
 const Instruction *GContext_getInstruction(const ParseContext *context, uint32_t index);
 const RecordSet *GContext_getRecordSet(const ParseContext *context, uint32_t offset);
+const List *GContext_getList(const ParseContext *context, uint32_t offset);
 
 Register *GContext_referToRegister(const ParseContext *context, REFER(Register) v_reg);
 

@@ -178,6 +178,12 @@ typedef struct RecordSet {
   SetItems *items;
 } RecordSet;
 
+typedef struct List {
+  Identifier *name;
+  SetItems *items;
+  uint64_t  width;
+} List;
+
 #include "allocator.h"
 
 void releaseToken(Token *token, const Allocator *allocator);
