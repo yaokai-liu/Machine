@@ -236,6 +236,12 @@ Tokens *p_Tokens_3(Token argv[], MacroContext *context, const Allocator *allocat
   return tokens;
 }
 
+Tokens *p_Tokens_4(Token [], MacroContext *, const Allocator *allocator) {
+
+  Tokens *tokens = Array_new(sizeof(Token), enum_TOKEN, allocator);
+  return tokens;
+}
+
 Concat *p_Concat_0(Token argv[], MacroContext *context, const Allocator *allocator) {
   Token *left = argv[0].value;
   Token *right = argv[2].value;
