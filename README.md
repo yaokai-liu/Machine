@@ -384,6 +384,18 @@ Concat = TOKEN CONCAT TOKEN
 It is defined in [macro.xnf](https://github.com/yaokai-liu/Xnf/blob/liu-machine/macro.xnf).
 
 
+## Architecture
+
+### Tokenizer
+
+Tokenizer always be called when a next token is requested.
+
+![Tokenizer_next](doc/Tokenizer_next.svg)
+
+![Tokenizer_next_in_src](doc/Tokenizer_next_in_src.svg)
+
+![Tokenizer_next_in_frame](doc/Tokenizer_next_in_frame.svg)
+
 
 ## TODO:
 
