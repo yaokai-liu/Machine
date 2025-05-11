@@ -29,13 +29,13 @@
 
 int main() {
   uint32_t n_failed = 0;
-  Machine *machine = Machine_new(&STDAllocator);
+  x64Machine *machine = x64Machine_new(&STDAllocator);
   Array *output_array = Array_new(sizeof(uint8_t), -1, &STDAllocator);
 
   useMachine(machine);
   n_failed += test_primary_instructions(machine, output_array);
 
   Array_destroy(output_array);
-  Machine_destroy(machine);
+  x64Machine_destroy(machine);
   return (int) n_failed;
 }

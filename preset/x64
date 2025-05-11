@@ -290,7 +290,7 @@ macro primary_instr_m8_r8(code) {
 }
 
 macro primary_instr_mv_rv(code) {
-    primary_instr_mv_rv_principal({code}, PTRb, 0b00, {})
+    primary_instr_mv_rv_principal({code}, PTR , 0b00, {})
     primary_instr_mv_rv_principal({code}, REL , 0b00, { disp32: [32] = a.disp; })
     primary_instr_mv_rv_principal({code}, RELv8, 0b01, { disp8: [8] = a.disp; })
     primary_instr_mv_rv_principal({code}, RELv32, 0b10, { disp32: [32] = a.disp; })

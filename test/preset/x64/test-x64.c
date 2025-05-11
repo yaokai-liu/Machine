@@ -70,19 +70,19 @@
     }                                                                                           \
   } while (false)
 
-#define NEW_TEST(test_name) uint32_t test_name(Machine *machine, Array *output_array)
+#define NEW_TEST(test_name) uint32_t test_name(x64Machine *machine, Array *output_array)
 
 #define add_test(test_name) \
   do { n_failed += test_name(machine, output_array); } while (false)
 
 NEW_TEST(test_memory_model_REF) {
   uint32_t n_failed = 0;
-  testing_assert(nullptr == MEM_REFb(REG_rsp));
-  testing_assert(nullptr == MEM_REFb(REG_rbp));
-  testing_assert(nullptr == MEM_REFb(REG_esp));
-  testing_assert(nullptr == MEM_REFb(REG_ebp));
+  testing_assert(nullptr == MEM_PTRb(REG_rsp));
+  testing_assert(nullptr == MEM_PTRb(REG_rbp));
+  testing_assert(nullptr == MEM_PTRb(REG_esp));
+  testing_assert(nullptr == MEM_PTRb(REG_ebp));
 
-  testing_assert(nullptr == MEM_REFv(REG_ebp));
+  testing_assert(nullptr == MEM_PTR(REG_ebp));
   if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
   return n_failed;
 }
@@ -147,29 +147,29 @@ NEW_TEST(test_primary_instr_m8_r8) {
   uint32_t n_failed = 0;
   // test by varying operands
   uint8_t bytes1[] = {0x40, 0x00, 0x33};
-  test_encoding(bytes1, 3, INSTR_add, MEM_REFb(REG_rbx), REG_sil);
+  test_encoding(bytes1, 3, INSTR_add, MEM_PTRb(REG_rbx), REG_sil);
   uint8_t bytes2[] = {0x67, 0x00, 0x0a};
-  test_encoding(bytes2, 3, INSTR_add, MEM_REFb(REG_edx), REG_cl);
+  test_encoding(bytes2, 3, INSTR_add, MEM_PTRb(REG_edx), REG_cl);
   uint8_t bytes3[] = {0x44, 0x00, 0x03};
-  test_encoding(bytes3, 3, INSTR_add, MEM_REFb(REG_rbx), REG_r8b);
+  test_encoding(bytes3, 3, INSTR_add, MEM_PTRb(REG_rbx), REG_r8b);
   uint8_t bytes4[] = {0x67, 0x44, 0x00, 0x22};
-  test_encoding(bytes4, 4, INSTR_add, MEM_REFb(REG_edx), REG_r12b);
+  test_encoding(bytes4, 4, INSTR_add, MEM_PTRb(REG_edx), REG_r12b);
   uint8_t bytes5[] = {0x41, 0x00, 0x03};
-  test_encoding(bytes5, 3, INSTR_add, MEM_REFb(REG_r11), REG_al);
+  test_encoding(bytes5, 3, INSTR_add, MEM_PTRb(REG_r11), REG_al);
   uint8_t bytes6[] = {0x67, 0x41, 0x00, 0x1b};
-  test_encoding(bytes6, 4, INSTR_add, MEM_REFb(REG_r11d), REG_bl);
+  test_encoding(bytes6, 4, INSTR_add, MEM_PTRb(REG_r11d), REG_bl);
   uint8_t bytes7[] = {0x45, 0x00, 0x2a};
-  test_encoding(bytes7, 3, INSTR_add, MEM_REFb(REG_r10), REG_r13b);
+  test_encoding(bytes7, 3, INSTR_add, MEM_PTRb(REG_r10), REG_r13b);
   uint8_t bytes8[] = {0x67, 0x45, 0x00, 0x29};
-  test_encoding(bytes8, 4, INSTR_add, MEM_REFb(REG_r9d), REG_r13b);
+  test_encoding(bytes8, 4, INSTR_add, MEM_PTRb(REG_r9d), REG_r13b);
 
   // test by varying opcode
   uint8_t bytes9[] = {0x67, 0x45, 0x10, 0x29};
-  test_encoding(bytes9, 4, INSTR_adc, MEM_REFb(REG_r9d), REG_r13b);
+  test_encoding(bytes9, 4, INSTR_adc, MEM_PTRb(REG_r9d), REG_r13b);
   uint8_t bytes10[] = {0x67, 0x45, 0x88, 0x29};
-  test_encoding(bytes10, 4, INSTR_mov, MEM_REFb(REG_r9d), REG_r13b);
+  test_encoding(bytes10, 4, INSTR_mov, MEM_PTRb(REG_r9d), REG_r13b);
   uint8_t bytes11[] = {0x67, 0x45, 0x86, 0x29};
-  test_encoding(bytes11, 4, INSTR_xchg, MEM_REFb(REG_r9d), REG_r13b);
+  test_encoding(bytes11, 4, INSTR_xchg, MEM_PTRb(REG_r9d), REG_r13b);
 
   if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
   return n_failed;
@@ -179,27 +179,27 @@ NEW_TEST(test_primary_instr_m16_r16) {
   uint32_t n_failed = 0;
   // test by varying operands
   uint8_t bytes1[] = {0x66, 0x01, 0x33};
-  test_encoding(bytes1, 3, INSTR_add, MEM_REFv(REG_rbx), REG_si);
+  test_encoding(bytes1, 3, INSTR_add, MEM_PTR(REG_rbx), REG_si);
   uint8_t bytes2[] = {0x67, 0x66, 0x01, 0x0a};
-  test_encoding(bytes2, 4, INSTR_add, MEM_REFv(REG_edx), REG_cx);
+  test_encoding(bytes2, 4, INSTR_add, MEM_PTR(REG_edx), REG_cx);
   uint8_t bytes3[] = {0x66, 0x44, 0x01, 0x03};
-  test_encoding(bytes3, 4, INSTR_add, MEM_REFv(REG_rbx), REG_r8w);
+  test_encoding(bytes3, 4, INSTR_add, MEM_PTR(REG_rbx), REG_r8w);
   uint8_t bytes4[] = {0x67, 0x66, 0x44, 0x01, 0x22};
-  test_encoding(bytes4, 5, INSTR_add, MEM_REFv(REG_edx), REG_r12w);
+  test_encoding(bytes4, 5, INSTR_add, MEM_PTR(REG_edx), REG_r12w);
   uint8_t bytes5[] = {0x66, 0x41, 0x01, 0x03};
-  test_encoding(bytes5, 4, INSTR_add, MEM_REFv(REG_r11), REG_ax);
+  test_encoding(bytes5, 4, INSTR_add, MEM_PTR(REG_r11), REG_ax);
   uint8_t bytes6[] = {0x67, 0x66, 0x41, 0x01, 0x1b};
-  test_encoding(bytes6, 5, INSTR_add, MEM_REFv(REG_r11d), REG_bx);
+  test_encoding(bytes6, 5, INSTR_add, MEM_PTR(REG_r11d), REG_bx);
   uint8_t bytes7[] = {0x66, 0x45, 0x01, 0x2a};
-  test_encoding(bytes7, 4, INSTR_add, MEM_REFv(REG_r10), REG_r13w);
+  test_encoding(bytes7, 4, INSTR_add, MEM_PTR(REG_r10), REG_r13w);
   uint8_t bytes8[] = {0x67, 0x66, 0x45, 0x01, 0x29};
-  test_encoding(bytes8, 5, INSTR_add, MEM_REFv(REG_r9d), REG_r13w);
+  test_encoding(bytes8, 5, INSTR_add, MEM_PTR(REG_r9d), REG_r13w);
 
   // test by varying opcode
   uint8_t bytes9[] = {0x67, 0x66, 0x45, 0x19, 0x29};
-  test_encoding(bytes9, 5, INSTR_sbb, MEM_REFv(REG_r9d), REG_r13w);
+  test_encoding(bytes9, 5, INSTR_sbb, MEM_PTR(REG_r9d), REG_r13w);
   uint8_t bytes10[] = {0x67, 0x66, 0x45, 0x89, 0x29};
-  test_encoding(bytes10, 5, INSTR_mov, MEM_REFv(REG_r9d), REG_r13w);
+  test_encoding(bytes10, 5, INSTR_mov, MEM_PTR(REG_r9d), REG_r13w);
 
   if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
   return n_failed;
@@ -209,27 +209,27 @@ NEW_TEST(test_primary_instr_m32_r32) {
   uint32_t n_failed = 0;
   // test by varying operands
   uint8_t bytes1[] = {0x01, 0x33};
-  test_encoding(bytes1, 2, INSTR_add, MEM_REFv(REG_rbx), REG_esi);
+  test_encoding(bytes1, 2, INSTR_add, MEM_PTR(REG_rbx), REG_esi);
   uint8_t bytes2[] = {0x67, 0x01, 0x0a};
-  test_encoding(bytes2, 3, INSTR_add, MEM_REFv(REG_edx), REG_ecx);
+  test_encoding(bytes2, 3, INSTR_add, MEM_PTR(REG_edx), REG_ecx);
   uint8_t bytes3[] = {0x44, 0x01, 0x03};
-  test_encoding(bytes3, 3, INSTR_add, MEM_REFv(REG_rbx), REG_r8d);
+  test_encoding(bytes3, 3, INSTR_add, MEM_PTR(REG_rbx), REG_r8d);
   uint8_t bytes4[] = {0x67, 0x44, 0x01, 0x22};
-  test_encoding(bytes4, 4, INSTR_add, MEM_REFv(REG_edx), REG_r12d);
+  test_encoding(bytes4, 4, INSTR_add, MEM_PTR(REG_edx), REG_r12d);
   uint8_t bytes5[] = {0x41, 0x01, 0x03};
-  test_encoding(bytes5, 3, INSTR_add, MEM_REFv(REG_r11), REG_eax);
+  test_encoding(bytes5, 3, INSTR_add, MEM_PTR(REG_r11), REG_eax);
   uint8_t bytes6[] = {0x67, 0x41, 0x01, 0x1b};
-  test_encoding(bytes6, 4, INSTR_add, MEM_REFv(REG_r11d), REG_ebx);
+  test_encoding(bytes6, 4, INSTR_add, MEM_PTR(REG_r11d), REG_ebx);
   uint8_t bytes7[] = {0x45, 0x01, 0x2a};
-  test_encoding(bytes7, 3, INSTR_add, MEM_REFv(REG_r10), REG_r13d);
+  test_encoding(bytes7, 3, INSTR_add, MEM_PTR(REG_r10), REG_r13d);
   uint8_t bytes8[] = {0x67, 0x45, 0x01, 0x29};
-  test_encoding(bytes8, 4, INSTR_add, MEM_REFv(REG_r9d), REG_r13d);
+  test_encoding(bytes8, 4, INSTR_add, MEM_PTR(REG_r9d), REG_r13d);
 
   // test by varying opcode
   uint8_t bytes9[] = {0x67, 0x45, 0x19, 0x29};
-  test_encoding(bytes9, 4, INSTR_sbb, MEM_REFv(REG_r9d), REG_r13d);
+  test_encoding(bytes9, 4, INSTR_sbb, MEM_PTR(REG_r9d), REG_r13d);
   uint8_t bytes10[] = {0x67, 0x4d, 0x89, 0x29};
-  test_encoding(bytes10, 4, INSTR_mov, MEM_REFv(REG_r9d), REG_r13);
+  test_encoding(bytes10, 4, INSTR_mov, MEM_PTR(REG_r9d), REG_r13);
 
   if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
   return n_failed;
@@ -239,29 +239,29 @@ NEW_TEST(test_primary_instr_m64_r64) {
   uint32_t n_failed = 0;
   // test by varying operands
   uint8_t bytes1[] = {0x48, 0x01, 0x33};
-  test_encoding(bytes1, 3, INSTR_add, MEM_REFv(REG_rbx), REG_rsi);
+  test_encoding(bytes1, 3, INSTR_add, MEM_PTR(REG_rbx), REG_rsi);
   uint8_t bytes2[] = {0x67, 0x48, 0x01, 0x0a};
-  test_encoding(bytes2, 4, INSTR_add, MEM_REFv(REG_edx), REG_rcx);
+  test_encoding(bytes2, 4, INSTR_add, MEM_PTR(REG_edx), REG_rcx);
   uint8_t bytes3[] = {0x4c, 0x01, 0x03};
-  test_encoding(bytes3, 3, INSTR_add, MEM_REFv(REG_rbx), REG_r8);
+  test_encoding(bytes3, 3, INSTR_add, MEM_PTR(REG_rbx), REG_r8);
   uint8_t bytes4[] = {0x67, 0x4c, 0x01, 0x22};
-  test_encoding(bytes4, 4, INSTR_add, MEM_REFv(REG_edx), REG_r12);
+  test_encoding(bytes4, 4, INSTR_add, MEM_PTR(REG_edx), REG_r12);
   uint8_t bytes5[] = {0x49, 0x01, 0x03};
-  test_encoding(bytes5, 3, INSTR_add, MEM_REFv(REG_r11), REG_rax);
+  test_encoding(bytes5, 3, INSTR_add, MEM_PTR(REG_r11), REG_rax);
   uint8_t bytes6[] = {0x67, 0x49, 0x01, 0x1b};
-  test_encoding(bytes6, 4, INSTR_add, MEM_REFv(REG_r11d), REG_rbx);
+  test_encoding(bytes6, 4, INSTR_add, MEM_PTR(REG_r11d), REG_rbx);
   uint8_t bytes7[] = {0x4d, 0x01, 0x2a};
-  test_encoding(bytes7, 3, INSTR_add, MEM_REFv(REG_r10), REG_r13);
+  test_encoding(bytes7, 3, INSTR_add, MEM_PTR(REG_r10), REG_r13);
   uint8_t bytes8[] = {0x67, 0x4d, 0x01, 0x29};
-  test_encoding(bytes8, 4, INSTR_add, MEM_REFv(REG_r9d), REG_r13);
+  test_encoding(bytes8, 4, INSTR_add, MEM_PTR(REG_r9d), REG_r13);
 
   // test by varying opcode
   uint8_t bytes9[] = {0x67, 0x4d, 0x19, 0x29};
-  test_encoding(bytes9, 4, INSTR_sbb, MEM_REFv(REG_r9d), REG_r13);
+  test_encoding(bytes9, 4, INSTR_sbb, MEM_PTR(REG_r9d), REG_r13);
   uint8_t bytes10[] = {0x67, 0x4d, 0x89, 0x29};
-  test_encoding(bytes10, 4, INSTR_mov, MEM_REFv(REG_r9d), REG_r13);
+  test_encoding(bytes10, 4, INSTR_mov, MEM_PTR(REG_r9d), REG_r13);
   uint8_t bytes11[] = {0x67, 0x4d, 0x87, 0x29};
-  test_encoding(bytes11, 4, INSTR_xchg, MEM_REFv(REG_r9d), REG_r13);
+  test_encoding(bytes11, 4, INSTR_xchg, MEM_PTR(REG_r9d), REG_r13);
 
   if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
   return n_failed;
@@ -271,29 +271,29 @@ NEW_TEST(test_primary_instr_r8_m8) {
   uint32_t n_failed = 0;
   // test by varying operands
   uint8_t bytes1[] = {0x02, 0x13};
-  test_encoding(bytes1, 2, INSTR_radd, REG_dl, MEM_REFb(REG_rbx));
+  test_encoding(bytes1, 2, INSTR_radd, REG_dl, MEM_PTRb(REG_rbx));
   uint8_t bytes1h[] = {0x02, 0x33};
-  test_encoding(bytes1h, 2, INSTR_radd, REG_dh, MEM_REFb(REG_rbx));
+  test_encoding(bytes1h, 2, INSTR_radd, REG_dh, MEM_PTRb(REG_rbx));
   uint8_t bytes2[] = {0x67, 0x02, 0x0a};
-  test_encoding(bytes2, 3, INSTR_radd, REG_cl, MEM_REFb(REG_edx));
+  test_encoding(bytes2, 3, INSTR_radd, REG_cl, MEM_PTRb(REG_edx));
   uint8_t bytes3[] = {0x44, 0x02, 0x03};
-  test_encoding(bytes3, 3, INSTR_radd, REG_r8b, MEM_REFb(REG_rbx));
+  test_encoding(bytes3, 3, INSTR_radd, REG_r8b, MEM_PTRb(REG_rbx));
   uint8_t bytes4[] = {0x67, 0x44, 0x02, 0x22};
-  test_encoding(bytes4, 4, INSTR_radd, REG_r12b, MEM_REFb(REG_edx));
+  test_encoding(bytes4, 4, INSTR_radd, REG_r12b, MEM_PTRb(REG_edx));
   uint8_t bytes5[] = {0x41, 0x02, 0x03};
-  test_encoding(bytes5, 3, INSTR_radd, REG_al, MEM_REFb(REG_r11));
+  test_encoding(bytes5, 3, INSTR_radd, REG_al, MEM_PTRb(REG_r11));
   uint8_t bytes6[] = {0x67, 0x41, 0x02, 0x1b};
-  test_encoding(bytes6, 4, INSTR_radd, REG_bl, MEM_REFb(REG_r11d));
+  test_encoding(bytes6, 4, INSTR_radd, REG_bl, MEM_PTRb(REG_r11d));
   uint8_t bytes7[] = {0x45, 0x02, 0x2a};
-  test_encoding(bytes7, 3, INSTR_radd, REG_r13b, MEM_REFb(REG_r10));
+  test_encoding(bytes7, 3, INSTR_radd, REG_r13b, MEM_PTRb(REG_r10));
   uint8_t bytes8[] = {0x67, 0x45, 0x02, 0x29};
-  test_encoding(bytes8, 4, INSTR_radd, REG_r13b, MEM_REFb(REG_r9d));
+  test_encoding(bytes8, 4, INSTR_radd, REG_r13b, MEM_PTRb(REG_r9d));
 
   // test by varying opcode
   uint8_t bytes9[] = {0x67, 0x45, 0x12, 0x0b};
-  test_encoding(bytes9, 4, INSTR_radc, REG_r9b, MEM_REFb(REG_r11d));
+  test_encoding(bytes9, 4, INSTR_radc, REG_r9b, MEM_PTRb(REG_r11d));
   uint8_t bytes10[] = {0x45, 0x8a, 0x0b};
-  test_encoding(bytes10, 3, INSTR_rmov, REG_r9b, MEM_REFb(REG_r11));
+  test_encoding(bytes10, 3, INSTR_rmov, REG_r9b, MEM_PTRb(REG_r11));
 
   if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
   return n_failed;
@@ -303,27 +303,27 @@ NEW_TEST(test_primary_instr_r16_m16) {
   uint32_t n_failed = 0;
   // test by varying operands
   uint8_t bytes1[] = {0x66, 0x03, 0x1e};
-  test_encoding(bytes1, 3, INSTR_radd, REG_bx, MEM_REFv(REG_rsi));
+  test_encoding(bytes1, 3, INSTR_radd, REG_bx, MEM_PTR(REG_rsi));
   uint8_t bytes2[] = {0x67, 0x66, 0x03, 0x11};
-  test_encoding(bytes2, 4, INSTR_radd, REG_dx, MEM_REFv(REG_ecx));
+  test_encoding(bytes2, 4, INSTR_radd, REG_dx, MEM_PTR(REG_ecx));
   uint8_t bytes3[] = {0x66, 0x41, 0x03, 0x18};
-  test_encoding(bytes3, 4, INSTR_radd, REG_bx, MEM_REFv(REG_r8));
+  test_encoding(bytes3, 4, INSTR_radd, REG_bx, MEM_PTR(REG_r8));
   uint8_t bytes4[] = {0x67, 0x66, 0x41, 0x03, 0x13};
-  test_encoding(bytes4, 5, INSTR_radd, REG_dx, MEM_REFv(REG_r11d));
+  test_encoding(bytes4, 5, INSTR_radd, REG_dx, MEM_PTR(REG_r11d));
   uint8_t bytes5[] = {0x66, 0x44, 0x03, 0x18};
-  test_encoding(bytes5, 4, INSTR_radd, REG_r11w, MEM_REFv(REG_rax));
+  test_encoding(bytes5, 4, INSTR_radd, REG_r11w, MEM_PTR(REG_rax));
   uint8_t bytes6[] = {0x67, 0x66, 0x44, 0x03, 0x1b};
-  test_encoding(bytes6, 5, INSTR_radd, REG_r11w, MEM_REFv(REG_ebx));
+  test_encoding(bytes6, 5, INSTR_radd, REG_r11w, MEM_PTR(REG_ebx));
   uint8_t bytes7[] = {0x66, 0x45, 0x03, 0x16};
-  test_encoding(bytes7, 4, INSTR_radd, REG_r10w, MEM_REFv(REG_r14));
+  test_encoding(bytes7, 4, INSTR_radd, REG_r10w, MEM_PTR(REG_r14));
   uint8_t bytes8[] = {0x67, 0x66, 0x45, 0x03, 0x0e};
-  test_encoding(bytes8, 5, INSTR_radd, REG_r9w, MEM_REFv(REG_r14d));
+  test_encoding(bytes8, 5, INSTR_radd, REG_r9w, MEM_PTR(REG_r14d));
 
   // test by varying opcode
   uint8_t bytes9[] = {0x67, 0x66, 0x45, 0x1b, 0x0e};
-  test_encoding(bytes9, 5, INSTR_rsbb, REG_r9w, MEM_REFv(REG_r14d));
+  test_encoding(bytes9, 5, INSTR_rsbb, REG_r9w, MEM_PTR(REG_r14d));
   uint8_t bytes10[] = {0x67, 0x66, 0x45, 0x8b, 0x0e};
-  test_encoding(bytes10, 5, INSTR_rmov, REG_r9w, MEM_REFv(REG_r14d));
+  test_encoding(bytes10, 5, INSTR_rmov, REG_r9w, MEM_PTR(REG_r14d));
 
   if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
   return n_failed;
@@ -333,27 +333,27 @@ NEW_TEST(test_primary_instr_r32_m32) {
   uint32_t n_failed = 0;
   // test by varying operands
   uint8_t bytes1[] = {0x03, 0x1e};
-  test_encoding(bytes1, 2, INSTR_radd, REG_ebx, MEM_REFv(REG_rsi));
+  test_encoding(bytes1, 2, INSTR_radd, REG_ebx, MEM_PTR(REG_rsi));
   uint8_t bytes2[] = {0x67, 0x03, 0x11};
-  test_encoding(bytes2, 3, INSTR_radd, REG_edx, MEM_REFv(REG_ecx));
+  test_encoding(bytes2, 3, INSTR_radd, REG_edx, MEM_PTR(REG_ecx));
   uint8_t bytes3[] = {0x41, 0x03, 0x18};
-  test_encoding(bytes3, 3, INSTR_radd, REG_ebx, MEM_REFv(REG_r8));
+  test_encoding(bytes3, 3, INSTR_radd, REG_ebx, MEM_PTR(REG_r8));
   uint8_t bytes4[] = {0x67, 0x41, 0x03, 0x13};
-  test_encoding(bytes4, 4, INSTR_radd, REG_edx, MEM_REFv(REG_r11d));
+  test_encoding(bytes4, 4, INSTR_radd, REG_edx, MEM_PTR(REG_r11d));
   uint8_t bytes5[] = {0x44, 0x03, 0x18};
-  test_encoding(bytes5, 3, INSTR_radd, REG_r11d, MEM_REFv(REG_rax));
+  test_encoding(bytes5, 3, INSTR_radd, REG_r11d, MEM_PTR(REG_rax));
   uint8_t bytes6[] = {0x67, 0x44, 0x03, 0x1b};
-  test_encoding(bytes6, 4, INSTR_radd, REG_r11d, MEM_REFv(REG_ebx));
+  test_encoding(bytes6, 4, INSTR_radd, REG_r11d, MEM_PTR(REG_ebx));
   uint8_t bytes7[] = {0x45, 0x03, 0x16};
-  test_encoding(bytes7, 3, INSTR_radd, REG_r10d, MEM_REFv(REG_r14));
+  test_encoding(bytes7, 3, INSTR_radd, REG_r10d, MEM_PTR(REG_r14));
   uint8_t bytes8[] = {0x67, 0x45, 0x03, 0x0e};
-  test_encoding(bytes8, 4, INSTR_radd, REG_r9d, MEM_REFv(REG_r14d));
+  test_encoding(bytes8, 4, INSTR_radd, REG_r9d, MEM_PTR(REG_r14d));
 
   // test by varying opcode
   uint8_t bytes9[] = {0x67, 0x45, 0x1b, 0x0e};
-  test_encoding(bytes9, 4, INSTR_rsbb, REG_r9d, MEM_REFv(REG_r14d));
+  test_encoding(bytes9, 4, INSTR_rsbb, REG_r9d, MEM_PTR(REG_r14d));
   uint8_t bytes10[] = {0x67, 0x45, 0x8b, 0x0e};
-  test_encoding(bytes10, 4, INSTR_rmov, REG_r9d, MEM_REFv(REG_r14d));
+  test_encoding(bytes10, 4, INSTR_rmov, REG_r9d, MEM_PTR(REG_r14d));
 
   if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
   return n_failed;
@@ -363,29 +363,29 @@ NEW_TEST(test_primary_instr_r64_m64) {
   uint32_t n_failed = 0;
   // test by varying operands
   uint8_t bytes1[] = {0x48, 0x03, 0x1e};
-  test_encoding(bytes1, 3, INSTR_radd, REG_rbx, MEM_REFv(REG_rsi));
+  test_encoding(bytes1, 3, INSTR_radd, REG_rbx, MEM_PTR(REG_rsi));
   uint8_t bytes2[] = {0x67, 0x48, 0x03, 0x11};
-  test_encoding(bytes2, 4, INSTR_radd, REG_rdx, MEM_REFv(REG_ecx));
+  test_encoding(bytes2, 4, INSTR_radd, REG_rdx, MEM_PTR(REG_ecx));
   uint8_t bytes3[] = {0x49, 0x03, 0x18};
-  test_encoding(bytes3, 3, INSTR_radd, REG_rbx, MEM_REFv(REG_r8));
+  test_encoding(bytes3, 3, INSTR_radd, REG_rbx, MEM_PTR(REG_r8));
   uint8_t bytes4[] = {0x67, 0x49, 0x03, 0x13};
-  test_encoding(bytes4, 4, INSTR_radd, REG_rdx, MEM_REFv(REG_r11d));
+  test_encoding(bytes4, 4, INSTR_radd, REG_rdx, MEM_PTR(REG_r11d));
   uint8_t bytes5[] = {0x4c, 0x03, 0x18};
-  test_encoding(bytes5, 3, INSTR_radd, REG_r11, MEM_REFv(REG_rax));
+  test_encoding(bytes5, 3, INSTR_radd, REG_r11, MEM_PTR(REG_rax));
   uint8_t bytes6[] = {0x67, 0x4c, 0x03, 0x1b};
-  test_encoding(bytes6, 4, INSTR_radd, REG_r11, MEM_REFv(REG_ebx));
+  test_encoding(bytes6, 4, INSTR_radd, REG_r11, MEM_PTR(REG_ebx));
   uint8_t bytes7[] = {0x4d, 0x03, 0x16};
-  test_encoding(bytes7, 3, INSTR_radd, REG_r10, MEM_REFv(REG_r14));
+  test_encoding(bytes7, 3, INSTR_radd, REG_r10, MEM_PTR(REG_r14));
   uint8_t bytes8[] = {0x67, 0x4d, 0x03, 0x0e};
-  test_encoding(bytes8, 4, INSTR_radd, REG_r9, MEM_REFv(REG_r14d));
+  test_encoding(bytes8, 4, INSTR_radd, REG_r9, MEM_PTR(REG_r14d));
 
   // test by varying opcode
   uint8_t bytes9[] = {0x67, 0x4d, 0x1b, 0x0e};
-  test_encoding(bytes9, 4, INSTR_rsbb, REG_r9, MEM_REFv(REG_r14d));
+  test_encoding(bytes9, 4, INSTR_rsbb, REG_r9, MEM_PTR(REG_r14d));
   uint8_t bytes10[] = {0x67, 0x4d, 0x8b, 0x0e};
-  test_encoding(bytes10, 4, INSTR_rmov, REG_r9, MEM_REFv(REG_r14d));
+  test_encoding(bytes10, 4, INSTR_rmov, REG_r9, MEM_PTR(REG_r14d));
   uint8_t bytes11[] = {0x4d, 0x8d, 0x0e};
-  test_encoding(bytes11, 3, INSTR_lea, REG_r9, MEM_REFv(REG_r14));
+  test_encoding(bytes11, 3, INSTR_lea, REG_r9, MEM_PTR(REG_r14));
 
   if (!n_failed) { fprintf(stdout, "test for '%s' passed.\n", __FUNCTION__); }
   return n_failed;
@@ -429,7 +429,7 @@ NEW_TEST(test_other_instructions) {
   return n_failed;
 }
 
-uint32_t test_primary_instructions(Machine *machine, Array *output_array) {
+uint32_t test_primary_instructions(x64Machine *machine, Array *output_array) {
   uint32_t n_failed = 0;
   add_test(test_memory_model_REF);
   add_test(test_primary_instr_r8_r8);

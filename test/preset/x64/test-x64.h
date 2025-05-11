@@ -30,6 +30,6 @@
 
 #include "x64.h"
 
-uint32_t test_primary_instructions(Machine *machine, Array *output_array);
+uint32_t test_primary_instructions(x64Machine *machine, Array *output_array);
 
 #endif  // MACHINE_TEST_X64_H
