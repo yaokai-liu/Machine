@@ -283,17 +283,17 @@ macro primary_instr_mv_rv_principal(code, type, mod, disp) {
 }
 
 macro primary_instr_m8_r8(code) {
-    primary_instr_m8_r8_principal(code, PTRb, 0b00, {})
-    primary_instr_m8_r8_principal(code, REL , 0b00, { disp32: [32] = a.disp; })
-    primary_instr_m8_r8_principal(code, RELb8, 0b01, { disp8: [8] = a.disp; })
-    primary_instr_m8_r8_principal(code, RELb32, 0b10, { disp32: [32] = a.disp; })
+    primary_instr_m8_r8_principal({code}, PTRb, 0b00, {})
+    primary_instr_m8_r8_principal({code}, REL , 0b00, { disp32: [32] = a.disp; })
+    primary_instr_m8_r8_principal({code}, RELb8, 0b01, { disp8: [8] = a.disp; })
+    primary_instr_m8_r8_principal({code}, RELb32, 0b10, { disp32: [32] = a.disp; })
 }
 
 macro primary_instr_mv_rv(code) {
-    primary_instr_mv_rv_principal(code, PTRb, 0b00, {})
-    primary_instr_mv_rv_principal(code, REL , 0b00, { disp32: [32] = a.disp; })
-    primary_instr_mv_rv_principal(code, RELb8, 0b01, { disp8: [8] = a.disp; })
-    primary_instr_mv_rv_principal(code, RELb32, 0b10, { disp32: [32] = a.disp; })
+    primary_instr_mv_rv_principal({code}, PTRb, 0b00, {})
+    primary_instr_mv_rv_principal({code}, REL , 0b00, { disp32: [32] = a.disp; })
+    primary_instr_mv_rv_principal({code}, RELv8, 0b01, { disp8: [8] = a.disp; })
+    primary_instr_mv_rv_principal({code}, RELv32, 0b10, { disp32: [32] = a.disp; })
 }
 
 macro primary_instr_r8_m8(code) {
@@ -504,17 +504,17 @@ macro primary_instr_rv_mv(code) {
 
 macro primary_instr(name, code) {
   instruction name {
-    primary_instr_r8_r8(code)
+    primary_instr_r8_r8({code})
     primary_instr_rv_rv({code + 1})
-    primary_instr_m8_r8(code)
+    primary_instr_m8_r8({code})
     primary_instr_mv_rv({code + 1})
   }
 }
 macro primary_instr_rev(name, code) {
   instruction name {
-    primary_instr_r8_r8(code)
+    primary_instr_r8_r8({code})
     primary_instr_rv_rv({code + 1})
-    primary_instr_r8_m8(code)
+    primary_instr_r8_m8({code})
     primary_instr_rv_mv({code + 1})
   }
 }
@@ -623,8 +623,8 @@ macro primary_instr_imm_in_grp1(grp1_id) {
 
 macro primary_instr_imm(name, code, grp1_id) {
   instruction name {
-    primary_instr_imm_ax_iz(code)
-    primary_instr_imm_in_grp1(grp1_id)
+    primary_instr_imm_ax_iz({code})
+    primary_instr_imm_in_grp1({grp1_id})
   }
 }
 

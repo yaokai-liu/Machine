@@ -30,7 +30,7 @@
 
 void MacroCallFrame_init(MacroCallFrame *frame) {
   frame->concatArray = nullptr;
-  frame->macroName = nullptr;
+  frame->macro = nullptr;
   frame->tokens = nullptr;
   frame->args = nullptr;
   frame->index = 0;

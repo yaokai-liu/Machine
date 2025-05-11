@@ -90,7 +90,7 @@ inline MacroCallFrame *
   const Macro *macro = Array_virt2real(context->macroArray, v_macro);
   frame->concatArray = macro->concatArray;
   frame->args = context->current_args;
-  frame->macroName = macro->name;
+  frame->macro = v_macro;
   frame->tokens = macro->tokens;
   frame->index = 0;
 
@@ -127,7 +127,7 @@ void clear_current_arrays(MacroContext *context, void *) {
   // not set context->current_args to nullptr, because MacroCall is executed directly.
 }
 
-fn_ctx_act *macro_get_after_stack_action(uint32_t state) {
+fn_macro_ctx_act *macro_get_after_stack_action(uint32_t state) {
   switch (state) {
     case __MACRO_IDENTIFIER_LEFT_BRACKET:
     case __IDENTIFIER_LEFT_PAREN_LEFT_BRACKET: {
@@ -152,7 +152,7 @@ fn_ctx_act *macro_get_after_stack_action(uint32_t state) {
   return nullptr;
 }
 
-fn_ctx_act *macro_get_after_reduce_action(uint32_t state) {
+fn_macro_ctx_act *macro_get_after_reduce_action(uint32_t state) {
   switch (state) {
     case __MacroEntry: {
       return clear_current_arrays;

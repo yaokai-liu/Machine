@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
     return -2;
   }
   Array *ident_array = Array_new(sizeof(Identifier), enum_IDENTIFIER, &STDAllocator);
-  Tokenizer *tokenizer = Tokenizer_new(text, ident_array, &STDAllocator);
+  Tokenizer *const tokenizer = Tokenizer_new(text, ident_array, &STDAllocator);
   CGenerator *generator = Generator_new_C(ident_array, &STDAllocator);
 
   clock_t start = clock();

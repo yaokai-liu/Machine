@@ -30,14 +30,28 @@
 
 #include "array.h"
 #include "char_t.h"
+#include "context.h"
 #include "err.h"
 #include "terminal.h"
 
-typedef struct Tokenizer Tokenizer;
+typedef struct Tokenizer {
+  const Allocator *allocator;
+  const char_t *src;
+  uint32_t cost;
+  uint32_t lineno;
+  uint32_t column;
+  MacroContext *context;
+
+  Array *ident_array;  // Array<Identifier>
+  Trie *ident_trie;    // Trie<char_t, Identifier>
+  Stack *framestack;   // Stack<MacroCallFrame>
+  MacroCallFrame frame;
+} Tokenizer;
 
 Tokenizer *Tokenizer_new(const char_t *src, Array *ident_array, const Allocator *allocator);
 void Tokenizer_destroy(Tokenizer *tokenizer);
 uint32_t Tokenizer_next(Tokenizer *tokenizer, Token *token, ErrInfo *err_info);
+uint32_t Tokenizer_macro_next(Tokenizer *tokenizer, Token *token, ErrInfo *err_info);
 uint32_t Tokenizer_frame_pos_to_array(Tokenizer *tokenizer, Array /*<MacroCallFrame>*/ *array);
 
 #endif  // MACHINE_TOKENIZE_TOKENIZER_H

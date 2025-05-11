@@ -62,13 +62,13 @@ int main() {
   //  clock_t start = clock();
 
   //    const char_t * str = string_t("machine macro masdafa");
-  Terminal terminal = {};
-  Tokenizer *tokenizer = Tokenizer_new(testString, nullptr, &STDAllocator);
+  Token terminal = {}; ErrInfo err_info;
+  Tokenizer *const tokenizer = Tokenizer_new(testString, nullptr, &STDAllocator);
   while (terminal.type != enum_TERMINATOR) {
-    Tokenizer_next(tokenizer, &terminal);
-    uint32_t t_line = terminal.lineno;
-    uint32_t t_start = terminal.column;
-    uint32_t t_end = (terminal.length > 0) ? terminal.column + terminal.length - 1 : 0;
+    Tokenizer_next(tokenizer, &terminal, &err_info);
+    uint32_t t_line = terminal.position[0].lineno;
+    uint32_t t_start = terminal.position[0].column;
+    uint32_t t_end = (terminal.length > 0) ? terminal.position[0].column + terminal.length - 1 : 0;
     printf(
         "(line: %u, col: %u-%u, type: %s, value: %p)\n", t_line, t_start, t_end,
         get_name(terminal.type), terminal.value

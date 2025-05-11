@@ -60,8 +60,8 @@ MacroCallFrame *
 
 void MacroContext_destroy(MacroContext *context);
 
-typedef void fn_ctx_act(MacroContext *context, void *token);
-fn_ctx_act *macro_get_after_stack_action(uint32_t state);
-fn_ctx_act *macro_get_after_reduce_action(uint32_t state);
+typedef void fn_macro_ctx_act(MacroContext *context, void *token);
+fn_macro_ctx_act *macro_get_after_stack_action(uint32_t state);
+fn_macro_ctx_act *macro_get_after_reduce_action(uint32_t state);
 
 #endif  // MACHINE_TOKENIZE_CONTEXT_H

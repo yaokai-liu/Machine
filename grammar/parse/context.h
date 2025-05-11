@@ -132,9 +132,9 @@ const char_t *GContext_getErrorMessage(ParseContext *context);
 
 void GContext_destroy(ParseContext *context);
 
-typedef void fn_ctx_act(ParseContext *context, void *token);
+typedef void fn_parse_ctx_act(ParseContext *context, void *token);
 
-fn_ctx_act *get_after_stack_actions(int32_t state);
-fn_ctx_act *get_after_reduce_actions(int32_t state);
+fn_parse_ctx_act *get_after_stack_actions(int32_t state);
+fn_parse_ctx_act *get_after_reduce_actions(int32_t state);
 
 #endif  // MACHINE_CONTEXT_H

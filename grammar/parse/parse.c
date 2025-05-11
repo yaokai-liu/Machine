@@ -28,14 +28,16 @@
 #include "parse.h"
 #include "action.h"
 #include "context.h"
+#include "enum.h"
 #include "err.h"
 #include "generated/machine/action-table.gen.h"
 #include "generated/machine/reduce.gen.h"
 #include "stack.h"
 #include "target.h"
+#include <stdio.h>
 
 #define MAX_ARGC 0x10
-Machine *parse(Tokenizer *tokenizer, ErrInfo *err_info, const Allocator *allocator) {
+Machine *parse(Tokenizer *const tokenizer, ErrInfo * const err_info, const Allocator *allocator) {
   int32_t state = 0;
   Token token = {}, result = {};
   Token args[MAX_ARGC] = {};
@@ -50,7 +52,8 @@ Machine *parse(Tokenizer *tokenizer, ErrInfo *err_info, const Allocator *allocat
     const struct grammar_action *act = getParseAction(state, token.type);
     if (!act) {
       if (token.type == enum_SEMICOLON) {
-        Tokenizer_next(tokenizer, &token, err_info);
+        uint32_t error = Tokenizer_next(tokenizer, &token, err_info);
+        if (error != SUCCESS) { return clean_parse_stack(state_stack, token_stack, allocator); }
         continue;
       } else {
         err_info->pos[0] = token.position[0];
@@ -64,9 +67,10 @@ Machine *parse(Tokenizer *tokenizer, ErrInfo *err_info, const Allocator *allocat
       state = act->offset;
       Stack_push(token_stack, &token, sizeof(Token));
       Stack_push(state_stack, &state, sizeof(int32_t));
-      fn_ctx_act *ctx_act = get_after_stack_actions(state);
+      fn_parse_ctx_act *ctx_act = get_after_stack_actions(state);
       if (ctx_act) { ctx_act(context, token.value); }
-      Tokenizer_next(tokenizer, &token, err_info);
+      uint32_t error = Tokenizer_next(tokenizer, &token, err_info);
+      if (error != SUCCESS) { return clean_parse_stack(state_stack, token_stack, allocator); }
     } else if (act->action == reduce) {
       Stack_pop(token_stack, args, act->count * sizeof(Token));
       Stack_pop(state_stack, states, act->count * sizeof(int32_t));
@@ -95,7 +99,7 @@ Machine *parse(Tokenizer *tokenizer, ErrInfo *err_info, const Allocator *allocat
       }
       Stack_push(token_stack, &result, sizeof(Token));
       Stack_push(state_stack, &state, sizeof(int32_t));
-      fn_ctx_act *ctx_act = get_after_reduce_actions(state);
+      fn_parse_ctx_act *ctx_act = get_after_reduce_actions(state);
       if (ctx_act) { ctx_act(context, token.value); }
       if (act->offset == __EXTEND_RULE__) { break; }
     } else {

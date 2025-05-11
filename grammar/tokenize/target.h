@@ -60,7 +60,7 @@ struct Macro {
 };
 
 typedef struct MacroCallFrame {
-  Identifier *macroName;
+  REFER(Macro) macro;
   MacroArgs *args;
   const Tokens *tokens;
   Array *concatArray;
