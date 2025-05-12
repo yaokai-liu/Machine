@@ -113,6 +113,7 @@ Arith_0_Expr *p_Arith_0_Expr_0(Token argv[], ParseContext *, const Allocator *al
   expr->rhs = rhs;
   return expr;
 }
+
 Arith_0_Expr *p_Arith_0_Expr_1(Token argv[], ParseContext *, const Allocator *allocator) {
   uint32_t sin_op = (uint32_t) (uint64_t) argv[0].value;
   Arith_0_Expr *rhs = (Arith_1_Expr *) argv[1].value;
@@ -123,6 +124,7 @@ Arith_0_Expr *p_Arith_0_Expr_1(Token argv[], ParseContext *, const Allocator *al
   expr->rhs = rhs;
   return expr;
 }
+
 Arith_0_Expr *p_Arith_0_Expr_2(Token argv[], ParseContext *, const Allocator *) {
   return (Arith_1_Expr *) argv[0].value;
 }

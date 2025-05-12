@@ -43,6 +43,7 @@ const struct state MACRO_STATES[] = {
 const uint32_t MACRO_CURRENT_TOKENS[] = {
   ${currents}
 };
+
 inline const struct unit *getMacroParseUnit(const state *state, uint32_t look) {
   const struct unit *unit, *base = &MACRO_UNITS[state->token_base];
   int32_t left = 0, right = state->n_tokens - 1;
@@ -61,17 +62,16 @@ inline const struct unit *getMacroParseUnit(const state *state, uint32_t look) {
   return unit;
 }
 
-
-inline const struct grammar_action *getMacroParseAction(uint32_t index, uint32_t ahead) {
-  const state *state = &MACRO_STATES[index];
+inline const struct grammar_action *getMacroParseAction(uint32_t _state, uint32_t ahead) {
+  const state *state = &MACRO_STATES[_state];
   const struct unit *unit = getMacroParseUnit(state, ahead);
   if (!unit) { return nullptr; }
   const struct grammar_action *act = &MACRO_ACTIONS[state->ndx_base + unit->offset];
   return act;
 }
 
-inline int32_t macroParseJumpState(uint32_t index, uint32_t current) {
-  const state *state = &MACRO_STATES[index];
+inline int32_t macroParseJumpState(uint32_t _state, uint32_t current) {
+  const state *state = &MACRO_STATES[_state];
   const struct unit *unit = getMacroParseUnit(state, current);
   if (!unit) { return -1; }
   return MACRO_JUMPS[state->goto_base + unit->offset];
@@ -79,4 +79,15 @@ inline int32_t macroParseJumpState(uint32_t index, uint32_t current) {
 
 inline uint32_t getMacroParseStateCurrentTokenType(int32_t state) {
   return MACRO_CURRENT_TOKENS[state];
+}
+
+inline uint32_t getParseStateExpectedTokenType(int32_t _state, uint32_t *token_types) {
+  const state *state = &MACRO_STATES[_state];
+  const struct unit *base = &MACRO_UNITS[state->token_base];
+  if (token_types) {
+    for (uint32_t i = 0; i < state->n_tokens; i++) {
+      token_types[i] = base[i].type;
+    }
+  }
+  return state->n_tokens;
 }
