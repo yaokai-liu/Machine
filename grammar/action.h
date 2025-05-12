@@ -33,9 +33,12 @@
 typedef struct state state;
 struct grammar_action {
   enum : uint8_t {
-    reject = 0,
-    stack = 1,
-    reduce = 2
+    Parse_action_reject = 0,
+    Parse_action_stack = 1,
+    Parse_action_reduce = 2,
+    Macro_action_reject = 0,
+    Macro_action_stack = 1,
+    Macro_action_reduce = 2
   } action      : 4;
   uint8_t count : 4;
   uint8_t type;

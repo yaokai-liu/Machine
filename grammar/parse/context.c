@@ -350,17 +350,17 @@ void release_ctx_patterns(ParseContext *context, void *) {
 }
 
 #include "generated/machine/action-table.gen.h"
-#define IN_MACHINE(s)     __MACHINE_IDENTIFIER_LEFT_BRACKET_##s
-#define IN_REGISTER(s)    __MACHINE_IDENTIFIER_LEFT_BRACKET_REGISTER_IDENTIFIER_WIDTH_LEFT_BRACKET_##s
-#define IN_INSTRUCTION(s) __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_##s
+#define IN_MACHINE(s)     Parse_state_MACHINE_IDENTIFIER_LEFT_BRACKET_##s
+#define IN_REGISTER(s)    Parse_state_MACHINE_IDENTIFIER_LEFT_BRACKET_REGISTER_IDENTIFIER_WIDTH_LEFT_BRACKET_##s
+#define IN_INSTRUCTION(s) Parse_state_MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_##s
 #define IN_INSTR_FORM(s) \
-  __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_ASSIGN_LEFT_BRACKET_##s
+  Parse_state_MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_ASSIGN_LEFT_BRACKET_##s
 #define IN_INSTR_PART(s) \
-  __MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_ASSIGN_LEFT_BRACKET_FormCheck_IDENTIFIER_COLON_WIDTH_ASSIGN_LEFT_BRACKET_##s
+  Parse_state_MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_ASSIGN_LEFT_BRACKET_FormCheck_IDENTIFIER_COLON_WIDTH_ASSIGN_LEFT_BRACKET_##s
 
 fn_parse_ctx_act *get_after_stack_actions(int32_t state) {
   switch (state) {
-    case __MACHINE_IDENTIFIER:
+    case Parse_state_MACHINE_IDENTIFIER:
     case IN_MACHINE(REGISTER_IDENTIFIER): {
       return push_context_ident;
     }
@@ -385,7 +385,7 @@ fn_parse_ctx_act *get_after_stack_actions(int32_t state) {
 }
 fn_parse_ctx_act *get_after_reduce_actions(int32_t state) {
   switch (state) {
-    case __Machine: {
+    case Parse_state_Machine: {
       return pop_context_ident;
     }
     case IN_MACHINE(Memory): {

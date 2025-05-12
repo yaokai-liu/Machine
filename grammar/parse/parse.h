@@ -32,7 +32,7 @@
 #include "target.h"
 #include "tokenize/tokenizer.h"
 
-extern fn_reduce * const MACHINE_PRODUCTS[];
+extern fn_parse_reduce * const MACHINE_PRODUCTS[];
 
 Machine *parse(Tokenizer *tokenizer, ErrInfo *err_info, const Allocator *allocator);
 

@@ -31,7 +31,7 @@
 #include "enum.h"
 #include "err.h"
 #include "generated/machine/action-table.gen.h"
-#include "generated/machine/reduce.gen.h"
+#include "generated/machine/rules.gen.h"
 #include "stack.h"
 #include "target.h"
 #include <stdio.h>
@@ -63,7 +63,7 @@ Machine *parse(Tokenizer *const tokenizer, ErrInfo * const err_info, const Alloc
         return clean_parse_stack(state_stack, token_stack, allocator);
       }
     }
-    if (act->action == stack) {
+    if (act->action == Parse_action_stack) {
       state = act->offset;
       Stack_push(token_stack, &token, sizeof(Token));
       Stack_push(state_stack, &state, sizeof(int32_t));
@@ -71,11 +71,11 @@ Machine *parse(Tokenizer *const tokenizer, ErrInfo * const err_info, const Alloc
       if (ctx_act) { ctx_act(context, token.value); }
       uint32_t error = Tokenizer_next(tokenizer, &token, err_info);
       if (error != SUCCESS) { return clean_parse_stack(state_stack, token_stack, allocator); }
-    } else if (act->action == reduce) {
+    } else if (act->action == Parse_action_reduce) {
       Stack_pop(token_stack, args, act->count * sizeof(Token));
       Stack_pop(state_stack, states, act->count * sizeof(int32_t));
       Stack_top(state_stack, (int32_t *) &state, sizeof(int32_t));
-      fn_reduce *reduce = MACHINE_PRODUCTS[act->offset];
+      fn_parse_reduce *reduce = MACHINE_PRODUCTS[act->offset];
       result.type = act->type;
       result.position[0].lineno = args[0].position[0].lineno;
       result.position[0].column = args[0].position[0].column;
@@ -101,7 +101,7 @@ Machine *parse(Tokenizer *const tokenizer, ErrInfo * const err_info, const Alloc
       Stack_push(state_stack, &state, sizeof(int32_t));
       fn_parse_ctx_act *ctx_act = get_after_reduce_actions(state);
       if (ctx_act) { ctx_act(context, token.value); }
-      if (act->offset == __EXTEND_RULE__) { break; }
+      if (act->offset == enum_Parse_Machine_EXT) { break; }
     } else {
       // never be touched
     }

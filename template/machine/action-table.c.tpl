@@ -2,7 +2,7 @@ ${license}
 
 #include "action.h"
 #include "generated/tokens.gen.h"
-#include "generated/machine/reduce.gen.h"
+#include "generated/machine/rules.gen.h"
 #include "generated/machine/action-table.gen.h"
 
 struct state {

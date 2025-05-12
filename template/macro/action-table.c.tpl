@@ -2,7 +2,7 @@ ${license}
 
 #include "action.h"
 #include "generated/tokens.gen.h"
-#include "generated/macro/reduce.gen.h"
+#include "generated/macro/rules.gen.h"
 #include "generated/macro/action-table.gen.h"
 
 struct state {
@@ -81,7 +81,7 @@ inline uint32_t getMacroParseStateCurrentTokenType(int32_t state) {
   return MACRO_CURRENT_TOKENS[state];
 }
 
-inline uint32_t getParseStateExpectedTokenType(int32_t _state, uint32_t *token_types) {
+inline uint32_t getMacroStateExpectedTokenType(int32_t _state, uint32_t *token_types) {
   const state *state = &MACRO_STATES[_state];
   const struct unit *base = &MACRO_UNITS[state->token_base];
   if (token_types) {

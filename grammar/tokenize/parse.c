@@ -29,13 +29,13 @@
 #include "action.h"
 #include "enum.h"
 #include "generated/macro/action-table.gen.h"
-#include "generated/macro/reduce.gen.h"
+#include "generated/macro/rules.gen.h"
 #include "tokenizer.h"
 #include <stdio.h>
 
-typedef void *fn_reduce(Token argv[], MacroContext *context, const Allocator *allocator);
+typedef void *fn_macro_reduce(Token argv[], MacroContext *context, const Allocator *allocator);
 
-extern fn_reduce * const MACRO_PRODUCTS[];
+extern fn_macro_reduce * const MACRO_PRODUCTS[];
 
 void tokenizer_failed_to_get_next_state(
     Stack *state_stack, Stack *token_stack, Token *result, const Allocator *allocator
@@ -70,17 +70,10 @@ inline uint32_t Tokenizer_parse(Tokenizer *const tokenizer, Token * const token,
       err_info->pos[0] = token->position[0];
       err_info->pos[1] = token->position[1];
       err_info->msg = "unexpected token when parse macro.";
-      uint32_t exp_n_tokens = getMacroStateExpectedToken(state, nullptr);
-      uint32_t *token_types = allocator->calloc(exp_n_tokens, sizeof(uint32_t));
-      getMacroStateExpectedToken(state, token_types);
-      fprintf(stderr, "Current: %s\nExpected:\n", TOKEN_NAMES[token->type]);
-      for (uint32_t i = 0; i < exp_n_tokens; i++) {
-        fprintf(stderr, "%s\n", TOKEN_NAMES[token_types[i]]);
-      }
       tokenizer_clean_parse_stack(state_stack, token_stack, allocator);
       return ERROR_UNEXPECTED_TOKEN;
     }
-    if (act->action == stack) {
+    if (act->action == Macro_action_stack) {
       state = act->offset;
       Stack_push(token_stack, token, sizeof(Token));
       Stack_push(state_stack, &state, sizeof(int32_t));
@@ -91,11 +84,11 @@ inline uint32_t Tokenizer_parse(Tokenizer *const tokenizer, Token * const token,
         tokenizer_clean_parse_stack(state_stack, token_stack, allocator);
         return error;
       }
-    } else if (act->action == reduce) {
+    } else if (act->action == Macro_action_reduce) {
       Stack_pop(token_stack, args, act->count * sizeof(Token));
       Stack_pop(state_stack, states, act->count * sizeof(int32_t));
       Stack_top(state_stack, &state, sizeof(int32_t));
-      fn_reduce *reduce = MACRO_PRODUCTS[act->offset];
+      fn_macro_reduce *reduce = MACRO_PRODUCTS[act->offset];
       result.type = act->type;
       result.position[0].lineno = args[0].position[0].lineno;
       result.position[0].column = args[0].position[0].column;
@@ -119,7 +112,7 @@ inline uint32_t Tokenizer_parse(Tokenizer *const tokenizer, Token * const token,
       }
       fn_macro_ctx_act *ctx_act = macro_get_after_reduce_action(state);
       if (ctx_act) { ctx_act(context, result.value); }
-      if (act->offset == __EXTEND_RULE__) { break; }
+      if (act->offset == enum_Macro_MacroEntry_EXT) { break; }
       Stack_push(token_stack, &result, sizeof(Token));
       Stack_push(state_stack, &state, sizeof(int32_t));
     } else {

@@ -5,7 +5,7 @@ ${license}
 
 #include <stdint.h>
 
-enum __MACHINE_STATE_ENUM__ {
+enum MACHINE_STATE_ENUM {
   ${state_enum}
 };
 

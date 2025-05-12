@@ -129,21 +129,21 @@ void clear_current_arrays(MacroContext *context, void *) {
 
 fn_macro_ctx_act *macro_get_after_stack_action(uint32_t state) {
   switch (state) {
-    case __MACRO_IDENTIFIER_LEFT_BRACKET:
-    case __IDENTIFIER_LEFT_PAREN_LEFT_BRACKET: {
+    case Macro_state_MACRO_IDENTIFIER_LEFT_BRACKET:
+    case Macro_state_IDENTIFIER_LEFT_PAREN_LEFT_BRACKET: {
       return set_in_parse_true;
     }
-    case __MACRO_IDENTIFIER_LEFT_PAREN_MacroParams_RIGHT_PAREN_LEFT_BRACKET: {
+    case Macro_state_MACRO_IDENTIFIER_LEFT_PAREN_MacroParams_RIGHT_PAREN_LEFT_BRACKET: {
       return create_current_concat_array;
     }
-    case __IDENTIFIER_LEFT_PAREN_LEFT_BRACKET_Tokens_RIGHT_BRACKET: {
+    case Macro_state_IDENTIFIER_LEFT_PAREN_LEFT_BRACKET_Tokens_RIGHT_BRACKET: {
       return set_in_parse_false;
     }
-    case __MACRO_IDENTIFIER_LEFT_BRACKET_Tokens_RIGHT_BRACKET: {
+    case Macro_state_MACRO_IDENTIFIER_LEFT_BRACKET_Tokens_RIGHT_BRACKET: {
       return set_in_parse_false_end_parse_true;
     }
-    case __IDENTIFIER_LEFT_PAREN_MacroArgs_RIGHT_PAREN:
-    case __MACRO_IDENTIFIER_LEFT_PAREN_MacroParams_RIGHT_PAREN_LEFT_BRACKET_Tokens_RIGHT_BRACKET: {
+    case Macro_state_IDENTIFIER_LEFT_PAREN_MacroArgs_RIGHT_PAREN:
+    case Macro_state_MACRO_IDENTIFIER_LEFT_PAREN_MacroParams_RIGHT_PAREN_LEFT_BRACKET_Tokens_RIGHT_BRACKET: {
       return set_end_parse_true;
     }
     default: {
@@ -154,7 +154,7 @@ fn_macro_ctx_act *macro_get_after_stack_action(uint32_t state) {
 
 fn_macro_ctx_act *macro_get_after_reduce_action(uint32_t state) {
   switch (state) {
-    case __MacroEntry: {
+    case Macro_state_MacroEntry: {
       return clear_current_arrays;
     }
     default: {
