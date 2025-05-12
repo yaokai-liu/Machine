@@ -142,16 +142,16 @@ void GenC_gen_mem_def_sprintf(
       }
     }
   }
-  uint32_t width = 0;
   for (uint32_t i = 0; i < n_items; i++) {
     if (items[i].type) {
       sprintf(
-          temp_buffer, ENTRY_VALUE_SET_FMT, width, width + items[i].width,
+          temp_buffer, ENTRY_VALUE_SET_FMT, items[i].start, items[i].start + items[i].width,
           ctx_ident_real(items[i].name)
       );
     } else {
       sprintf(
-          temp_buffer, VALUE_SET_FMT, width, width + items[i].width, ctx_ident_real(items[i].name)
+          temp_buffer, VALUE_SET_FMT, items[i].start, items[i].start + items[i].width,
+          ctx_ident_real(items[i].name)
       );
     }
     push_string(temp_buffer);

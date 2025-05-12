@@ -313,6 +313,10 @@ int32_t
         }
         case enum_MemItem: {
           const MemItem *item = variable->rhs;
+//          if (item->type) {
+//            uint32_t width = item->width;
+//            return sprintf(buffer, "%s->subtypes[%u]->width", ctx_ident_real(ident), item->index);
+//          }
           uint32_t width = item->width;
           return sprintf(buffer, "%u", width);
         }
@@ -437,23 +441,18 @@ int32_t expr_to_val(
       break;
     }
     case CB_IN: {
-      const Identifier *type = nullptr;
       const Variable *var = (Variable *) expr->lhs;
       const Identifier *supper_type = expr->rhs;
       const Identifier *ident = var->lhs;
-      findParameterNdxAndType(ident);
       type_to_val(context, ident_array, supper_type, temp_buffer1);
       if (var->type == enum_IDENTIFIER) {
-        sprintf(buffer, "entry_type_check(%s, %s->type)", temp_buffer1, ctx_ident_real(ident));
+        sprintf(buffer, "entry_type_check(%s, %s->type)",
+                temp_buffer1, ctx_ident_real(ident));
       } else if (var->type == enum_MemItem) {
         const MemItem *item = (MemItem *) var->rhs;
-        const Record *record = GContext_findRecord(context, type);
-        const Memory *mem = GContext_getMemory(context, record->offset);
-        const MemItem *items = Array_first_real(mem->items);
-        uint32_t offset = item - items;
         sprintf(
-            buffer, "entry_type_check(%s, %s->subtypes[%d])", temp_buffer1, ctx_ident_real(ident),
-            offset
+            buffer, "entry_type_check(%s, %s->subtypes[%u])",
+            temp_buffer1, ctx_ident_real(ident), item->index
         );
       }
       break;

@@ -29,23 +29,24 @@
 #include <stdio.h>
 
 int main() {
-  Machine *machine = Machine_new(&STDAllocator);
+  x64Machine *machine = x64Machine_new(&STDAllocator);
   useMachine(machine);
   Array *output_array = Array_new(sizeof(uint8_t), -1, &STDAllocator);
-  uint32_t size = add(output_array, MEM_PTR(REG_rax), REG_cx, EOI);
-  //  uint32_t size = test(output_array, MEM_PTRb(REG_eax), REG_al, EOI);
-  //  uint32_t size = addi(output_array, REG_r8, IMM_Ib(0x1234), EOI);
-  //  uint32_t size = addi(output_array, IMM_Ib(0x1234), EOI);
-  //  uint32_t size = sub(output_array, MEM_PTR(REG_ecx), REG_ax, EOI);
-  //  uint32_t size = movabs(output_array, REG_ax, IMM_Iw(0x123456789abcdef), EOI);
-  //  uint32_t size = movi(output_array, REG_r8, IMM_Id(0x123456789abcdef), EOI);
-  //  uint32_t size = nop(output_array, EOI);
-  //  uint32_t size = cmpsq_e(output_array, EOI);
-  //  uint32_t size = testi(output_array, REG_eax, IMM_Id(0x1234567), EOI);
-  //  uint32_t size = lea(output_array, REG_ecx, MEM_PTR(REG_rax), EOI);
-  //  uint32_t size = addi(output_array, IMM_Ib(0x12345678), EOI);
-  //  uint32_t size = push(output_array, REG_r12, EOI);
-  //  uint32_t size = ret(output_array, IMM_Iw(0x1234), EOI);
+#define PROG_INSTR_BUFFER output_array
+  uint32_t size = add(MEM_RELv32(REG_rbp, 0x1000), REG_rcx);
+  //  uint32_t size = test(MEM_PTRb(REG_eax), REG_al);
+  //  uint32_t size = addi(REG_r8, IMM_Ib(0x1234));
+  //  uint32_t size = addi(IMM_Ib(0x1234));
+  //  uint32_t size = sub(MEM_PTR(REG_ecx), REG_ax);
+  //  uint32_t size = movabs(REG_ax, IMM_Iw(0x123456789abcdef));
+  //  uint32_t size = movi(REG_r8, IMM_Id(0x123456789abcdef));
+  //  uint32_t size = nop(EOI);
+  //  uint32_t size = cmpsq_e(EOI);
+  //  uint32_t size = testi(REG_eax, IMM_Id(0x1234567));
+  //  uint32_t size = lea(REG_ecx, MEM_PTR(REG_rax));
+  //  uint32_t size = addi(IMM_Ib(0x12345678));
+  //  uint32_t size = push(REG_r12);
+  //  uint32_t size = ret(IMM_Iw(0x1234));
   uint8_t *buffer = Array_first_real(output_array);
   for (uint32_t i = 0; i < Array_length(output_array); i++) { printf("%02x ", buffer[i]); }
   printf("\nsize=%u\n", size);

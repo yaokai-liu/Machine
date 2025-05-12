@@ -884,6 +884,7 @@ MemItems *Parse_MemItems_0(Token argv[], ParseContext *, const Allocator *alloca
 
   MemItem *last_item = Array_last_real(items);
   item->start = last_item->start + last_item->width;
+  item->index = Array_length(items);
 
   Array_append(items, item, 1);
   allocator->free(item);
@@ -895,6 +896,7 @@ MemItems *Parse_MemItems_1(Token argv[], ParseContext *context, const Allocator 
   MemItem *item = (MemItem *) argv[0].value;
 
   item->start = 0;
+  item->index = 0;
 
   MemItems *items = Array_new(sizeof(MemItem), enum_MemItem, allocator);
   Array_append(items, item, 1);
@@ -914,6 +916,12 @@ Memory *Parse_Memory_0(Token argv[], ParseContext *context, const Allocator *) {
   Memory mem = {.name = ident, .width = width, .items = items};
 
   REFER(Memory) result = GContext_addMemory(context, &mem);
+
+  const uint32_t n_items = Array_length(items);
+  MemItem *_items = Array_first_real(items);
+  for (uint32_t i = 0; i < n_items; i++) {
+    _items[i].nest = result;
+  }
 
   return result;
 }

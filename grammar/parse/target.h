@@ -139,11 +139,14 @@ typedef struct Instruction {
   uint32_t entry_offset;
 } Instruction;
 
+typedef struct Memory Memory;
 typedef struct MemItem {
+  REFER(Memory) nest;
+  Identifier *type;
   Identifier *name;
   uint32_t start;
   uint32_t width;
-  Identifier *type;
+  uint32_t index;
 } MemItem;
 
 typedef Array MemItems;  // Array<MemItem>

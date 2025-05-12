@@ -27,20 +27,20 @@
 
 #ifndef MACHINE_SYS_V_H
 #define MACHINE_SYS_V_H
-
-#include "x64.h"
-
-const Entry * const *SYS_V_ARG_REGS[6] = {
-  &REG_rdi, &REG_rsi, &REG_rdx, &REG_rcx, &REG_r8, &REG_r9
-};
-
-const Entry * const *SYS_V_CALLER_SAVE_REGS[9] = {
-    &REG_rax, &REG_rdi, &REG_rsi, &REG_rdx, &REG_rcx,
-    &REG_r8, &REG_r9, &REG_r10, &REG_r11
-};
-
-const Entry * const *SYS_V_CALLEE_SAVE_REGS[7] = {
-  &REG_rbx, &REG_rbp, &REG_rsp, &REG_r12, &REG_r13, &REG_r14, &REG_r15
-};
+//
+//#include "x64.h"
+//
+//const Entry * const *SYS_V_ARG_REGS[6] = {
+//  &REG_rdi, &REG_rsi, &REG_rdx, &REG_rcx, &REG_r8, &REG_r9
+//};
+//
+//const Entry * const *SYS_V_CALLER_SAVE_REGS[9] = {
+//    &REG_rax, &REG_rdi, &REG_rsi, &REG_rdx, &REG_rcx,
+//    &REG_r8, &REG_r9, &REG_r10, &REG_r11
+//};
+//
+//const Entry * const *SYS_V_CALLEE_SAVE_REGS[7] = {
+//  &REG_rbx, &REG_rbp, &REG_rsp, &REG_r12, &REG_r13, &REG_r14, &REG_r15
+//};
 
 #endif  // MACHINE_SYS_V_H

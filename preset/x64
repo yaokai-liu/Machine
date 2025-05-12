@@ -115,8 +115,8 @@ macro functional_register(name, code) {
   functional_register(dr15, 15)
 
   register ip [64-bit] {
-    eip: [32-0] = 0;
-    rip: [64-0] = 0;
+    eip: [32-0] = 5;
+    rip: [64-0] = 5;
   }
 
   immediate Ib[8 ] unsigned; // byte
@@ -154,12 +154,12 @@ macro functional_register(name, code) {
   set gprBase { gpr64Base, gpr32Base, gpr16Base, gpr8Base };
 
   set Gv {gpr64, gpr32, gpr16};
-  set GExtend {gpr8Extend, gpr16Extend, gpr32Extend, gpr64Extend};
+  set GExtend {gpr8Extend, gpr16Extend, gpr32Extend, gpr64Extend, rip};
   set GREX { gpr64, GExtend };
 
   set GAddr {gpr64, gpr32} ^ {rsp, rbp, esp, ebp};
 
-  set GRel {ebp, rip};
+  set GRel {rip, eip};
   set GRelDisp {GAddr, rbp, ebp};
 
   list vargs[3] { GAddr, Gv };
@@ -171,24 +171,24 @@ macro functional_register(name, code) {
     reg: [4] = GAddr;
   }
 
-  memory REL [2-byte] {
-    reg: [8] = GRel;
+  memory REL [5-byte] {
+    reg: [4] = GRel;
     disp: [4-byte];
   };
   memory RELb8 [2-byte] {
-    reg: [8] = GRelDisp;
+    reg: [4] = GRelDisp;
     disp: [1-byte];
   };
   memory RELv8 [2-byte] {
-    reg: [8] = GRelDisp;
+    reg: [4] = GRelDisp;
     disp: [1-byte];
   };
   memory RELb32 [5-byte] {
-    reg: [8] = GRelDisp;
+    reg: [4] = GRelDisp;
     disp: [4-byte];
   };
   memory RELv32 [5-byte] {
-    reg: [8] = GRelDisp;
+    reg: [4] = GRelDisp;
     disp: [4-byte];
   };
 
@@ -243,7 +243,7 @@ macro primary_instr_rv_rv(code) {
 
 macro primary_instr_m8_r8_principal(code, type, mod, disp) {
     [type a, gpr8 b] = {
-      asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
+      asoPrefix: [8] = 0x67 @ (a.reg in gpr32 || a.reg in eip);
       REX: [8] = {
         [7-4] = 0x4,
         [3-3] = 0,
@@ -262,8 +262,7 @@ macro primary_instr_m8_r8_principal(code, type, mod, disp) {
 }
 macro primary_instr_mv_rv_principal(code, type, mod, disp) {
     [type a, Gv b] = {
-      @ ( a.reg != rsp && a.reg != rbp);
-      asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
+      asoPrefix: [8] = 0x67 @ (#a.reg == 32 || a.reg in eip);
       osoPrefix: [8] = 0x66 @ (b in gpr16);
       REX: [8] = {
         [7-4] = 0x4,
@@ -277,6 +276,66 @@ macro primary_instr_mv_rv_principal(code, type, mod, disp) {
         [7-6] = mod,
         [5-3] = b,
         [2-0] = a.reg
+      };
+      disp
+    }
+}
+macro primary_instr_r8_m8_principal(code, type, mod, disp) {
+    [gpr8 a, type b] = {
+      asoPrefix: [8] = 0x67 @ (b.reg in gpr32 || b.reg in eip);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 0,
+        [2-2] = a[3-3],
+        [1-1] = 0,
+        [0-0] = b.reg[3-3]
+      } @ (b.reg in GREX || a in GREX);
+      opcode: [8] = code;
+      modRM: [8] = {
+        [7-6] = mod,
+        [5-3] = a,
+        [2-0] = b.reg
+      };
+      disp
+    }
+}
+macro primary_instr_r8h_m8_principal(code, type, mod, disp) {
+    [gpr8h a, type b] = {
+      asoPrefix: [8] = 0x67 @ (b.reg in gpr32 || b.reg in eip);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = 0,
+        [2-2] = a[3-3],
+        [1-1] = 0,
+        [0-0] = b.reg[3-3]
+      } @ (b.reg in GREX || a in GREX);
+      opcode: [8] = code;
+      modRM: [8] = {
+        [7-6] = mod,
+        [5-3] = a,
+        [2-0] = b.reg
+      };
+      disp
+    }
+}
+
+macro primary_instr_rv_mv_principal(code, type, mod, disp) {
+    [Gv a, type b] = {
+      @ ( b.reg != rsp);
+      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
+      osoPrefix: [8] = 0x66 @ (a in gpr16);
+      REX: [8] = {
+        [7-4] = 0x4,
+        [3-3] = (#a == 64) ?  1 : 0,
+        [2-2] = a[3-3],
+        [1-1] = 0,
+        [0-0] = b.reg[3-3]
+      } @ (b.reg in GExtend || a in GREX);
+      opcode: [8] = code;
+      modRM: [8] = {
+        [7-6] = mod,
+        [5-3] = a,
+        [2-0] = b.reg
       };
       disp
     }
@@ -297,209 +356,20 @@ macro primary_instr_mv_rv(code) {
 }
 
 macro primary_instr_r8_m8(code) {
-    [gpr8 a, PTRb b] = {
-      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-3] = 0,
-        [2-2] = a[3-3],
-        [1-1] = 0,
-        [0-0] = b.reg[3-3]
-      } @ (a in GREX || a in gpr8s || b.reg in GExtend);
-      opcode: [8] = code;
-      modRM: [8] = {
-        [7-6] = 0b00,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
-    }
-    [gpr8 a, REL b] = {
-      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-3] = 0,
-        [2-2] = a[3-3],
-        [1-1] = 0,
-        [0-0] = b.reg[3-3]
-      } @ (a in GREX || a in gpr8s || b.reg in GExtend);
-      opcode: [8] = code;
-      modRM: [8] = {
-        [7-6] = 0b00,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
-      disp32: [32] = b.disp;
-    }
-    [gpr8 a, RELb8 b] = {
-      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-3] = 0,
-        [2-2] = a[3-3],
-        [1-1] = 0,
-        [0-0] = b.reg[3-3]
-      } @ (a in GREX || a in gpr8s || b.reg in GExtend);
-      opcode: [8] = code;
-      modRM: [8] = {
-        [7-6] = 0b01,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
-      disp8: [8] = b.disp;
-    }
-    [gpr8 a, RELb32 b] = {
-      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-3] = 0,
-        [2-2] = a[3-3],
-        [1-1] = 0,
-        [0-0] = b.reg[3-3]
-      } @ (a in GREX || a in gpr8s || b.reg in GExtend);
-      opcode: [8] = code;
-      modRM: [8] = {
-        [7-6] = 0b10,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
-      disp32: [32] = b.disp;
-    }
-    [gpr8h a, PTRb b] = {
-      @ ( b.reg != rsp && b.reg != rbp);
-      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-1] = 0,
-        [0-0] = b.reg[3-3]
-      } @ (b.reg in GExtend);
-      opcode: [8] = code;
-      modRM: [8] = {
-        [7-6] = 0b00,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
-    }
-    [gpr8h a, REL b] = {
-      @ ( b.reg != rsp && b.reg != rbp);
-      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-1] = 0,
-        [0-0] = b.reg[3-3]
-      } @ (b.reg in GExtend);
-      opcode: [8] = code;
-      modRM: [8] = {
-        [7-6] = 0b00,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
-      disp32: [32] = b.disp;
-    }
-    [gpr8h a, RELb8 b] = {
-      @ ( b.reg != rsp && b.reg != rbp);
-      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-1] = 0,
-        [0-0] = b.reg[3-3]
-      } @ (b.reg in GExtend);
-      opcode: [8] = code;
-      modRM: [8] = {
-        [7-6] = 0b01,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
-      disp8: [8] = b.disp;
-    }
-    [gpr8h a, RELb32 b] = {
-      @ ( b.reg != rsp && b.reg != rbp);
-      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-1] = 0,
-        [0-0] = b.reg[3-3]
-      } @ (b.reg in GExtend);
-      opcode: [8] = code;
-      modRM: [8] = {
-        [7-6] = 0b10,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
-      disp32: [32] = b.disp;
-    }
+    primary_instr_r8_m8_principal({code}, PTRb, 0b00, {})
+    primary_instr_r8_m8_principal({code}, REL , 0b00, { disp32: [32] = b.disp; })
+    primary_instr_r8_m8_principal({code}, RELb8, 0b01, { disp8: [8] = b.disp; })
+    primary_instr_r8_m8_principal({code}, RELb32, 0b10, { disp32: [32] = b.disp; })
+    primary_instr_r8h_m8_principal({code}, PTRb, 0b00, {})
+    primary_instr_r8h_m8_principal({code}, REL , 0b00, { disp32: [32] = b.disp; })
+    primary_instr_r8h_m8_principal({code}, RELb8, 0b01, { disp8: [8] = b.disp; })
+    primary_instr_r8h_m8_principal({code}, RELb32, 0b10, { disp32: [32] = b.disp; })
 }
 macro primary_instr_rv_mv(code) {
-    [Gv a, PTR b] = {
-      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
-      osoPrefix: [8] = 0x66 @ (a in gpr16);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-3] = (#a == 64) ?  1 : 0,
-        [2-2] = a[3-3],
-        [1-1] = 0,
-        [0-0] = b.reg[3-3]
-      } @ (a in GREX || b.reg in GExtend);
-      opcode: [8] = code;
-      modRM: [8] = {
-        [7-6] = 0b00,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
-    }
-    [Gv a, REL b] = {
-      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
-      osoPrefix: [8] = 0x66 @ (a in gpr16);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-3] = (#a == 64) ?  1 : 0,
-        [2-2] = a[3-3],
-        [1-1] = 0,
-        [0-0] = b.reg[3-3]
-      } @ (a in GREX || b.reg in GExtend);
-      opcode: [8] = code;
-      modRM: [8] = {
-        [7-6] = 0b00,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
-      disp32: [32] = b.disp;
-    }
-    [Gv a, RELv8 b] = {
-      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
-      osoPrefix: [8] = 0x66 @ (a in gpr16);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-3] = (#a == 64) ?  1 : 0,
-        [2-2] = a[3-3],
-        [1-1] = 0,
-        [0-0] = b.reg[3-3]
-      } @ (a in GREX || b.reg in GExtend);
-      opcode: [8] = code;
-      modRM: [8] = {
-        [7-6] = 0b01,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
-      disp8: [8] = b.disp;
-    }
-    [Gv a, RELv32 b] = {
-      asoPrefix: [8] = 0x67 @ (b.reg in gpr32);
-      osoPrefix: [8] = 0x66 @ (a in gpr16);
-      REX: [8] = {
-        [7-4] = 0x4,
-        [3-3] = (#a == 64) ?  1 : 0,
-        [2-2] = a[3-3],
-        [1-1] = 0,
-        [0-0] = b.reg[3-3]
-      } @ (a in GREX || b.reg in GExtend);
-      opcode: [8] = code;
-      modRM: [8] = {
-        [7-6] = 0b10,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
-      disp32: [32] = b.disp;
-    }
+    primary_instr_rv_mv_principal({code}, PTR , 0b00, {})
+    primary_instr_rv_mv_principal({code}, REL , 0b00, { disp32: [32] = b.disp; })
+    primary_instr_rv_mv_principal({code}, RELv8, 0b01, { disp8: [8] = b.disp; })
+    primary_instr_rv_mv_principal({code}, RELv32, 0b10, { disp32: [32] = b.disp; })
 }
 
 macro primary_instr(name, code) {
