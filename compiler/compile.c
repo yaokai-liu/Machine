@@ -151,7 +151,9 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "  at %s:%d:%d\n", srcpath, positions[i][1].lineno, positions[i][1].column);
     }
     fprintf(stderr, "  at %s:%d:%d\n", srcpath, err_info.pos[1].lineno, err_info.pos[1].column);
-    fprintf(stderr, "  %s\n", err_info.msg);
+    char_t err_msg[512] = {};
+    get_error_msg(&err_info, err_msg);
+    fprintf(stderr, "  %s\n", err_msg);
     STDAllocator.free(text);
     return 0;
   }

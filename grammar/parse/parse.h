@@ -32,8 +32,6 @@
 #include "target.h"
 #include "tokenize/tokenizer.h"
 
-extern fn_parse_reduce * const MACHINE_PRODUCTS[];
-
 Machine *parse(Tokenizer *tokenizer, ErrInfo *err_info, const Allocator *allocator);
 
 Machine *failed_to_get_next_state(

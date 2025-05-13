@@ -65,10 +65,12 @@ inline uint32_t
   terminal.column = tokenizer->column;
   cost = single_tokenize(pText, &terminal, tokenizer->allocator);
   if (0 == cost) {
-    err_info->msg = "Unrecognized symbol.";
     err_info->pos[0].lineno = tokenizer->lineno;
     err_info->pos[1].column = tokenizer->column;
     err_info->pos[1] = err_info->pos[0];
+    err_info->stage = COMPILER_LEX;
+    err_info->token = enum_BAD_TOKEN;
+    err_info->code = ERROR_UNKNOWN_SYMBOL;
     return ERROR_UNKNOWN_SYMBOL;
   }
   tokenizer->column += cost;
@@ -109,8 +111,10 @@ inline uint32_t Tokenizer_concat_to_token(
       releasePrimeArray(ident_array);
       err_info->pos[0] = tp->position[0];
       err_info->pos[1] = tp->position[1];
-      err_info->msg = "Unexpected token.";
-      return ERROR_UNEXPECTED_TOKEN;
+      err_info->code = ERROR_UNEXPECTED_CONCAT_TOKEN;
+      err_info->stage = COMPILER_MACRO;
+      err_info->token = tp->type;
+      return ERROR_UNEXPECTED_CONCAT_TOKEN;
     }
     const char_t *sym_str = Array_virt2real(tokenizer->ident_array, tp->value);
     const uint32_t sym_len = strlen(sym_str);
@@ -162,7 +166,7 @@ uint32_t Tokenizer_next_in_frame(Tokenizer *const tokenizer, Token *token, ErrIn
     Token *tp = nullptr;
     while (tokenizer->frame.tokens && !tp) {
       tp = Array_real_addr(tokenizer->frame.tokens, tokenizer->frame.index++);
-      if (Tokenizer_end_of_frame(tokenizer)) { Tokenizer_exit_frame(tokenizer); }
+      if (!tp && Tokenizer_end_of_frame(tokenizer)) { Tokenizer_exit_frame(tokenizer); }
     }
     if (!tp) { return END_OF_MACRO_FRAME; }
 
@@ -178,7 +182,9 @@ uint32_t Tokenizer_next_in_frame(Tokenizer *const tokenizer, Token *token, ErrIn
       if (!tokenizer->frame.args || index > Array_length(tokenizer->frame.args)) {
         err_info->pos[0] = tp->position[0];
         err_info->pos[1] = tp->position[1];
-        err_info->msg = "Argument index out of range.";
+        err_info->code = ERROR_INDEX_OUT_OF_RANGE;
+        err_info->stage = COMPILER_MACRO;
+        err_info->token = index;
         return ERROR_INDEX_OUT_OF_RANGE;
       }
       const MacroArg *arg = Array_real_addr(tokenizer->frame.args, index);

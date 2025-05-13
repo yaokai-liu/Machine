@@ -3,10 +3,11 @@ ${license}
 #ifndef MACRO_RULES_H
 #define MACRO_RULES_H
 
+#include "err.h"
 #include "tokenize/target.h"
 #include "tokenize/context.h"
 
-typedef void *fn_macro_reduce(Token argv[], MacroContext *, const Allocator *);
+typedef void *fn_macro_reduce(Token argv[], MacroContext *, ErrInfo *, const Allocator *);
 
 enum MACRO_PRODUCT_RULE_ENUM {
   ${enum_reduces}

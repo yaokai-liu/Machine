@@ -31,9 +31,6 @@
 #include "generated/macro/action-table.gen.h"
 #include "generated/macro/rules.gen.h"
 #include "tokenizer.h"
-#include <stdio.h>
-
-typedef void *fn_macro_reduce(Token argv[], MacroContext *context, const Allocator *allocator);
 
 extern fn_macro_reduce * const MACRO_PRODUCTS[];
 
@@ -69,12 +66,15 @@ inline uint32_t Tokenizer_parse(Tokenizer *const tokenizer, Token * const token,
     if (!act) {
       err_info->pos[0] = token->position[0];
       err_info->pos[1] = token->position[1];
-      err_info->msg = "unexpected token when parse macro.";
+      err_info->code = ERROR_UNEXPECTED_TOKEN;
+      err_info->stage = COMPILER_PARSE;
+      err_info->token = token->type;
       tokenizer_clean_parse_stack(state_stack, token_stack, allocator);
       return ERROR_UNEXPECTED_TOKEN;
     }
     if (act->action == Macro_action_stack) {
       state = act->offset;
+      err_info->state = state;
       Stack_push(token_stack, token, sizeof(Token));
       Stack_push(state_stack, &state, sizeof(int32_t));
       fn_macro_ctx_act *ctx_act = macro_get_after_stack_action(state);
@@ -94,19 +94,21 @@ inline uint32_t Tokenizer_parse(Tokenizer *const tokenizer, Token * const token,
       result.position[0].column = args[0].position[0].column;
       result.position[1].lineno = args[act->count - 1].position[1].lineno;
       result.position[1].column = args[act->count - 1].position[1].column;
-      result.value = reduce(args, context, allocator);
+      result.value = reduce(args, context, err_info, allocator);
       if (!result.value) {
         err_info->pos[0] = result.position[0];
         err_info->pos[1] = result.position[1];
-        err_info->msg = "failed to product.";
         tokenizer_failed_to_produce(state_stack, token_stack, args, act->count, allocator);
         return ERROR_FAILED_TO_PRODUCE;
       }
       state = macroParseJumpState(state, act->type);
+      err_info->state = state;
       if (state < 0) {
         err_info->pos[0] = result.position[0];
         err_info->pos[1] = result.position[1];
-        err_info->msg = "failed to goto next state.";
+        err_info->code = ERROR_UNEXPECTED_TOKEN;
+        err_info->stage = COMPILER_PARSE;
+        err_info->token = result.type;
         tokenizer_failed_to_get_next_state(state_stack, token_stack, &result, allocator);
         return ERROR_FAILED_TO_GET_NEXT_STATE;
       }

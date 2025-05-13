@@ -207,6 +207,4 @@ void releaseExpr(CondExpr *expr, const Allocator *allocator);
 
 int32_t PatternArgs_cmp(PatternArgs *args1, PatternArgs *args2);
 
-typedef void *fn_parse_reduce(Token argv[], ParseContext *context, const Allocator *allocator);
-
 #endif  // MACHINE_TARGET_H

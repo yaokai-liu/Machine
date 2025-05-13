@@ -25,24 +25,30 @@
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
+#include "enum.h"
 #include "generated/macro/rules.gen.h"
 #include "target.h"
 
-MacroEntry *Macro_MacroEntry_0(Token argv[], MacroContext *, const Allocator *) {
+MacroEntry *Macro_MacroEntry_0(Token argv[], MacroContext *, ErrInfo *, const Allocator *) {
   return (MacroEntry *) argv[0].value;
 }
-MacroEntry *Macro_MacroEntry_1(Token argv[], MacroContext *, const Allocator *) {
+MacroEntry *Macro_MacroEntry_1(Token argv[], MacroContext *, ErrInfo *, const Allocator *) {
   return (MacroEntry *) argv[0].value;
 }
-MacroEntry *Macro_MacroEntry_EXT(Token argv[], MacroContext *, const Allocator *) {
+MacroEntry *Macro_MacroEntry_EXT(Token argv[], MacroContext *, ErrInfo *, const Allocator *) {
   return (MacroEntry *) argv[0].value;
 }
-Macro *Macro_Macro_0(Token argv[], MacroContext *context, const Allocator *) {
+Macro *Macro_Macro_0(Token argv[], MacroContext *context, ErrInfo *errInfo, const Allocator *) {
   Identifier *ident = (Identifier *) argv[1].value;
   MacroParams *params = (MacroParams *) argv[3].value;
   Tokens *tokens = (Tokens *) argv[6].value;
 
-  if (MacroContext_findMacro(context, ident)) { return nullptr; }
+  if (MacroContext_findMacro(context, ident)) {
+    errInfo->token = enum_MACRO;
+    errInfo->stage = COMPILER_MACRO;
+    errInfo->code = ERROR_MULTIPLE_DEFINE_MACRO;
+    return nullptr;
+  }
 
   Macro macro = {
       .name = ident, .params = params, .tokens = tokens, .concatArray = context->current_concatArray
@@ -51,11 +57,16 @@ Macro *Macro_Macro_0(Token argv[], MacroContext *context, const Allocator *) {
   return MacroContext_addMacro(context, &macro);
 }
 
-Macro *Macro_Macro_1(Token argv[], MacroContext *context, const Allocator *) {
+Macro *Macro_Macro_1(Token argv[], MacroContext *context, ErrInfo *errInfo, const Allocator *) {
   Identifier *ident = (Identifier *) argv[1].value;
   Tokens *tokens = (Tokens *) argv[3].value;
 
-  if (MacroContext_findMacro(context, ident)) { return nullptr; }
+  if (MacroContext_findMacro(context, ident)) {
+    errInfo->token = enum_MACRO;
+    errInfo->stage = COMPILER_MACRO;
+    errInfo->code = ERROR_MULTIPLE_DEFINE_MACRO;
+    return nullptr;
+  }
 
   Macro macro = {
       .name = ident,
@@ -67,7 +78,7 @@ Macro *Macro_Macro_1(Token argv[], MacroContext *context, const Allocator *) {
   return MacroContext_addMacro(context, &macro);
 }
 
-MacroArg *Macro_MacroArg_0(Token argv[], MacroContext *, const Allocator *allocator) {
+MacroArg *Macro_MacroArg_0(Token argv[], MacroContext *, ErrInfo *, const Allocator *allocator) {
   Tokens *tokens = (Tokens *) argv[1].value;
 
   MacroArg *arg = allocator->calloc(1, sizeof(MacroArg));
@@ -76,7 +87,7 @@ MacroArg *Macro_MacroArg_0(Token argv[], MacroContext *, const Allocator *alloca
 
   return arg;
 }
-MacroArg *Macro_MacroArg_1(Token argv[], MacroContext *, const Allocator *allocator) {
+MacroArg *Macro_MacroArg_1(Token argv[], MacroContext *, ErrInfo *, const Allocator *allocator) {
   const Token *token = (Token *) &argv[0];
 
   MacroArg *arg = allocator->calloc(1, sizeof(MacroArg));
@@ -88,7 +99,7 @@ MacroArg *Macro_MacroArg_1(Token argv[], MacroContext *, const Allocator *alloca
   return arg;
 }
 
-MacroArg *Macro_MacroArg_2(Token argv[], MacroContext *, const Allocator *allocator) {
+MacroArg *Macro_MacroArg_2(Token argv[], MacroContext *, ErrInfo *, const Allocator *allocator) {
   const Token *token = (Token *) &argv[0];
 
   MacroArg *arg = allocator->calloc(1, sizeof(MacroArg));
@@ -100,7 +111,7 @@ MacroArg *Macro_MacroArg_2(Token argv[], MacroContext *, const Allocator *alloca
   return arg;
 }
 
-MacroArgs *Macro_MacroArgs_0(Token argv[], MacroContext *, const Allocator *allocator) {
+MacroArgs *Macro_MacroArgs_0(Token argv[], MacroContext *, ErrInfo *, const Allocator *allocator) {
   MacroArgs *args = (MacroArgs *) argv[0].value;
   MacroArg *arg = (MacroArg *) argv[2].value;
 
@@ -109,7 +120,7 @@ MacroArgs *Macro_MacroArgs_0(Token argv[], MacroContext *, const Allocator *allo
 
   return args;
 }
-MacroArgs *Macro_MacroArgs_1(Token argv[], MacroContext *, const Allocator *allocator) {
+MacroArgs *Macro_MacroArgs_1(Token argv[], MacroContext *, ErrInfo *, const Allocator *allocator) {
   MacroArg *arg = (MacroArg *) argv[0].value;
 
   MacroArgs *args = Array_new(sizeof(MacroArg), enum_MacroArg, allocator);
@@ -119,11 +130,11 @@ MacroArgs *Macro_MacroArgs_1(Token argv[], MacroContext *, const Allocator *allo
   return args;
 }
 
-MacroArgs *Macro_MacroArgs_2(Token[], MacroContext *, const Allocator *) {
+MacroArgs *Macro_MacroArgs_2(Token[], MacroContext *, ErrInfo *, const Allocator *) {
   return (MacroArgs *) (uint64_t) enum_MacroArgs;
 }
 
-MacroCall *Macro_MacroCall_0(Token argv[], MacroContext *context, const Allocator *) {
+MacroCall *Macro_MacroCall_0(Token argv[], MacroContext *context, ErrInfo *errInfo, const Allocator *) {
   Identifier *ident = (Identifier *) argv[0].value;
   MacroArgs *args = (MacroArgs *) argv[2].value;
 
@@ -132,14 +143,19 @@ MacroCall *Macro_MacroCall_0(Token argv[], MacroContext *context, const Allocato
   const MacroParams *params = macro->params;
   const uint32_t param_count = ((uint64_t) params > enum_MacroParams) ? Array_length(params) : 0;
   const uint32_t arg_count = ((uint64_t) args > enum_MacroArgs) ? Array_length(args) : 0;
-  if (arg_count != param_count) { return nullptr; }
+  if (arg_count != param_count) {
+    errInfo->token = enum_MACRO;
+    errInfo->stage = COMPILER_MACRO;
+    errInfo->code = ERROR_ARGUMENT_COUNT_MISMATCH;
+    return nullptr;
+  }
 
   context->current_args = args;
 
   return (void *) enum_MacroCall;
 }
 
-MacroParams *Macro_MacroParams_0(Token argv[], MacroContext *, const Allocator *) {
+MacroParams *Macro_MacroParams_0(Token argv[], MacroContext *, ErrInfo *, const Allocator *) {
   MacroParams *params = (MacroParams *) argv[0].value;
   Identifier *ident = (Identifier *) argv[2].value;
 
@@ -148,7 +164,7 @@ MacroParams *Macro_MacroParams_0(Token argv[], MacroContext *, const Allocator *
   return params;
 }
 
-MacroParams *Macro_MacroParams_1(Token argv[], MacroContext *context, const Allocator *allocator) {
+MacroParams *Macro_MacroParams_1(Token argv[], MacroContext *context, ErrInfo *, const Allocator *allocator) {
   Identifier *ident = (Identifier *) argv[0].value;
 
   MacroParams *params = Array_new(sizeof(REFER(Identifier)), enum_IDENTIFIER, allocator);
@@ -159,7 +175,7 @@ MacroParams *Macro_MacroParams_1(Token argv[], MacroContext *context, const Allo
   return params;
 }
 
-MacroParams *Macro_MacroParams_2(Token[], MacroContext *, const Allocator *) {
+MacroParams *Macro_MacroParams_2(Token[], MacroContext *, ErrInfo *, const Allocator *) {
   return (MacroParams *) (uint64_t) enum_MacroParams;
 }
 
@@ -174,7 +190,7 @@ MacroParams *Macro_MacroParams_2(Token[], MacroContext *, const Allocator *) {
     }                                                                            \
   } while (false)
 
-Tokens *Macro_Tokens_0(Token argv[], MacroContext *context, const Allocator *allocator) {
+Tokens *Macro_Tokens_0(Token argv[], MacroContext *context, ErrInfo *, const Allocator *allocator) {
   Tokens *tokens = (Tokens *) argv[0].value;
   Token *token = (Token *) argv[1].value;
 
@@ -186,7 +202,7 @@ Tokens *Macro_Tokens_0(Token argv[], MacroContext *context, const Allocator *all
   return tokens;
 }
 
-Tokens *Macro_Tokens_1(Token argv[], MacroContext *context, const Allocator *) {
+Tokens *Macro_Tokens_1(Token argv[], MacroContext *context, ErrInfo *, const Allocator *) {
   Tokens *tokens = (Tokens *) argv[0].value;
   Concat *_concat = (Concat *) argv[1].value;
 
@@ -205,7 +221,7 @@ Tokens *Macro_Tokens_1(Token argv[], MacroContext *context, const Allocator *) {
   return tokens;
 }
 
-Tokens *Macro_Tokens_2(Token argv[], MacroContext *context, const Allocator *allocator) {
+Tokens *Macro_Tokens_2(Token argv[], MacroContext *context, ErrInfo *, const Allocator *allocator) {
   Token *token = (Token *) argv[0].value;
 
   identToPlaceHolder(token);
@@ -217,7 +233,7 @@ Tokens *Macro_Tokens_2(Token argv[], MacroContext *context, const Allocator *all
   return tokens;
 }
 
-Tokens *Macro_Tokens_3(Token argv[], MacroContext *context, const Allocator *allocator) {
+Tokens *Macro_Tokens_3(Token argv[], MacroContext *context, ErrInfo *, const Allocator *allocator) {
   Concat *_concat = (Concat *) argv[0].value;
 
   Array_append(context->current_concatArray, _concat, 1);
@@ -236,13 +252,13 @@ Tokens *Macro_Tokens_3(Token argv[], MacroContext *context, const Allocator *all
   return tokens;
 }
 
-Tokens *Macro_Tokens_4(Token [], MacroContext *, const Allocator *allocator) {
+Tokens *Macro_Tokens_4(Token [], MacroContext *, ErrInfo *, const Allocator *allocator) {
 
   Tokens *tokens = Array_new(sizeof(Token), enum_TOKEN, allocator);
   return tokens;
 }
 
-Concat *Macro_Concat_0(Token argv[], MacroContext *context, const Allocator *allocator) {
+Concat *Macro_Concat_0(Token argv[], MacroContext *context, ErrInfo *, const Allocator *allocator) {
   Token *left = argv[0].value;
   Token *right = argv[2].value;
 
@@ -257,7 +273,7 @@ Concat *Macro_Concat_0(Token argv[], MacroContext *context, const Allocator *all
   return _concat;
 }
 
-Concat *Macro_Concat_1(Token argv[], MacroContext *context, const Allocator *allocator) {
+Concat *Macro_Concat_1(Token argv[], MacroContext *context, ErrInfo *, const Allocator *allocator) {
   Concat *_concat = argv[0].value;
   Token *token = argv[2].value;
 

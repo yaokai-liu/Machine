@@ -32,7 +32,12 @@
 
 typedef struct {
   TokenPos pos;
-  const char_t *msg;
+  uint32_t code;
+  int32_t  state;
+  uint32_t token;
+  uint32_t stage;
 } ErrInfo;
+
+void get_error_msg(const ErrInfo *errInfo, char_t *buffer);
 
 #endif  // MACHINE_ERR_H
