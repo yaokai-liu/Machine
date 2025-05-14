@@ -388,10 +388,10 @@ uint32_t tokenize_LSQUARE_startswith_digital(
     pText += lenof("bit") + pass_whitespace(pText);
   } else if ((length = t_NUMBER_adic10(pText, result, allocator)) > 0) {
     pText += length;
-    BitField *bitField = (BitField *) &result->value;
-    bitField->lower = (uint32_t) (uint64_t) result->value;
-    bitField->upper = max(value, bitField->lower);
-    bitField->lower = min(value, bitField->lower);
+    BitField bitField = {.lower = (uint32_t) (uint64_t) result->value, .upper = 0};
+    bitField.upper = max(value, bitField.lower);
+    bitField.lower = min(value, bitField.lower);
+    result->value = (void *) BitField_toUint64(&bitField);
     result->type = enum_BIT_FIELD;
   }
   pText += pass_whitespace(pText);
@@ -460,9 +460,8 @@ uint32_t tokenize_symbol_LSQUARE(
   }
   if (strcmp_o(pText, "...") == lenof("...")) {
     result->type = enum_BIT_FIELD;
-    BitField *bitField = (BitField *) &result->value;
-    bitField->lower = -1;
-    bitField->upper = 0;
+    BitField bitField = {.lower = -1, .upper = 0};
+    result->value = (void *) BitField_toUint64(&bitField);
     pText += lenof("...");
     pText += pass_whitespace(pText);
     if (*pText == ']') {

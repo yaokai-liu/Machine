@@ -46,11 +46,6 @@ macro mmx_register(name, code) {
      name: [63-0] = code;
    }
 }
-macro xmm_register(name, code) {
-   register g`name [128-bit] {
-     name: [127-0] = code;
-   }
-}
   mmx_register(mm0, 0)
   mmx_register(mm1, 1)
   mmx_register(mm2, 2)
@@ -59,22 +54,29 @@ macro xmm_register(name, code) {
   mmx_register(mm5, 5)
   mmx_register(mm6, 6)
   mmx_register(mm7, 7)
-  xmm_register(xmm0 , 0 )
-  xmm_register(xmm1 , 1 )
-  xmm_register(xmm2 , 2 )
-  xmm_register(xmm3 , 3 )
-  xmm_register(xmm4 , 4 )
-  xmm_register(xmm5 , 5 )
-  xmm_register(xmm6 , 6 )
-  xmm_register(xmm7 , 7 )
-  xmm_register(xmm8 , 8 )
-  xmm_register(xmm9 , 9 )
-  xmm_register(xmm10, 10)
-  xmm_register(xmm11, 11)
-  xmm_register(xmm12, 12)
-  xmm_register(xmm13, 13)
-  xmm_register(xmm14, 14)
-  xmm_register(xmm15, 15)
+
+macro xmm_register(name, code) {
+   register g`name [256-bit] {
+     y`name: [256-0] = code;
+     x`name: [127-0] = code;
+   }
+}
+  xmm_register(mm00,  0)
+  xmm_register(mm01,  1)
+  xmm_register(mm02,  2)
+  xmm_register(mm03,  3)
+  xmm_register(mm04,  4)
+  xmm_register(mm05,  5)
+  xmm_register(mm06,  6)
+  xmm_register(mm07,  7)
+  xmm_register(mm08,  8)
+  xmm_register(mm09,  9)
+  xmm_register(mm10, 10)
+  xmm_register(mm11, 11)
+  xmm_register(mm12, 12)
+  xmm_register(mm13, 13)
+  xmm_register(mm14, 14)
+  xmm_register(mm15, 15)
 
 macro functional_register(name, code) {
   register g`name [64-bit] {
@@ -136,7 +138,8 @@ macro functional_register(name, code) {
   set gpr8 { al, cl, dl, bl, spl, bpl, sil, dil, r8b, r9b, r10b, r11b, r12b, r13b, r14b, r15b };
   set gpr8v { al, cl, dl, bl, ah, ch, dh, bh, r8b, r9b, r10b, r11b, r12b, r13b, r14b, r15b };
   set mmx { mm0, mm1, mm2, mm3, mm4, mm5, mm6, mm7 };
-  set sse { xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8, xmm9, xmm10, xmm11, xmm12, xmm13, xmm14, xmm15 };
+  set xmm { xmm00, xmm01, xmm02, xmm03, xmm04, xmm05, xmm06, xmm07, xmm08, xmm09, xmm10, xmm11, xmm12, xmm13, xmm14, xmm15 };
+  set ymm { ymm00, ymm01, ymm02, ymm03, ymm04, ymm05, ymm06, ymm07, ymm08, ymm09, ymm10, ymm11, ymm12, ymm13, ymm14, ymm15 };
   set cr { cr0, cr1, cr2, cr3, cr4, cr5, cr6, cr7, cr8, cr9, cr10, cr11, cr12, cr13, cr14, cr15 };
   set dr { dr0, dr1, dr2, dr3, dr4, dr5, dr6, dr7, dr8, dr9, dr10, dr11, dr12, dr13, dr14, dr15 };
 
@@ -157,11 +160,10 @@ macro functional_register(name, code) {
   set G32A {gpr64, gpr32};
   set GExtend {gpr8Extend, gpr16Extend, gpr32Extend, gpr64Extend, rip};
   set GREX { gpr64, GExtend };
-
-
   set GAddr {gpr64, gpr32} ^ {rsp, rbp, esp, ebp};
-
   set GREL {gpr64, gpr32} ^ {rsp, esp};
+
+  set gmm {xmm , ymm};
 
   list vargs[3] { GAddr, Gv };
 
@@ -204,6 +206,17 @@ macro memory_typed(name, body) {
     scale: [2];
   }})
 
+macro modRM_byte(mod, r, rm) {
+  modRM: [8] = { [7-6] = mod, [5-3] = r, [2-0] = rm };
+}
+macro SIB_byte(mod, a) {
+  SIB: [8] = {
+    [7-6] = a.scale,
+    [5-3] = (a.base in gsp) ? 0 : a.index,
+    [2-0] = (mod == 0 && a.base in gbp) ? 0 : a.base
+  };
+}
+
 macro primary_instr_rv_rv(code) {
     [Gv a, Gv b] = {
       @ ( #a == #b );
@@ -216,11 +229,7 @@ macro primary_instr_rv_rv(code) {
         [0-0] = a[3-3]
       } @ (a in GREX || b in GREX);
       opcode: [8] = (#a == 8) ? code : (code + 1);
-      modRM: [8] = {
-        [7-6] = 0b11,
-        [5-3] = b,
-        [2-0] = a
-      };
+      modRM_byte(0b11, b, a)
     }
 }
 macro primary_instr_mv_rv_principal(code, rel_type, mod, disp) {
@@ -235,11 +244,7 @@ macro primary_instr_mv_rv_principal(code, rel_type, mod, disp) {
         [0-0] = a.reg[3-3]
       } @ (a.reg in GExtend || b in GREX || b in gpr8s);
       opcode: [8] = (#b == 8) ? code : (code + 1);
-      modRM: [8] = {
-        [7-6] = mod,
-        [5-3] = b,
-        [2-0] = a.reg
-      };
+      modRM_byte({mod}, b, {a.reg})
       disp
     }
 }
@@ -259,16 +264,8 @@ macro primary_instr_mv_rv_sib(code, mod, disp) {
         [0-0] = (mod == 0 && a.base in gbp) ? 0 : a.base[3-3]
       } @ (a.base in GREX || b in GREX);
       opcode: [8] = (#b == 8) ? code : (code + 1);
-      modRM: [8] = {
-        [7-6] = mod,
-        [5-3] = b,
-        [2-0] = 0x4
-      };
-      SIB: [8] = {
-        [7-6] = a.scale,
-        [5-3] = (a.base in gsp) ? 0 : a.index,
-        [2-0] = (mod == 0 && a.base in gbp) ? 0 : a.base
-      };
+      modRM_byte({mod}, b, rsp)
+      SIB_byte({mod}, a)
       disp
     }
 }
@@ -284,11 +281,7 @@ macro primary_instr_rv_mv_principal(code, type, mod, disp) {
         [0-0] = b.reg[3-3]
       } @ (a in GREX || b.reg in GExtend);
       opcode: [8] = (#a == 8) ? code : (code + 1);
-      modRM: [8] = {
-        [7-6] = mod,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
+      modRM_byte({mod}, a, {b.reg})
       disp
     }
     [gpr8h a, type b] = {
@@ -300,11 +293,7 @@ macro primary_instr_rv_mv_principal(code, type, mod, disp) {
         [0-0] = b.reg[3-3]
       } @ (b.reg in GExtend);
       opcode: [8] = code;
-      modRM: [8] = {
-        [7-6] = mod,
-        [5-3] = a,
-        [2-0] = b.reg
-      };
+      modRM_byte({mod}, a, {b.reg})
       disp
     }
 }
@@ -324,16 +313,8 @@ macro primary_instr_rv_mv_sib(code, mod, disp) {
         [0-0] = (mod == 0 && b.base in gbp) ? 0 : b.base[3-3]
       } @ (a in GREX || b.base in GREX);
       opcode: [8] = (#a == 8) ? code : (code + 1);
-      modRM: [8] = {
-        [7-6] = mod,
-        [5-3] = a,
-        [2-0] = 0x4
-      };
-      SIB: [8] = {
-        [7-6] = b.scale,
-        [5-3] = (b.base in gsp) ? 0 : b.index,
-        [2-0] = (mod == 0 && b.base in gbp) ? 0 : b.base
-      };
+      modRM_byte({mod}, a, rsp)
+      SIB_byte({mod}, a)
       disp
     }
 }
@@ -795,13 +776,42 @@ macro primary_instr_rx_mv(code, type, mod, disp) {
       REX: [8] = 0x48;
       opcode: [8] = 0x90 + a - rax;
     }
-  };
+  }
 
   instruction ret {
     [] = { opcode: [8] = 0xc3; }
     [Iw a] = {
       opcode: [8] = 0xc2;
       offset: [16] = a;
+    }
+  }
+
+macro VEX_C4(map_and_mod, vec_size) {
+    vexPrefix: [8] = 0xc4;
+    mapAndMod: [8] = map_and_mod;
+    vecSize: [8] = vec_size;
+}
+macro VEX_C5(vec_size) {
+    VEX: [8] = 0xc5;
+    vecSize: [8] = vec_size;
+}
+macro XOP_8F() { XOP: [8] = 0x8f; }
+
+  instruction vmovups {
+    [gmm a, gmm b, gmm c] = {
+      @ ( #a == #b && #b == #c );
+      VEX_C4({{
+        [7-7] = b[3-3],
+        [6-6] = 0,
+        [5-5] = c[3-3],
+        [4-0] = 0x0f
+      }}, {{
+        [7-7] = 0,
+        [6-3] = a,
+        [2-2] = (#a == 256) ? 1 : 0,
+        [1-0] = 0
+      }})
+      modRM_byte(0b00, b, c)
     }
   }
 }

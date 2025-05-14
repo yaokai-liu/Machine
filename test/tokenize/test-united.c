@@ -50,9 +50,9 @@ START_TEST(test_BIT_FIELD) {
   ck_assert_uint_eq(terminals[0].lineno, 0);
   ck_assert_uint_eq(terminals[0].column, 0);
   ck_assert_uint_eq(terminals[0].length, lenof("[23-12]"));
-  BitField *bit_field = (BitField *) terminals[0].value;
-  ck_assert_uint_eq(bit_field->lower, 12);
-  ck_assert_uint_eq(bit_field->upper, 23);
+  BitField bit_field = BitField_fromUint64((uint64_t) terminals[0].value);
+  ck_assert_uint_eq(bit_field.lower, 12);
+  ck_assert_uint_eq(bit_field.upper, 23);
 
   ck_assert_uint_eq(terminals[1].type, enum_TERMINATOR);
   ck_assert_str_eq(get_name(terminals[1].type), "TERMINATOR");
@@ -60,7 +60,6 @@ START_TEST(test_BIT_FIELD) {
   ck_assert_uint_eq(terminals[1].lineno, 0);
   ck_assert_uint_eq(terminals[1].column, lenof("[23-12]"));
   ck_assert_uint_eq(terminals[1].length, 0);
-  STDAllocator.free(bit_field);
   STDAllocator.free((void *) terminals);
   ck_assert_uint_eq(lineno, 0);
   ck_assert_uint_eq(column, lenof("[23-12]"));
@@ -82,9 +81,9 @@ START_TEST(test_BIT_FIELD_reverse) {
   ck_assert_uint_eq(terminals[0].lineno, 0);
   ck_assert_uint_eq(terminals[0].column, 0);
   ck_assert_uint_eq(terminals[0].length, lenof("[12-23]"));
-  BitField *bit_field = (BitField *) terminals[0].value;
-  ck_assert_uint_eq(bit_field->lower, 12);
-  ck_assert_uint_eq(bit_field->upper, 23);
+  BitField bit_field = BitField_fromUint64((uint64_t) terminals[0].value);
+  ck_assert_uint_eq(bit_field.lower, 12);
+  ck_assert_uint_eq(bit_field.upper, 23);
 
   ck_assert_uint_eq(terminals[1].type, enum_TERMINATOR);
   ck_assert_str_eq(get_name(terminals[1].type), "TERMINATOR");
@@ -92,7 +91,6 @@ START_TEST(test_BIT_FIELD_reverse) {
   ck_assert_uint_eq(terminals[1].lineno, 0);
   ck_assert_uint_eq(terminals[1].column, lenof("[12-23]"));
   ck_assert_uint_eq(terminals[1].length, 0);
-  STDAllocator.free(bit_field);
   STDAllocator.free((void *) terminals);
   ck_assert_uint_eq(lineno, 0);
   ck_assert_uint_eq(column, lenof("[12-23]"));

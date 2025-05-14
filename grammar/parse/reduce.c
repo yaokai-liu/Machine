@@ -425,7 +425,7 @@ Variable *Parse_Variable_1(Token argv[], ParseContext *context, ErrInfo *errInfo
 
 Evaluable *Parse_Evaluable_0(Token argv[], ParseContext *context, ErrInfo *errInfo, const Allocator *allocator) {
   Variable *lhs = (Variable *) argv[0].value;
-  BitField *rhs = (BitField *) &argv[1].value;
+  BitField rhs = BitField_fromUint64((uint64_t) argv[1].value);
 
   const Record *record = nullptr;
   Pattern *pattern = *(Pattern **) Array_last_real(GContext_getPatternArray(context));
@@ -438,13 +438,13 @@ Evaluable *Parse_Evaluable_0(Token argv[], ParseContext *context, ErrInfo *errIn
   switch (lhs->type) {
     case enum_MemItem: {
       const MemItem *item = lhs->rhs;
-      grammarAssert(rhs->upper < (uint64_t) item->width, ERROR_INDEX_OUT_OF_RANGE, enum_MemItem);
+      grammarAssert(rhs.upper < (uint64_t) item->width, ERROR_INDEX_OUT_OF_RANGE, enum_MemItem);
       break;
     }
     case enum_IDENTIFIER: {
       if (record->typeid == enum_Immediate) {
         const Immediate *imm = GContext_getImmediate(context, record->offset);
-        grammarAssert(rhs->upper < imm->width, ERROR_INDEX_OUT_OF_RANGE, enum_Immediate);
+        grammarAssert(rhs.upper < imm->width, ERROR_INDEX_OUT_OF_RANGE, enum_Immediate);
       }
       break;
     }
@@ -453,7 +453,7 @@ Evaluable *Parse_Evaluable_0(Token argv[], ParseContext *context, ErrInfo *errIn
   Evaluable *evaluable = allocator->calloc(1, sizeof(Evaluable));
   evaluable->type = enum_BIT_FIELD;
   evaluable->lhs = lhs;
-  evaluable->rhs = *(void **) rhs;
+  evaluable->rhs = (void *) BitField_toUint64(&rhs);
   return evaluable;
 }
 
@@ -751,23 +751,23 @@ Machine *Parse_Machine_EXT(Token argv[], ParseContext *, ErrInfo *, const Alloca
 }
 
 MappingItem *Parse_MappingItem_0(Token argv[], ParseContext *context, ErrInfo *errInfo, const Allocator *allocator) {
-  BitField *bit_field = (BitField *) &argv[0].value;
+  BitField bit_field = BitField_fromUint64((uint64_t)argv[0].value);
   Arith_0_Expr *expr = (Arith_0_Expr *) argv[2].value;
 
   uint64_t width = GContext_getLastWidth(context);
-  if (bit_field->upper > width) {
+  if (bit_field.upper > width) {
     errInfo->stage = COMPILER_PARSE;
     errInfo->code = ERROR_INDEX_OUT_OF_RANGE;
     errInfo->token = enum_MappingItem;
     return nullptr;
   }
-  if (GContext_getMapItem(context, bit_field)) {
+  if (GContext_getMappingItem(context, &bit_field)) {
     errInfo->stage = COMPILER_PARSE;
     errInfo->code = ERROR_CONFLICT_BIT_FIELD;
     errInfo->token = enum_MappingItem;
     return nullptr;
   }
-  if (0 != check_mapping_item(context, bit_field, expr)) {
+  if (0 != check_mapping_item(context, &bit_field, expr)) {
     errInfo->stage = COMPILER_PARSE;
     errInfo->code = ERROR_WIDTH_MISMATCH;
     errInfo->token = enum_MappingItem;
@@ -776,26 +776,26 @@ MappingItem *Parse_MappingItem_0(Token argv[], ParseContext *context, ErrInfo *e
 
   MappingItem *item = allocator->calloc(1, sizeof(MappingItem));
   item->type = enum_Arith_0_Expr;
-  item->field.upper = bit_field->upper;
-  item->field.lower = bit_field->lower;
+  item->field.upper = bit_field.upper;
+  item->field.lower = bit_field.lower;
   item->target = expr;
 
-  GContext_addMapItem(context, item);
+  GContext_addMappingItem(context, item);
 
   return item;
 }
 MappingItem *Parse_MappingItem_1(Token argv[], ParseContext *context, ErrInfo *errInfo, const Allocator *allocator) {
-  BitField *bit_field = (BitField *) &argv[0].value;
+  BitField bit_field = BitField_fromUint64((uint64_t)argv[0].value);
   Switchable *switchable = (Switchable *) argv[2].value;
 
   uint64_t width = GContext_getLastWidth(context);
-  if (bit_field->upper > width) {
+  if (bit_field.upper > width) {
     errInfo->stage = COMPILER_PARSE;
     errInfo->code = ERROR_INDEX_OUT_OF_RANGE;
     errInfo->token = enum_MappingItem;
     return nullptr;
   }
-  if (GContext_getMapItem(context, bit_field)) {
+  if (GContext_getMappingItem(context, &bit_field)) {
     errInfo->stage = COMPILER_PARSE;
     errInfo->code = ERROR_CONFLICT_BIT_FIELD;
     errInfo->token = enum_MappingItem;
@@ -804,7 +804,7 @@ MappingItem *Parse_MappingItem_1(Token argv[], ParseContext *context, ErrInfo *e
   const Arith_0_Expr *first = Array_first_real(switchable->options);
   const Arith_0_Expr *last = Array_last_real(switchable->options);
   for (const Arith_0_Expr *expr = first; expr <= last; expr++) {
-    if (0 != check_mapping_item(context, bit_field, expr)) {
+    if (0 != check_mapping_item(context, &bit_field, expr)) {
       errInfo->stage = COMPILER_PARSE;
       errInfo->code = ERROR_WIDTH_MISMATCH;
       errInfo->token = enum_MappingItem;
@@ -813,11 +813,11 @@ MappingItem *Parse_MappingItem_1(Token argv[], ParseContext *context, ErrInfo *e
   }
   MappingItem *item = allocator->calloc(1, sizeof(MappingItem));
   item->type = enum_Switchable;
-  item->field.upper = bit_field->upper;
-  item->field.lower = bit_field->lower;
+  item->field.upper = bit_field.upper;
+  item->field.lower = bit_field.lower;
   item->target = switchable;
 
-  GContext_addMapItem(context, item);
+  GContext_addMappingItem(context, item);
 
   return item;
 }
@@ -837,8 +837,8 @@ MappingItems *Parse_MappingItems_0(Token argv[], ParseContext *, ErrInfo *errInf
   } else {
     items->lowest = min(item->field.lower, items->lowest);
     uint32_t index = Array_length(items->itemArray);
-    uint64_t *key = (uint64_t *) &item->field;
-    AVLTree_set(items->itemTree, *key, (void *) (uint64_t) index + 1);
+    uint64_t key = BitField_toUint64(&item->field);
+    AVLTree_set(items->itemTree, key, (void *) (uint64_t) index + 1);
     Array_append(items->itemArray, item, 1);
   }
   allocator->free(item);
@@ -856,8 +856,8 @@ MappingItems *Parse_MappingItems_1(Token argv[], ParseContext *, ErrInfo *, cons
     items->lowest = 0;
   } else {
     Array_append(items->itemArray, item, 1);
-    uint64_t *key = (uint64_t *) &item->field;
-    AVLTree_set(items->itemTree, *key, (void *) 1);
+    uint64_t key = BitField_toUint64(&item->field);
+    AVLTree_set(items->itemTree, key, (void *) 1);
     items->lowest = item->field.lower;
   }
   allocator->free(item);
@@ -1011,15 +1011,12 @@ PatternArgs *Parse_PatternArgs_1(Token argv[], ParseContext *, ErrInfo *, const 
 
 Register *Parse_Register_0(Token argv[], ParseContext *context, ErrInfo *errInfo, const Allocator *) {
   Identifier *ident = (Identifier *) argv[0].value;
-  BitField *field = (BitField *) &argv[2].value;
+  BitField field = BitField_fromUint64((uint64_t)argv[2].value);
   uint64_t code = (uint64_t) argv[4].value;
 
   grammarAssertNotDeclaredRecord(ident, enum_IDENTIFIER);
 
-  Register reg = {
-      .name = ident, .field = {.upper = field->upper, .lower = field->lower},
-           .code = code
-  };
+  Register reg = { .name = ident, .field = field, .code = code };
   return GContext_addRegister(context, &reg);
 }
 

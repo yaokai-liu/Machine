@@ -67,7 +67,7 @@ int32_t GenC_gen_layout(
 );
 int32_t GenC_gen_switchable(
     const ParseContext *context, const Array *ident_array, Array *buffer,
-    const Switchable *switchable, BitField *bf, const Pattern *pattern, char_t *temp_buffer
+    const Switchable *switchable, BitField *p_bf, const Pattern *pattern, char_t *temp_buffer
 );
 int32_t GenC_gen_mapping_item(
     const ParseContext *context, const Array *ident_array, Array *buffer, MappingItems *items,

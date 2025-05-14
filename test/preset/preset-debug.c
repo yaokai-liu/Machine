@@ -33,7 +33,7 @@ int main() {
   useMachine(machine);
   Array *output_array = Array_new(sizeof(uint8_t), -1, &STDAllocator);
 #define PROG_INSTR_BUFFER output_array
-  uint32_t size = add(MEM_SIBb(REG_rbp, REG_rbx, 2), REG_bl);
+  uint32_t size = add(MEM_SIB(REG_rcx, REG_rbx, 2), REG_bl);
   //  uint32_t size = test(MEM_PTRb(REG_eax), REG_al);
   //  uint32_t size = addi(REG_r8, IMM_Ib(0x1234));
   //  uint32_t size = addi(IMM_Ib(0x1234));

@@ -52,19 +52,13 @@ Machine *parse(Tokenizer *const tokenizer, ErrInfo * const err_info, const Alloc
   while (true) {
     const struct grammar_action *act = getParseAction(state, token.type);
     if (!act) {
-      if (token.type == enum_SEMICOLON) {
-        uint32_t error = Tokenizer_next(tokenizer, &token, err_info);
-        if (error != SUCCESS) { return clean_parse_stack(state_stack, token_stack, allocator); }
-        continue;
-      } else {
-        err_info->pos[0] = token.position[0];
-        err_info->pos[1] = token.position[1];
-        err_info->code = ERROR_UNEXPECTED_TOKEN;
-        err_info->stage = COMPILER_PARSE;
-        err_info->token = token.type;
-        GContext_destroy(context);
-        return clean_parse_stack(state_stack, token_stack, allocator);
-      }
+      err_info->pos[0] = token.position[0];
+      err_info->pos[1] = token.position[1];
+      err_info->code = ERROR_UNEXPECTED_TOKEN;
+      err_info->stage = COMPILER_PARSE;
+      err_info->token = token.type;
+      GContext_destroy(context);
+      return clean_parse_stack(state_stack, token_stack, allocator);
     }
     if (act->action == Parse_action_stack) {
       state = act->offset;

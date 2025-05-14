@@ -60,7 +60,7 @@ typedef struct ParseContext {
   Array /*<Pattern*>*/ *patterns;
   Stack /*<uint64_t>*/ *widthStack;
   Stack /*<Identifier*>*/ *identStack;
-  AVLTree /*<BitField*, MappingItem*>*/ *mappingTree;
+  AVLTree /*<BitField, MappingItem*>*/ *mappingTree;
   uint32_t maxArgCount;
   uint32_t maxFieldCount;
   const char_t *errorMessage;
@@ -117,9 +117,9 @@ void GContext_addPattern(ParseContext *context, Pattern *pattern);
 
 bool GContext_testPattern(ParseContext *context, PatternArgs *patternArgs);
 
-void GContext_addMapItem(ParseContext *context, MappingItem *item);
+void GContext_addMappingItem(ParseContext *context, MappingItem *item);
 
-MappingItem *GContext_getMapItem(ParseContext *context, BitField *bf);
+MappingItem *GContext_getMappingItem(ParseContext *context, BitField *p_bf);
 
 Trie /*<REFER(Record), uint64_t>*/ *
     GContext_build_args_trie(ParseContext *context, const Instruction *instr);

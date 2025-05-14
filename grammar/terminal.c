@@ -28,11 +28,13 @@
 #include "terminal.h"
 
 inline int32_t BitField_cmp(void *a, void *b) {
-  BitField *bf1 = (BitField *) &a;
-  BitField *bf2 = (BitField *) &b;
-  if (bf1->upper < bf2->lower) { return -1; }
-  if (bf1->lower > bf2->upper) { return 1; }
-  return (bf2->upper < bf2->lower) - (bf1->upper < bf1->lower);
+  uint32_t bf1_upper = BitField_getUpper((uint64_t) a);
+  uint32_t bf1_lower = BitField_getLower((uint64_t) a);
+  uint32_t bf2_upper = BitField_getUpper((uint64_t) b);
+  uint32_t bf2_lower = BitField_getLower((uint64_t) b);
+  if (bf1_upper < bf2_lower) { return -1; }
+  if (bf1_lower > bf2_upper) { return 1; }
+  return (bf2_upper < bf2_lower) - (bf1_upper < bf1_lower);
 }
 
 int32_t Identifier_cmp(void *a, void *b) {

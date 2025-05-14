@@ -289,15 +289,15 @@ void GenC_gen_jump_table_def(
     }                                                          \
   } while (false)
 
-#define getMappingItem(_items, bf)                                                 \
-  Array_real_addr(                                                                 \
-      (_items)->itemArray,                                                         \
-      ((uint32_t) (uint64_t) AVLTree_get((_items)->itemTree, (uint64_t) (bf)) - 1) \
+#define getMappingItem(_items, p_bf)                                                       \
+  Array_real_addr(                                                                         \
+      (_items)->itemArray,                                                                 \
+      ((uint32_t) (uint64_t) AVLTree_get((_items)->itemTree, BitField_toUint64(p_bf)) - 1) \
   )
 
 #define MAX_IDENT_LEN 64
 int32_t
-    eval_to_val(const ParseContext *, const Array *ident_array, const Evaluable *evaluable, char_t *buffer, const Pattern *) {
+    eval_to_val(const ParseContext *, const Array * const ident_array, const Evaluable *evaluable, char_t *buffer, const Pattern *) {
   if (enum_NUMBER == evaluable->type) {
     uint64_t number = (uint64_t) evaluable->lhs;
     return sprintf(buffer, "0x%lX", number);
@@ -324,15 +324,15 @@ int32_t
       break;
     }
     case enum_BIT_FIELD: {
-      BitField *bf = (BitField *) &evaluable->rhs;
-      uint32_t width = bf->upper - bf->lower + 1;
+      BitField p_bf = BitField_fromUint64((uint64_t) evaluable->rhs);
+      uint32_t width = p_bf.upper - p_bf.lower + 1;
       // TODO: if record refers to a set there may has different behaviors, please solve it.
       if (width == 0) { return sprintf(buffer, "0"); }
-      if (bf->lower == 0) {
+      if (p_bf.lower == 0) {
         return sprintf(buffer, "((%s->value)&UINT_N_MAX(%d))", ctx_ident_real(ident), width);
       }
       return sprintf(
-          buffer, "((%s->value>>%d)&UINT_N_MAX(%d))", ctx_ident_real(ident), bf->lower, width
+          buffer, "((%s->value>>%d)&UINT_N_MAX(%d))", ctx_ident_real(ident), p_bf.lower, width
       );
     }
     case enum_Variable: {
@@ -466,11 +466,11 @@ int32_t expr_to_val(
 // TODO: GenC_gen_mapping_item is in a recursive call chain,
 //  maybe it will cause a out of memory, please solve it.
 int32_t GenC_gen_mapping_item(
-    const ParseContext *context, const Array *ident_array, Array *buffer, MappingItems *items,
+    const ParseContext *context, const Array * const ident_array, Array *buffer, MappingItems *items,
     const BitField *bit_field, const Pattern *pattern, char_t *temp_buffer
 ) {
   const uint32_t pre_len = Array_length(buffer);
-  MappingItem *item = getMappingItem(items, *(uint64_t *) bit_field);
+  MappingItem *item = getMappingItem(items, bit_field);
   uint64_t default_bit = 0;
   getDefaultMappingBit(default_bit);
   if (!item) {
@@ -506,24 +506,24 @@ int32_t GenC_gen_mapping_item(
   return (int32_t) (Array_length(buffer) - pre_len);
 }
 
-#define push_expr(expr, bf)                                                                     \
+#define push_expr(expr, p_bf)                                                                     \
   do {                                                                                          \
     expr_to_val(context, ident_array, expr, pattern, temp_buffer1);                             \
-    if (((uint64_t) bf) > 64) {                                                                 \
-      uint32_t bl = (bf)->lower;                                                                \
-      uint32_t bu = (bf)->upper;                                                                \
+    if (((uint64_t) p_bf) > 64) {                                                                 \
+      uint32_t bl = (p_bf)->lower;                                                                \
+      uint32_t bu = (p_bf)->upper;                                                                \
       sprintf(                                                                                  \
           temp_buffer, "    value = numSetBits(value, %d, %d, %s);\n", bl, bu + 1, temp_buffer1 \
       );                                                                                        \
       push_string(temp_buffer);                                                                 \
     } else {                                                                                    \
-      pushEncodingNumberN(temp_buffer1, ((uint32_t) (uint64_t) bf) / 8);                        \
+      pushEncodingNumberN(temp_buffer1, ((uint32_t) (uint64_t) p_bf) / 8);                        \
     }                                                                                           \
   } while (false)
 
 int32_t GenC_gen_switchable(
-    const ParseContext *context, const Array *ident_array, Array *buffer,
-    const Switchable *switchable, BitField *bf, const Pattern *pattern, char_t *temp_buffer
+    const ParseContext *context, const Array *const ident_array, Array *buffer,
+    const Switchable *switchable, BitField *p_bf, const Pattern *pattern, char_t *temp_buffer
 ) {
   char_t temp_buffer1[512] = {};
   Options *options = switchable->options;
@@ -532,10 +532,10 @@ int32_t GenC_gen_switchable(
   expr_to_val(context, ident_array, switchable->expr, pattern, temp_buffer);
   push_string(temp_buffer);
   push_string(") {\n  ");
-  push_expr(&exprs[0], bf);
+  push_expr(&exprs[0], p_bf);
   if (Array_length(options) > 1) {
     push_string("    } else {\n  ");
-    push_expr(&exprs[1], bf);
+    push_expr(&exprs[1], p_bf);
   }
   push_string("    }\n");
   return 0;
@@ -559,8 +559,8 @@ int32_t GenC_gen_layout(
             break;
           }
           case enum_BIT_FIELD: {
-            const BitField *bf = (BitField *) &eval->rhs;
-            width = ((bf->upper - bf->lower) / 8) + 1;
+            const BitField bf = BitField_fromUint64((uint64_t) eval->rhs);
+            width = ((bf.upper - bf.lower) / 8) + 1;
             pushEncodingNumberN(temp_buffer, width);
             sprintf(temp_buffer, "    size += %u;\n", width / 8);
             push_string(temp_buffer);
@@ -592,7 +592,6 @@ int32_t GenC_gen_layout(
             break;
           }
         }
-
       } else {
         pushEncodingNumberN(temp_buffer, width / 8);
         sprintf(temp_buffer, "    size += %u;\n", width / 8);

@@ -67,8 +67,8 @@ int32_t check_mapping_item_evaluable(
       break;
     }
     case enum_BIT_FIELD: {
-      BitField *bf = (BitField *) &evaluable->rhs;
-      width = bf->upper - bf->lower + 1;
+      BitField bf = BitField_fromUint64((uint64_t) evaluable->rhs);
+      width = bf.upper -  bf.lower + 1;
       break;
     }
     case enum_NUMBER: {
