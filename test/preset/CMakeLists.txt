@@ -12,6 +12,7 @@ aux_source_directory(../../meman CTR_SRC)
 add_library(meman SHARED ${CTR_SRC})
 include_directories(../../meman)
 
+#add_compile_options("-O3" "-Os")
 add_compile_options("-Wno-unused-parameter" "-funsigned-char" "-fno-builtin")
 
 add_library(preset-x64 x64/x64.c x64/x64.h)

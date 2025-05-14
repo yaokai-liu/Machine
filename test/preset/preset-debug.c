@@ -27,13 +27,14 @@
 #define USING_INSTR_DIRECTLY
 #include "x64.h"
 #include <stdio.h>
+#define PROG_INSTR_BUFFER output_array
 
 int main() {
   x64Machine *machine = x64Machine_new(&STDAllocator);
   useMachine(machine);
   Array *output_array = Array_new(sizeof(uint8_t), -1, &STDAllocator);
-#define PROG_INSTR_BUFFER output_array
-  uint32_t size = add(MEM_SIB(REG_rcx, REG_rbx, 2), REG_bl);
+  //  uint32_t size = add(MEM_SIB(REG_rcx, REG_rbx, 2), REG_bl);
+  uint32_t size = movups(REG_xmm00, REG_xmm01);
   //  uint32_t size = test(MEM_PTRb(REG_eax), REG_al);
   //  uint32_t size = addi(REG_r8, IMM_Ib(0x1234));
   //  uint32_t size = addi(IMM_Ib(0x1234));

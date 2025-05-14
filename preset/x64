@@ -367,7 +367,7 @@ macro primary_instr_imm_ax_iz(code) {
     }
 }
 
-macro primary_instr_imm_in_grp1(grp1_id) {
+  macro primary_instr_imm_in_grp1(grp1_id) {
     [BYTE_PTR a, Ib b] = {
       asoPrefix: [8] = 0x67 @ (a.reg in gpr32);
       REX: [8] = 0x41 @ (a.reg in GREX);
@@ -459,14 +459,14 @@ macro primary_instr_imm_in_grp1(grp1_id) {
       };
       imm: [8] = b;
     }
-}
-
-macro primary_instr_imm(name, code, grp1_id) {
-  instruction name {
-    primary_instr_imm_ax_iz({code})
-    primary_instr_imm_in_grp1({grp1_id})
   }
-}
+
+  macro primary_instr_imm(name, code, grp1_id) {
+    instruction name {
+      primary_instr_imm_ax_iz({code})
+      primary_instr_imm_in_grp1({grp1_id})
+    }
+  }
 
   primary_instr(add, 0x00)
   primary_instr(adc, 0x10)
@@ -505,7 +505,7 @@ macro primary_instr_imm(name, code, grp1_id) {
     primary_instr_imm_ax_iz(0xa8)
   }
 
-macro primary_instr_rx_mv(code, type, mod, disp) {
+  macro primary_instr_rx_mv(code, type, mod, disp) {
     [Gv a, type b] = {
       asoPrefix: [8] = 0x67 @ (b.reg in gpr32 || b.reg in eip);
       osoPrefix: [8] = 0x66 @ (#a == 16);
@@ -523,7 +523,7 @@ macro primary_instr_rx_mv(code, type, mod, disp) {
         [2-0] = b.reg
       };
     }
-}
+  }
   instruction lea {
     primary_instr_rx_mv(0x8d, PTR  , 0b00, {})
     primary_instr_rx_mv(0x8d, REL  , 0b00, { disp32: [32] = a.disp; })
@@ -786,32 +786,29 @@ macro primary_instr_rx_mv(code, type, mod, disp) {
     }
   }
 
-macro VEX_C4(map_and_mod, vec_size) {
-    vexPrefix: [8] = 0xc4;
-    mapAndMod: [8] = map_and_mod;
-    vecSize: [8] = vec_size;
-}
-macro VEX_C5(vec_size) {
-    VEX: [8] = 0xc5;
-    vecSize: [8] = vec_size;
-}
-macro XOP_8F() { XOP: [8] = 0x8f; }
+  macro mapAndMod_mapping(R, X, B, m_mmmm) {
+   { [7-7] = R, [6-6] = X, [5-5] = B, [4-0] = m_mmmm }
+  }
+  macro vecSize_mapping(R, vvvv, L, pp) {
+   { [7-7] = R, [6-3] = vvvv, [2-2] = L, [1-0] = pp }
+  }
+  macro VEX_C4(map_and_mod, vec_size) {
+      vexPrefix: [8] = 0xc4;
+      mapAndMod: [8] = map_and_mod;
+      vecSize: [8] = vec_size;
+  }
+  macro VEX_C5(R, vvvv, L, pp) {
+      VEX: [8] = 0xc5;
+      vecSize: [8] = vecSize_mapping({R}, {vvvv}, {L}, {pp});
+  }
+  macro XOP_8F() { XOP: [8] = 0x8f; }
 
-  instruction vmovups {
-    [gmm a, gmm b, gmm c] = {
-      @ ( #a == #b && #b == #c );
-      VEX_C4({{
-        [7-7] = b[3-3],
-        [6-6] = 0,
-        [5-5] = c[3-3],
-        [4-0] = 0x0f
-      }}, {{
-        [7-7] = 0,
-        [6-3] = a,
-        [2-2] = (#a == 256) ? 1 : 0,
-        [1-0] = 0
-      }})
-      modRM_byte(0b00, b, c)
+  instruction movups {
+    [gmm a, gmm b] = {
+      @ ( #a == #b );
+      VEX_C5({ ~a[3-3] }, 0b1111, { (#a == 256) ? 1 : 0 }, 0)
+      opcode: [8] = 0x10;
+      modRM_byte(0b11, a, b)
     }
   }
 }
