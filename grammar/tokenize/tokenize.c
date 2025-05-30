@@ -27,11 +27,10 @@
 
 #include "tokenize.h"
 #include "enum.h"
-#include "tokenizer.h"
 #include "parse.h"
+#include "tokenizer.h"
 #include <string.h>
-uint32_t
-    Tokenizer_lex_token_from_source(Tokenizer *tokenizer, Token *token, ErrInfo *err_info);
+uint32_t Tokenizer_lex_token_from_source(Tokenizer *tokenizer, Token *token, ErrInfo *err_info);
 uint32_t Tokenizer_concat_to_token(
     Tokenizer *tokenizer, const Concat *concat, Token *token, ErrInfo *err_info
 );
@@ -45,8 +44,9 @@ bool Tokenizer_end_of_frame(Tokenizer *tokenizer);
 void Tokenizer_exit_frame(Tokenizer *tokenizer);
 
 #define pText (tokenizer->src + tokenizer->cost)
-inline uint32_t
-    Tokenizer_lex_token_from_source(Tokenizer *const tokenizer, Token *const token, ErrInfo * const err_info) {
+inline uint32_t Tokenizer_lex_token_from_source(
+    Tokenizer * const tokenizer, Token * const token, ErrInfo * const err_info
+) {
   uint32_t cost = pass_space(pText, &tokenizer->lineno, &tokenizer->column);
   tokenizer->cost += cost;
 
@@ -55,7 +55,7 @@ inline uint32_t
     token->position[0].column = tokenizer->column;
     token->position[1].lineno = tokenizer->lineno;
     token->position[1].column = tokenizer->column;
-    token->type = enum_TERMINATOR;
+    token->type = Machine_TOKEN_TERMINATOR;
     token->value = nullptr;
     return SUCCESS;
   }
@@ -69,14 +69,14 @@ inline uint32_t
     err_info->pos[1].column = tokenizer->column;
     err_info->pos[1] = err_info->pos[0];
     err_info->stage = COMPILER_LEX;
-    err_info->token = enum_BAD_TOKEN;
+    err_info->token = Machine_TOKEN_BAD_TOKEN;
     err_info->code = ERROR_UNKNOWN_SYMBOL;
     return ERROR_UNKNOWN_SYMBOL;
   }
   tokenizer->column += cost;
   tokenizer->cost += cost;
 
-  if (terminal.type == enum_IDENTIFIER) {
+  if (terminal.type == Machine_TOKEN_IDENTIFIER) {
     REFER(Identifier) ident = Trie_get(tokenizer->ident_trie, terminal.value);
     if (!ident) {
       Array_append(tokenizer->ident_array, terminal.value, terminal.length + 1);
@@ -93,21 +93,21 @@ inline uint32_t
 }
 
 inline uint32_t Tokenizer_concat_to_token(
-    Tokenizer *const tokenizer, const Concat *concat, Token * const token, ErrInfo * const err_info
+    Tokenizer * const tokenizer, const Concat *concat, Token * const token, ErrInfo * const err_info
 ) {
   const Token *tokens = Array_first_real(concat);
   const uint32_t count = Array_length(concat);
 
   // push strings to ident_array
-  Array *ident_array = Array_new(sizeof(char_t), enum_IDENTIFIER, tokenizer->allocator);
+  Array *ident_array = Array_new(sizeof(char_t), Machine_TOKEN_IDENTIFIER, tokenizer->allocator);
   for (uint32_t i = 0; i < count; i++) {
     const Token *tp = &tokens[i];
-    if (tokens[i].type == enum_PLACE_HOLDER) {
+    if (tokens[i].type == Machine_TOKEN_PLACE_HOLDER) {
       const uint32_t index = (uint32_t) (uint64_t) tokens[i].value;
       MacroArg *arg = Array_real_addr(tokenizer->frame.args, index);
       tp = arg->target;
     }
-    if (tp->type != enum_IDENTIFIER) {
+    if (tp->type != Machine_TOKEN_IDENTIFIER) {
       releasePrimeArray(ident_array);
       err_info->pos[0] = tp->position[0];
       err_info->pos[1] = tp->position[1];
@@ -132,23 +132,24 @@ inline uint32_t Tokenizer_concat_to_token(
   }
 
   releasePrimeArray(ident_array);
-  token->type = enum_IDENTIFIER;
+  token->type = Machine_TOKEN_IDENTIFIER;
   token->value = v_sym;
   return SUCCESS;
 }
 
-uint32_t Tokenizer_next_in_src(Tokenizer *const tokenizer, Token *token, ErrInfo * const err_info) {
+uint32_t
+    Tokenizer_next_in_src(Tokenizer * const tokenizer, Token *token, ErrInfo * const err_info) {
   uint32_t result = ERROR_WHATEVER;
-   do {
+  do {
     result = Tokenizer_lex_token_from_source(tokenizer, token, err_info);
     if (result != SUCCESS) { return result; }
-    while (token->type == enum_MACRO) {
+    while (token->type == Machine_TOKEN_MACRO) {
       result = Tokenizer_parse_and_store_macro_def(tokenizer, token, err_info);
       if (result != SUCCESS) { return result; }
       result = Tokenizer_lex_token_from_source(tokenizer, token, err_info);
       if (result != SUCCESS) { return result; }
     }
-    while (token->type == enum_IDENTIFIER) {
+    while (token->type == Machine_TOKEN_IDENTIFIER) {
       REFER(Macro) v_macro = MacroContext_findMacro(tokenizer->context, token->value);
       if (!v_macro) { return SUCCESS; }
       result = Tokenizer_parse_and_enter_macro_call(tokenizer, v_macro, token, err_info);
@@ -156,11 +157,12 @@ uint32_t Tokenizer_next_in_src(Tokenizer *const tokenizer, Token *token, ErrInfo
       result = Tokenizer_next_in_frame(tokenizer, token, err_info);
       if (result == END_OF_MACRO_FRAME) { break; }
     }
-  } while(result == END_OF_MACRO_FRAME);
+  } while (result == END_OF_MACRO_FRAME);
   return result;
 }
 
-uint32_t Tokenizer_next_in_frame(Tokenizer *const tokenizer, Token *token, ErrInfo * const err_info) {
+uint32_t
+    Tokenizer_next_in_frame(Tokenizer * const tokenizer, Token *token, ErrInfo * const err_info) {
   uint32_t result = ERROR_WHATEVER;
   while (true) {
     Token *tp = nullptr;
@@ -170,14 +172,14 @@ uint32_t Tokenizer_next_in_frame(Tokenizer *const tokenizer, Token *token, ErrIn
     }
     if (!tp) { return END_OF_MACRO_FRAME; }
 
-    if (tp->type == enum_Concat) {
+    if (tp->type == Machine_TOKEN_Concat) {
       const Concat *concat = Array_virt2real(tokenizer->frame.concatArray, tp->value);
       result = Tokenizer_concat_to_token(tokenizer, concat, token, err_info);
       if (result != SUCCESS) { return result; }
       tp = token;
     }
 
-    if (tp->type == enum_PLACE_HOLDER) {
+    if (tp->type == Machine_TOKEN_PLACE_HOLDER) {
       const uint32_t index = (uint32_t) (uint64_t) tp->value;
       if (!tokenizer->frame.args || index > Array_length(tokenizer->frame.args)) {
         err_info->pos[0] = tp->position[0];
@@ -188,7 +190,11 @@ uint32_t Tokenizer_next_in_frame(Tokenizer *const tokenizer, Token *token, ErrIn
         return ERROR_INDEX_OUT_OF_RANGE;
       }
       const MacroArg *arg = Array_real_addr(tokenizer->frame.args, index);
-      if (arg->type != enum_Tokens) { tp = arg->target; *token = *tp; return SUCCESS; }
+      if (arg->type != Machine_TOKEN_Tokens) {
+        tp = arg->target;
+        *token = *tp;
+        return SUCCESS;
+      }
 
       Stack_push(tokenizer->framestack, &tokenizer->frame, sizeof(MacroCallFrame));
       tokenizer->frame.position[0] = tp->position[0];
@@ -199,10 +205,16 @@ uint32_t Tokenizer_next_in_frame(Tokenizer *const tokenizer, Token *token, ErrIn
       continue;
     }
 
-    if (tp->type != enum_IDENTIFIER) { *token = *tp; return SUCCESS; }
+    if (tp->type != Machine_TOKEN_IDENTIFIER) {
+      *token = *tp;
+      return SUCCESS;
+    }
 
     REFER(Macro) v_macro = MacroContext_findMacro(tokenizer->context, tp->value);
-    if (!v_macro) { *token = *tp; return SUCCESS; }
+    if (!v_macro) {
+      *token = *tp;
+      return SUCCESS;
+    }
 
     *token = *tp;
     result = Tokenizer_parse_and_enter_macro_call(tokenizer, v_macro, token, err_info);
@@ -210,9 +222,10 @@ uint32_t Tokenizer_next_in_frame(Tokenizer *const tokenizer, Token *token, ErrIn
   }
 }
 
-
-uint32_t Tokenizer_parse_and_store_macro_def(Tokenizer *const tokenizer, Token *const token, ErrInfo * const err_info) {
-    return Tokenizer_parse(tokenizer, token, err_info);
+uint32_t Tokenizer_parse_and_store_macro_def(
+    Tokenizer * const tokenizer, Token * const token, ErrInfo * const err_info
+) {
+  return Tokenizer_parse(tokenizer, token, err_info);
 }
 
 uint32_t Tokenizer_parse_and_enter_macro_call(
@@ -231,13 +244,13 @@ uint32_t Tokenizer_parse_and_enter_macro_call(
   return SUCCESS;
 }
 
-inline bool Tokenizer_end_of_frame(Tokenizer *const tokenizer) {
+inline bool Tokenizer_end_of_frame(Tokenizer * const tokenizer) {
   return tokenizer->frame.tokens && tokenizer->frame.index >= Array_length(tokenizer->frame.tokens);
 }
 
-inline void Tokenizer_exit_frame(Tokenizer *const tokenizer) {
+inline void Tokenizer_exit_frame(Tokenizer * const tokenizer) {
   while (Tokenizer_end_of_frame(tokenizer)) {
-    if ((uint64_t) tokenizer->frame.args > enum_MacroArgs) {
+    if ((uint64_t) tokenizer->frame.args > Machine_TOKEN_MacroArgs) {
       Array_reset(tokenizer->frame.args, (destruct_t *) releaseMacroArg);
       Array_destroy(tokenizer->frame.args);
     }
@@ -245,7 +258,7 @@ inline void Tokenizer_exit_frame(Tokenizer *const tokenizer) {
   }
 }
 
-uint32_t Tokenizer_next(Tokenizer *const tokenizer, Token *token, ErrInfo * const err_info) {
+uint32_t Tokenizer_next(Tokenizer * const tokenizer, Token *token, ErrInfo * const err_info) {
   uint32_t result = ERROR_WHATEVER;
   if (tokenizer->frame.tokens) {
     result = Tokenizer_next_in_frame(tokenizer, token, err_info);
@@ -259,14 +272,15 @@ uint32_t Tokenizer_next(Tokenizer *const tokenizer, Token *token, ErrInfo * cons
   return result;
 }
 
-
-inline uint32_t Tokenizer_macro_next(Tokenizer *const tokenizer, Token * const token, ErrInfo * const err_info) {
+inline uint32_t Tokenizer_macro_next(
+    Tokenizer * const tokenizer, Token * const token, ErrInfo * const err_info
+) {
   if (tokenizer->context->end_parse) {
     token->position[0].lineno = tokenizer->lineno;
     token->position[0].column = tokenizer->column;
     token->position[1].lineno = tokenizer->lineno;
     token->position[1].column = tokenizer->column;
-    token->type = enum_TERMINATOR;
+    token->type = Machine_TOKEN_TERMINATOR;
     token->value = nullptr;
     return SUCCESS;
   }
@@ -283,23 +297,23 @@ inline uint32_t Tokenizer_macro_next(Tokenizer *const tokenizer, Token * const t
   if (result != SUCCESS) { return result; }
 
   switch (token->type) {
-    case enum_MACRO:
-    case enum_CONCAT: {
+    case Machine_TOKEN_MACRO:
+    case Machine_TOKEN_CONCAT: {
       return result;
     }
-    case enum_LEFT_BRACKET: {
+    case Machine_TOKEN_LEFT_BRACKET: {
       if (tokenizer->context->depth++ == 0) { return result; }
       break;
     }
-    case enum_RIGHT_BRACKET: {
+    case Machine_TOKEN_RIGHT_BRACKET: {
       if (--tokenizer->context->depth == 0) { return result; }
       break;
     }
-    case enum_COMMA:
-    case enum_NUMBER:
-    case enum_LEFT_PAREN:
-    case enum_RIGHT_PAREN:
-    case enum_IDENTIFIER: {
+    case Machine_TOKEN_COMMA:
+    case Machine_TOKEN_NUMBER:
+    case Machine_TOKEN_LEFT_PAREN:
+    case Machine_TOKEN_RIGHT_PAREN:
+    case Machine_TOKEN_IDENTIFIER: {
       if (!tokenizer->context->in_macro) { return result; }
       break;
     }
@@ -310,7 +324,7 @@ inline uint32_t Tokenizer_macro_next(Tokenizer *const tokenizer, Token * const t
   Token *tp = tokenizer->allocator->calloc(1, sizeof(Token));
   *tp = *token;
 
-  token->type = enum_TOKEN;
+  token->type = Machine_TOKEN_TOKEN;
   token->value = tp;
   return result;
 }

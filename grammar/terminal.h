@@ -66,11 +66,9 @@ int32_t Identifier_cmp(void *a, void *b);
 void terminal_to_token(Token *token, const Terminal *tp);
 uint64_t get_char(const void *key);
 
-#define BitField_toUint64(p_bf) ((((uint64_t) ((p_bf)->upper)) << 32) | ((p_bf)->lower))
-#define BitField_getUpper(bf_uint64) ((uint32_t)((bf_uint64) >> 32))
-#define BitField_getLower(bf_uint64) ((uint32_t)((bf_uint64) & 0xFFFFFFFF))
-#define BitField_fromUint64(bf_uint64) { \
-    .upper = BitField_getUpper(bf_uint64), \
-    .lower = BitField_getLower(bf_uint64)  \
-}
+#define BitField_toUint64(p_bf)      ((((uint64_t) ((p_bf)->upper)) << 32) | ((p_bf)->lower))
+#define BitField_getUpper(bf_uint64) ((uint32_t) ((bf_uint64) >> 32))
+#define BitField_getLower(bf_uint64) ((uint32_t) ((bf_uint64) & 0xFFFFFFFF))
+#define BitField_fromUint64(bf_uint64) \
+  {.upper = BitField_getUpper(bf_uint64), .lower = BitField_getLower(bf_uint64)}
 #endif  // MACHINE_TERMINAL_H

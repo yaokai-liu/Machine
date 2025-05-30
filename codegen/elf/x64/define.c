@@ -132,7 +132,7 @@ void GenElf_gen_reg_def(Elf64Generator *generator, const Machine *machine) {
   }
 }
 #define val_case_item(Type, var)                                            \
-  case enum_##Type: {                                                       \
+  case Machine_TOKEN_##Type: {                                              \
     const Type *var = Array_real_addr(context->var##Array, record->offset); \
     name = var->name;                                                       \
     break;                                                                  \

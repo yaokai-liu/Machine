@@ -36,7 +36,7 @@
 #include <string.h>
 
 inline Tokenizer *Tokenizer_new(const char_t *src, Array *ident_array, const Allocator *allocator) {
-  Tokenizer *const tokenizer = allocator->calloc(1, sizeof(Tokenizer));
+  Tokenizer * const tokenizer = allocator->calloc(1, sizeof(Tokenizer));
   tokenizer->allocator = allocator;
 
   tokenizer->ident_trie = Trie_new(sizeof(char_t), get_char, allocator);
@@ -51,7 +51,7 @@ inline Tokenizer *Tokenizer_new(const char_t *src, Array *ident_array, const All
   return tokenizer;
 }
 
-inline void Tokenizer_destroy(Tokenizer *const tokenizer) {
+inline void Tokenizer_destroy(Tokenizer * const tokenizer) {
   MacroContext_destroy(tokenizer->context);
   Trie_destroy(tokenizer->ident_trie);
   Stack_clear(tokenizer->framestack);
@@ -59,7 +59,7 @@ inline void Tokenizer_destroy(Tokenizer *const tokenizer) {
   tokenizer->allocator->free(tokenizer);
 }
 
-uint32_t Tokenizer_frame_pos_to_array(Tokenizer *const tokenizer, Array /*<TokenPos>*/ *array) {
+uint32_t Tokenizer_frame_pos_to_array(Tokenizer * const tokenizer, Array /*<TokenPos>*/ *array) {
   Array_append(array, &tokenizer->frame.position, 1);
 
   MacroCallFrame frame = {};

@@ -44,7 +44,7 @@ START_TEST(test_BIT_FIELD) {
   ck_assert_uint_eq(n_tokens, 2);
   ck_assert_ptr_ne(terminals, nullptr);
 
-  ck_assert_uint_eq(terminals[0].type, enum_BIT_FIELD);
+  ck_assert_uint_eq(terminals[0].type, Machine_TOKEN_BIT_FIELD);
   ck_assert_str_eq(get_name(terminals[0].type), "BIT_FIELD");
   ck_assert_ptr_ne(terminals[0].value, nullptr);
   ck_assert_uint_eq(terminals[0].lineno, 0);
@@ -54,7 +54,7 @@ START_TEST(test_BIT_FIELD) {
   ck_assert_uint_eq(bit_field.lower, 12);
   ck_assert_uint_eq(bit_field.upper, 23);
 
-  ck_assert_uint_eq(terminals[1].type, enum_TERMINATOR);
+  ck_assert_uint_eq(terminals[1].type, Machine_TOKEN_TERMINATOR);
   ck_assert_str_eq(get_name(terminals[1].type), "TERMINATOR");
   ck_assert_ptr_eq(terminals[1].value, nullptr);
   ck_assert_uint_eq(terminals[1].lineno, 0);
@@ -75,7 +75,7 @@ START_TEST(test_BIT_FIELD_reverse) {
   ck_assert_uint_eq(n_tokens, 2);
   ck_assert_ptr_ne(terminals, nullptr);
 
-  ck_assert_uint_eq(terminals[0].type, enum_BIT_FIELD);
+  ck_assert_uint_eq(terminals[0].type, Machine_TOKEN_BIT_FIELD);
   ck_assert_str_eq(get_name(terminals[0].type), "BIT_FIELD");
   ck_assert_ptr_ne(terminals[0].value, nullptr);
   ck_assert_uint_eq(terminals[0].lineno, 0);
@@ -85,7 +85,7 @@ START_TEST(test_BIT_FIELD_reverse) {
   ck_assert_uint_eq(bit_field.lower, 12);
   ck_assert_uint_eq(bit_field.upper, 23);
 
-  ck_assert_uint_eq(terminals[1].type, enum_TERMINATOR);
+  ck_assert_uint_eq(terminals[1].type, Machine_TOKEN_TERMINATOR);
   ck_assert_str_eq(get_name(terminals[1].type), "TERMINATOR");
   ck_assert_ptr_eq(terminals[1].value, nullptr);
   ck_assert_uint_eq(terminals[1].lineno, 0);
@@ -107,14 +107,14 @@ START_TEST(test_BIT_FIELD_other) {
   ck_assert_uint_eq(n_tokens, 2);
   ck_assert_ptr_ne(terminals, nullptr);
 
-  ck_assert_uint_eq(terminals[0].type, enum_BIT_FIELD);
+  ck_assert_uint_eq(terminals[0].type, Machine_TOKEN_BIT_FIELD);
   ck_assert_str_eq(get_name(terminals[0].type), "BIT_FIELD");
   ck_assert_ptr_eq(terminals[0].value, nullptr);
   ck_assert_uint_eq(terminals[0].lineno, 0);
   ck_assert_uint_eq(terminals[0].column, 0);
   ck_assert_uint_eq(terminals[0].length, lenof("[...]"));
 
-  ck_assert_uint_eq(terminals[1].type, enum_TERMINATOR);
+  ck_assert_uint_eq(terminals[1].type, Machine_TOKEN_TERMINATOR);
   ck_assert_str_eq(get_name(terminals[1].type), "TERMINATOR");
   ck_assert_ptr_eq(terminals[1].value, nullptr);
   ck_assert_uint_eq(terminals[1].lineno, 0);
@@ -138,11 +138,11 @@ START_TEST(test_WIDTH_bit) {
   ck_assert_uint_eq(terminals[0].column, 0);
   ck_assert_uint_eq(terminals[0].length, lenof("[23-bit]"));
 
-  ck_assert_uint_eq(terminals[0].type, enum_WIDTH);
+  ck_assert_uint_eq(terminals[0].type, Machine_TOKEN_WIDTH);
   ck_assert_str_eq(get_name(terminals[0].type), "WIDTH");
   ck_assert_uint_eq((uint64_t) terminals[0].value, 23);
 
-  ck_assert_uint_eq(terminals[1].type, enum_TERMINATOR);
+  ck_assert_uint_eq(terminals[1].type, Machine_TOKEN_TERMINATOR);
   ck_assert_str_eq(get_name(terminals[1].type), "TERMINATOR");
   ck_assert_ptr_eq(terminals[1].value, nullptr);
   ck_assert_uint_eq(terminals[1].lineno, 0);
@@ -163,14 +163,14 @@ START_TEST(test_WIDTH_default_bit) {
   ck_assert_uint_eq(n_tokens, 2);
   ck_assert_ptr_ne(terminals, nullptr);
 
-  ck_assert_uint_eq(terminals[0].type, enum_WIDTH);
+  ck_assert_uint_eq(terminals[0].type, Machine_TOKEN_WIDTH);
   ck_assert_str_eq(get_name(terminals[0].type), "WIDTH");
   ck_assert_uint_eq((uint64_t) terminals[0].value, 23);
   ck_assert_uint_eq(terminals[0].lineno, 0);
   ck_assert_uint_eq(terminals[0].column, 0);
   ck_assert_uint_eq(terminals[0].length, lenof("[23]"));
 
-  ck_assert_uint_eq(terminals[1].type, enum_TERMINATOR);
+  ck_assert_uint_eq(terminals[1].type, Machine_TOKEN_TERMINATOR);
   ck_assert_str_eq(get_name(terminals[1].type), "TERMINATOR");
   ck_assert_ptr_eq(terminals[1].value, nullptr);
   ck_assert_uint_eq(terminals[1].lineno, 0);
@@ -191,14 +191,14 @@ START_TEST(test_WIDTH_byte) {
   ck_assert_uint_eq(n_tokens, 2);
   ck_assert_ptr_ne(terminals, nullptr);
 
-  ck_assert_uint_eq(terminals[0].type, enum_WIDTH);
+  ck_assert_uint_eq(terminals[0].type, Machine_TOKEN_WIDTH);
   ck_assert_str_eq(get_name(terminals[0].type), "WIDTH");
   ck_assert_uint_eq((uint64_t) terminals[0].value, 46 * 8);
   ck_assert_uint_eq(terminals[0].lineno, 0);
   ck_assert_uint_eq(terminals[0].column, 0);
   ck_assert_uint_eq(terminals[0].length, lenof("[46-byte]"));
 
-  ck_assert_uint_eq(terminals[1].type, enum_TERMINATOR);
+  ck_assert_uint_eq(terminals[1].type, Machine_TOKEN_TERMINATOR);
   ck_assert_str_eq(get_name(terminals[1].type), "TERMINATOR");
   ck_assert_ptr_eq(terminals[1].value, nullptr);
   ck_assert_uint_eq(terminals[1].lineno, 0);
@@ -219,14 +219,14 @@ START_TEST(test_TIME_TICK) {
   ck_assert_uint_eq(n_tokens, 2);
   ck_assert_ptr_ne(terminals, nullptr);
 
-  ck_assert_uint_eq(terminals[0].type, enum_TIME_TICK);
+  ck_assert_uint_eq(terminals[0].type, Machine_TOKEN_TIME_TICK);
   ck_assert_str_eq(get_name(terminals[0].type), "TIME_TICK");
   ck_assert_uint_eq((uint64_t) terminals[0].value, 4);
   ck_assert_uint_eq(terminals[0].lineno, 0);
   ck_assert_uint_eq(terminals[0].column, 0);
   ck_assert_uint_eq(terminals[0].length, lenof("(4-tick)"));
 
-  ck_assert_uint_eq(terminals[1].type, enum_TERMINATOR);
+  ck_assert_uint_eq(terminals[1].type, Machine_TOKEN_TERMINATOR);
   ck_assert_str_eq(get_name(terminals[1].type), "TERMINATOR");
   ck_assert_ptr_eq(terminals[1].value, nullptr);
   ck_assert_uint_eq(terminals[1].lineno, 0);

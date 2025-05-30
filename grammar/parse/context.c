@@ -44,16 +44,16 @@ uint64_t get_v_record(const REFER(Record) * ndx_ptr) {
 inline ParseContext *GContext_new(const Allocator *allocator) {
   ParseContext *context = allocator->calloc(1, sizeof(ParseContext));
   context->allocator = allocator;
-  context->regArray = Array_new(sizeof(Register), enum_Register, allocator);
-  context->immArray = Array_new(sizeof(Immediate), enum_Immediate, allocator);
-  context->memArray = Array_new(sizeof(Memory), enum_Memory, allocator);
-  context->setArray = Array_new(sizeof(RecordSet), enum_RecordSet, allocator);
-  context->listArray = Array_new(sizeof(List), enum_List, allocator);
-  context->grpArray = Array_new(sizeof(RegisterGroup), enum_RegisterGroup, allocator);
-  context->instrArray = Array_new(sizeof(Instruction), enum_Instruction, allocator);
-  context->recordArray = Array_new(sizeof(Record), enum_Record, allocator);
-  context->keyArray = Array_new(sizeof(TrieKeyItem), enum_JumpKey, allocator);
-  context->stateArray = Array_new(sizeof(TrieNodeItem), enum_JumpState, allocator);
+  context->regArray = Array_new(sizeof(Register), Machine_TOKEN_Register, allocator);
+  context->immArray = Array_new(sizeof(Immediate), Machine_TOKEN_Immediate, allocator);
+  context->memArray = Array_new(sizeof(Memory), Machine_TOKEN_Memory, allocator);
+  context->setArray = Array_new(sizeof(RecordSet), Machine_TOKEN_RecordSet, allocator);
+  context->listArray = Array_new(sizeof(List), Machine_TOKEN_List, allocator);
+  context->grpArray = Array_new(sizeof(RegisterGroup), Machine_TOKEN_RegisterGroup, allocator);
+  context->instrArray = Array_new(sizeof(Instruction), Machine_TOKEN_Instruction, allocator);
+  context->recordArray = Array_new(sizeof(Record), Machine_TOKEN_Record, allocator);
+  context->keyArray = Array_new(sizeof(TrieKeyItem), Machine_TOKEN_JumpKey, allocator);
+  context->stateArray = Array_new(sizeof(TrieNodeItem), Machine_TOKEN_JumpState, allocator);
   context->recordMap = AVLTree_new(allocator, nullptr);
   context->opcodeMap = AVLTree_new(allocator, nullptr);
   context->widthStack = Stack_new(allocator);
@@ -125,7 +125,7 @@ inline const Record *
 #define contextAddRecord_DEF(type, array, obj)                                    \
   inline REFER(type) GContext_add##type(ParseContext *context, const type *obj) { \
     uint32_t offset = Array_length(context->array);                               \
-    Record record = {enum_##type, offset};                                        \
+    Record record = {Machine_TOKEN_##type, offset};                               \
     Array_append(context->array, obj, 1);                                         \
     GContext_addRecord(context, obj->name, &record);                              \
     return Array_virt_addr(context->array, offset);                               \
@@ -208,7 +208,7 @@ const MemItem *GContext_findMemItem(ParseContext *context, const REFER(Identifie
 
 inline void GContext_addPattern(ParseContext *context, Pattern *pattern) {
   if (!context->patterns) {
-    context->patterns = Array_new(sizeof(Pattern *), enum_Pattern, context->allocator);
+    context->patterns = Array_new(sizeof(Pattern *), Machine_TOKEN_Pattern, context->allocator);
   }
   Array_append(context->patterns, &pattern, 1);
 }
@@ -350,9 +350,11 @@ void release_ctx_patterns(ParseContext *context, void *) {
 }
 
 #include "generated/machine/action-table.gen.h"
-#define IN_MACHINE(s)     Parse_state_MACHINE_IDENTIFIER_LEFT_BRACKET_##s
-#define IN_REGISTER(s)    Parse_state_MACHINE_IDENTIFIER_LEFT_BRACKET_REGISTER_IDENTIFIER_WIDTH_LEFT_BRACKET_##s
-#define IN_INSTRUCTION(s) Parse_state_MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_##s
+#define IN_MACHINE(s) Parse_state_MACHINE_IDENTIFIER_LEFT_BRACKET_##s
+#define IN_REGISTER(s) \
+  Parse_state_MACHINE_IDENTIFIER_LEFT_BRACKET_REGISTER_IDENTIFIER_WIDTH_LEFT_BRACKET_##s
+#define IN_INSTRUCTION(s) \
+  Parse_state_MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_##s
 #define IN_INSTR_FORM(s) \
   Parse_state_MACHINE_IDENTIFIER_LEFT_BRACKET_INSTRUCTION_IDENTIFIER_LEFT_BRACKET_Pattern_ASSIGN_LEFT_BRACKET_##s
 #define IN_INSTR_PART(s) \

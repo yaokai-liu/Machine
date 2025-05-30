@@ -44,7 +44,7 @@ Macro *Macro_Macro_0(Token argv[], MacroContext *context, ErrInfo *errInfo, cons
   Tokens *tokens = (Tokens *) argv[6].value;
 
   if (MacroContext_findMacro(context, ident)) {
-    errInfo->token = enum_MACRO;
+    errInfo->token = Machine_TOKEN_MACRO;
     errInfo->stage = COMPILER_MACRO;
     errInfo->code = ERROR_MULTIPLE_DEFINE_MACRO;
     return nullptr;
@@ -62,7 +62,7 @@ Macro *Macro_Macro_1(Token argv[], MacroContext *context, ErrInfo *errInfo, cons
   Tokens *tokens = (Tokens *) argv[3].value;
 
   if (MacroContext_findMacro(context, ident)) {
-    errInfo->token = enum_MACRO;
+    errInfo->token = Machine_TOKEN_MACRO;
     errInfo->stage = COMPILER_MACRO;
     errInfo->code = ERROR_MULTIPLE_DEFINE_MACRO;
     return nullptr;
@@ -82,7 +82,7 @@ MacroArg *Macro_MacroArg_0(Token argv[], MacroContext *, ErrInfo *, const Alloca
   Tokens *tokens = (Tokens *) argv[1].value;
 
   MacroArg *arg = allocator->calloc(1, sizeof(MacroArg));
-  arg->type = enum_Tokens;
+  arg->type = Machine_TOKEN_Tokens;
   arg->target = tokens;
 
   return arg;
@@ -92,7 +92,7 @@ MacroArg *Macro_MacroArg_1(Token argv[], MacroContext *, ErrInfo *, const Alloca
 
   MacroArg *arg = allocator->calloc(1, sizeof(MacroArg));
   Token *tp = allocator->calloc(1, sizeof(Token));
-  arg->type = enum_IDENTIFIER;
+  arg->type = Machine_TOKEN_IDENTIFIER;
   arg->target = tp;
   *tp = *token;
 
@@ -104,7 +104,7 @@ MacroArg *Macro_MacroArg_2(Token argv[], MacroContext *, ErrInfo *, const Alloca
 
   MacroArg *arg = allocator->calloc(1, sizeof(MacroArg));
   Token *tp = allocator->calloc(1, sizeof(Token));
-  arg->type = enum_NUMBER;
+  arg->type = Machine_TOKEN_NUMBER;
   arg->target = tp;
   *tp = *token;
 
@@ -123,7 +123,7 @@ MacroArgs *Macro_MacroArgs_0(Token argv[], MacroContext *, ErrInfo *, const Allo
 MacroArgs *Macro_MacroArgs_1(Token argv[], MacroContext *, ErrInfo *, const Allocator *allocator) {
   MacroArg *arg = (MacroArg *) argv[0].value;
 
-  MacroArgs *args = Array_new(sizeof(MacroArg), enum_MacroArg, allocator);
+  MacroArgs *args = Array_new(sizeof(MacroArg), Machine_TOKEN_MacroArg, allocator);
   Array_append(args, arg, 1);
   allocator->free(arg);
 
@@ -131,20 +131,22 @@ MacroArgs *Macro_MacroArgs_1(Token argv[], MacroContext *, ErrInfo *, const Allo
 }
 
 MacroArgs *Macro_MacroArgs_2(Token[], MacroContext *, ErrInfo *, const Allocator *) {
-  return (MacroArgs *) (uint64_t) enum_MacroArgs;
+  return (MacroArgs *) (uint64_t) Machine_TOKEN_MacroArgs;
 }
 
-MacroCall *Macro_MacroCall_0(Token argv[], MacroContext *context, ErrInfo *errInfo, const Allocator *) {
+MacroCall *
+    Macro_MacroCall_0(Token argv[], MacroContext *context, ErrInfo *errInfo, const Allocator *) {
   Identifier *ident = (Identifier *) argv[0].value;
   MacroArgs *args = (MacroArgs *) argv[2].value;
 
   REFER(Macro) v_macro = AVLTree_get(context->macroTree, (uint64_t) ident);
   const Macro *macro = Array_virt2real(context->macroArray, v_macro);
   const MacroParams *params = macro->params;
-  const uint32_t param_count = ((uint64_t) params > enum_MacroParams) ? Array_length(params) : 0;
-  const uint32_t arg_count = ((uint64_t) args > enum_MacroArgs) ? Array_length(args) : 0;
+  const uint32_t param_count =
+      ((uint64_t) params > Machine_TOKEN_MacroParams) ? Array_length(params) : 0;
+  const uint32_t arg_count = ((uint64_t) args > Machine_TOKEN_MacroArgs) ? Array_length(args) : 0;
   if (arg_count != param_count) {
-    errInfo->token = enum_MACRO;
+    errInfo->token = Machine_TOKEN_MACRO;
     errInfo->stage = COMPILER_MACRO;
     errInfo->code = ERROR_ARGUMENT_COUNT_MISMATCH;
     return nullptr;
@@ -152,7 +154,7 @@ MacroCall *Macro_MacroCall_0(Token argv[], MacroContext *context, ErrInfo *errIn
 
   context->current_args = args;
 
-  return (void *) enum_MacroCall;
+  return (void *) Machine_TOKEN_MacroCall;
 }
 
 MacroParams *Macro_MacroParams_0(Token argv[], MacroContext *, ErrInfo *, const Allocator *) {
@@ -164,10 +166,12 @@ MacroParams *Macro_MacroParams_0(Token argv[], MacroContext *, ErrInfo *, const 
   return params;
 }
 
-MacroParams *Macro_MacroParams_1(Token argv[], MacroContext *context, ErrInfo *, const Allocator *allocator) {
+MacroParams *Macro_MacroParams_1(
+    Token argv[], MacroContext *context, ErrInfo *, const Allocator *allocator
+) {
   Identifier *ident = (Identifier *) argv[0].value;
 
-  MacroParams *params = Array_new(sizeof(REFER(Identifier)), enum_IDENTIFIER, allocator);
+  MacroParams *params = Array_new(sizeof(REFER(Identifier)), Machine_TOKEN_IDENTIFIER, allocator);
   Array_append(params, &ident, 1);
 
   context->current_params = params;
@@ -176,15 +180,15 @@ MacroParams *Macro_MacroParams_1(Token argv[], MacroContext *context, ErrInfo *,
 }
 
 MacroParams *Macro_MacroParams_2(Token[], MacroContext *, ErrInfo *, const Allocator *) {
-  return (MacroParams *) (uint64_t) enum_MacroParams;
+  return (MacroParams *) (uint64_t) Machine_TOKEN_MacroParams;
 }
 
 #define identToPlaceHolder(ident)                                                \
   do {                                                                           \
-    if ((ident)->type == enum_IDENTIFIER) {                                      \
+    if ((ident)->type == Machine_TOKEN_IDENTIFIER) {                             \
       uint32_t index = MacroContext_getIdentParamIndex(context, (ident)->value); \
       if (index) {                                                               \
-        (ident)->type = enum_PLACE_HOLDER;                                       \
+        (ident)->type = Machine_TOKEN_PLACE_HOLDER;                              \
         (ident)->value = (void *) (uint64_t) index - 1;                          \
       }                                                                          \
     }                                                                            \
@@ -210,7 +214,7 @@ Tokens *Macro_Tokens_1(Token argv[], MacroContext *context, ErrInfo *, const All
   const Token *first = Array_first_real(_concat);
   const Token *last = Array_last_real(_concat);
   Token token = {
-      .type = enum_Concat,
+      .type = Machine_TOKEN_Concat,
       .value = Array_last_virt(context->current_concatArray),
       .position = {first->position[0], last->position[1]}
   };
@@ -226,7 +230,7 @@ Tokens *Macro_Tokens_2(Token argv[], MacroContext *context, ErrInfo *, const All
 
   identToPlaceHolder(token);
 
-  Tokens *tokens = Array_new(sizeof(Token), enum_TOKEN, allocator);
+  Tokens *tokens = Array_new(sizeof(Token), Machine_TOKEN_TOKEN, allocator);
   Array_append(tokens, token, 1);
   allocator->free(token);
 
@@ -240,21 +244,20 @@ Tokens *Macro_Tokens_3(Token argv[], MacroContext *context, ErrInfo *, const All
   const Token *first = Array_first_real(_concat);
   const Token *last = Array_last_real(_concat);
   Token token = {
-      .type = enum_Concat,
+      .type = Machine_TOKEN_Concat,
       .value = Array_last_virt(context->current_concatArray),
       .position = {first->position[0], last->position[1]}
   };
 
-  Tokens *tokens = Array_new(sizeof(Token), enum_TOKEN, allocator);
+  Tokens *tokens = Array_new(sizeof(Token), Machine_TOKEN_TOKEN, allocator);
   Array_append(tokens, &token, 1);
   Array_destroy(_concat);
 
   return tokens;
 }
 
-Tokens *Macro_Tokens_4(Token [], MacroContext *, ErrInfo *, const Allocator *allocator) {
-
-  Tokens *tokens = Array_new(sizeof(Token), enum_TOKEN, allocator);
+Tokens *Macro_Tokens_4(Token[], MacroContext *, ErrInfo *, const Allocator *allocator) {
+  Tokens *tokens = Array_new(sizeof(Token), Machine_TOKEN_TOKEN, allocator);
   return tokens;
 }
 
@@ -265,7 +268,7 @@ Concat *Macro_Concat_0(Token argv[], MacroContext *context, ErrInfo *, const All
   identToPlaceHolder(left);
   identToPlaceHolder(right);
 
-  Concat *_concat = Array_new(sizeof(Token), enum_TOKEN, allocator);
+  Concat *_concat = Array_new(sizeof(Token), Machine_TOKEN_TOKEN, allocator);
   Array_append(_concat, left, 1);
   Array_append(_concat, right, 1);
   allocator->free(left);

@@ -40,7 +40,8 @@ char_t *COMPIE_SECTION[] = {
 
 char_t *ERR_MSG[] = {
     [SUCCESS] = "success",
-    [ERROR_BAD_OPERAND] = "arithmetic operation with 'Memory' or 'Immediate' entity is not supported",
+    [ERROR_BAD_OPERAND] =
+        "arithmetic operation with 'Memory' or 'Immediate' entity is not supported",
     [END_OF_MACRO_FRAME] = "end of macro frame",
     [ERROR_UNKNOWN_WIDTH] = "can't compute width of the instruction part",
     [ERROR_NON_SET_RECORD] = "can't cant convert a non-iterable type to set",
@@ -69,23 +70,25 @@ char_t *ERR_MSG[] = {
     [ERROR_WHATEVER] = "error whatever",
 };
 
-void get_error_msg(const ErrInfo *const errInfo, char_t *buffer) {
+void get_error_msg(const ErrInfo * const errInfo, char_t *buffer) {
   if (errInfo->code == ERROR_UNEXPECTED_TOKEN) {
-    sprintf(buffer, "when %s, %s: %s\n", COMPIE_SECTION[errInfo->stage],
-            ERR_MSG[errInfo->code], TOKEN_NAMES[errInfo->token]);
+    sprintf(
+        buffer, "when %s, %s: %s\n", COMPIE_SECTION[errInfo->stage], ERR_MSG[errInfo->code],
+        TOKEN_NAMES[errInfo->token]
+    );
     char_t *p_str = buffer + strlen(buffer);
     strcpy(p_str, "Expected tokens: \n");
-    p_str += sizeof( "Expected tokens: \n") - 1;
+    p_str += sizeof("Expected tokens: \n") - 1;
     uint32_t tokens[MAX_TOTAL_TOKEN] = {};
-    uint32_t n_tokens = errInfo->stage == COMPILER_MACRO
-                      ? getMacroStateExpectedTokenType(errInfo->state, tokens)
-                      : getParseStateExpectedTokenType(errInfo->state, tokens);
+    uint32_t n_tokens = errInfo->stage == COMPILER_MACRO ?
+                            getMacroStateExpectedTokenType(errInfo->state, tokens) :
+                            getParseStateExpectedTokenType(errInfo->state, tokens);
     for (uint32_t i = 0; i < n_tokens; i++) {
       strcpy(p_str, TOKEN_NAMES[tokens[i]]);
       p_str += strlen(TOKEN_NAMES[tokens[i]]);
       *p_str++ = '\n';
     }
-  }else {
+  } else {
     sprintf(buffer, "when %s, %s.\n", COMPIE_SECTION[errInfo->stage], ERR_MSG[errInfo->code]);
   }
 }

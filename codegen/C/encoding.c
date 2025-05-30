@@ -193,7 +193,7 @@ constexpr char_t JUMP_STATE_HEADER_FMT[] = "static const struct jump_state\n"
 constexpr char_t KEY_ITEM_FMT[] = "  { .expected_type = enum_%s_%s, .next_state_index = %lu },\n";
 constexpr char_t STATE_ITEM_FMT[] = "  { .count = %u, .index = %u, .fn_encoding = %s },\n";
 #define val_case_item(Type, var, PREFIX)                                                           \
-  case enum_##Type: {                                                                              \
+  case Machine_TOKEN_##Type: {                                                                     \
     const Type *var = Array_real_addr(context->var##Array, record->offset);                        \
     sprintf(temp_buffer, KEY_ITEM_FMT, PREFIX, ctx_ident_real(var->name), key_items[i].next_node); \
     _push_string(key_buffer, temp_buffer);                                                         \
@@ -298,7 +298,7 @@ void GenC_gen_jump_table_def(
 #define MAX_IDENT_LEN 64
 int32_t
     eval_to_val(const ParseContext *, const Array * const ident_array, const Evaluable *evaluable, char_t *buffer, const Pattern *) {
-  if (enum_NUMBER == evaluable->type) {
+  if (Machine_TOKEN_NUMBER == evaluable->type) {
     uint64_t number = (uint64_t) evaluable->lhs;
     return sprintf(buffer, "0x%lX", number);
   }
@@ -306,24 +306,25 @@ int32_t
   const Identifier *ident = variable->lhs;
 
   switch (evaluable->type) {
-    case enum_OP_WIDTH: {
+    case Machine_TOKEN_OP_WIDTH: {
       switch (variable->type) {
-        case enum_IDENTIFIER: {
+        case Machine_TOKEN_IDENTIFIER: {
           return sprintf(buffer, "%s->width", ctx_ident_real(ident));
         }
-        case enum_MemItem: {
+        case Machine_TOKEN_MemItem: {
           const MemItem *item = variable->rhs;
-//          if (item->type) {
-//            uint32_t width = item->width;
-//            return sprintf(buffer, "%s->subtypes[%u]->width", ctx_ident_real(ident), item->index);
-//          }
+          //    if (item->type) {
+          //      uint32_t width = item->width;
+          //      return sprintf(buffer, "%s->subtypes[%u]->width", ctx_ident_real(ident),
+          //      item->index);
+          //    }
           uint32_t width = item->width;
           return sprintf(buffer, "%u", width);
         }
       }
       break;
     }
-    case enum_BIT_FIELD: {
+    case Machine_TOKEN_BIT_FIELD: {
       BitField p_bf = BitField_fromUint64((uint64_t) evaluable->rhs);
       uint32_t width = p_bf.upper - p_bf.lower + 1;
       // TODO: if record refers to a set there may has different behaviors, please solve it.
@@ -335,12 +336,12 @@ int32_t
           buffer, "((%s->value>>%d)&UINT_N_MAX(%d))", ctx_ident_real(ident), p_bf.lower, width
       );
     }
-    case enum_Variable: {
+    case Machine_TOKEN_Variable: {
       switch (variable->type) {
-        case enum_IDENTIFIER: {
+        case Machine_TOKEN_IDENTIFIER: {
           return sprintf(buffer, "%s->value", ctx_ident_real(ident));
         }
-        case enum_MemItem: {
+        case Machine_TOKEN_MemItem: {
           const MemItem *item = variable->rhs;
           uint32_t width = item->width;
           if (width == 0) { return sprintf(buffer, "0"); }
@@ -370,7 +371,7 @@ constexpr char_t TYPE_ENUM_FMT[] = "enum_%s_%s";
     }                                                          \
   } while (false)
 #define type_case_item(Type, var, PREFIX)                                   \
-  case enum_##Type: {                                                       \
+  case Machine_TOKEN_##Type: {                                              \
     const Type *var = Array_real_addr(context->var##Array, record->offset); \
     sprintf(buffer, TYPE_ENUM_FMT, PREFIX, ctx_ident_real(var->name));      \
     break;                                                                  \
@@ -415,9 +416,9 @@ int32_t expr_to_val(
     }
   }
   switch (expr->type) {
-    bin_op_case_item(enum_BOOL_OR, "(%s||%s)")
-    bin_op_case_item(enum_BOOL_AND, "(%s&&%s)")
-    sin_op_case_item(enum_BOOL_NOT, "(!%s)")
+    bin_op_case_item(Machine_TOKEN_BOOL_OR, "(%s||%s)")
+    bin_op_case_item(Machine_TOKEN_BOOL_AND, "(%s&&%s)")
+    sin_op_case_item(Machine_TOKEN_BOOL_NOT, "(!%s)")
     bin_op_case_item(CB_LT, "(%s<%s)")
     bin_op_case_item(CB_LE, "(%s<=%s)")
     bin_op_case_item(CB_GT, "(%s>%s)")
@@ -445,14 +446,13 @@ int32_t expr_to_val(
       const Identifier *supper_type = expr->rhs;
       const Identifier *ident = var->lhs;
       type_to_val(context, ident_array, supper_type, temp_buffer1);
-      if (var->type == enum_IDENTIFIER) {
-        sprintf(buffer, "entry_type_check(%s, %s->type)",
-                temp_buffer1, ctx_ident_real(ident));
-      } else if (var->type == enum_MemItem) {
+      if (var->type == Machine_TOKEN_IDENTIFIER) {
+        sprintf(buffer, "entry_type_check(%s, %s->type)", temp_buffer1, ctx_ident_real(ident));
+      } else if (var->type == Machine_TOKEN_MemItem) {
         const MemItem *item = (MemItem *) var->rhs;
         sprintf(
-            buffer, "entry_type_check(%s, %s->subtypes[%u])",
-            temp_buffer1, ctx_ident_real(ident), item->index
+            buffer, "entry_type_check(%s, %s->subtypes[%u])", temp_buffer1, ctx_ident_real(ident),
+            item->index
         );
       }
       break;
@@ -466,8 +466,8 @@ int32_t expr_to_val(
 // TODO: GenC_gen_mapping_item is in a recursive call chain,
 //  maybe it will cause a out of memory, please solve it.
 int32_t GenC_gen_mapping_item(
-    const ParseContext *context, const Array * const ident_array, Array *buffer, MappingItems *items,
-    const BitField *bit_field, const Pattern *pattern, char_t *temp_buffer
+    const ParseContext *context, const Array * const ident_array, Array *buffer,
+    MappingItems *items, const BitField *bit_field, const Pattern *pattern, char_t *temp_buffer
 ) {
   const uint32_t pre_len = Array_length(buffer);
   MappingItem *item = getMappingItem(items, bit_field);
@@ -489,12 +489,12 @@ int32_t GenC_gen_mapping_item(
     BitField lower_bf = {.lower = bit_field->lower, .upper = bl - 1};
     GenC_gen_mapping_item(context, ident_array, buffer, items, &lower_bf, pattern, temp_buffer);
   }
-  if (item->type == enum_Arith_0_Expr) {
+  if (item->type == Machine_TOKEN_Arith_0_Expr) {
     char_t temp_buffer1[512] = {};
     expr_to_val(context, ident_array, item->target, pattern, temp_buffer1);
     sprintf(temp_buffer, "    value = numSetBits(value, %d, %d, %s);\n", bl, bu + 1, temp_buffer1);
     push_string(temp_buffer);
-  } else if (item->type == enum_Switchable) {
+  } else if (item->type == Machine_TOKEN_Switchable) {
     Switchable *switchable = item->target;
     BitField bf = {.lower = bl, .upper = bu};
     GenC_gen_switchable(context, ident_array, buffer, switchable, &bf, pattern, temp_buffer);
@@ -506,23 +506,23 @@ int32_t GenC_gen_mapping_item(
   return (int32_t) (Array_length(buffer) - pre_len);
 }
 
-#define push_expr(expr, p_bf)                                                                     \
+#define push_expr(expr, p_bf)                                                                   \
   do {                                                                                          \
     expr_to_val(context, ident_array, expr, pattern, temp_buffer1);                             \
-    if (((uint64_t) p_bf) > 64) {                                                                 \
-      uint32_t bl = (p_bf)->lower;                                                                \
-      uint32_t bu = (p_bf)->upper;                                                                \
+    if (((uint64_t) p_bf) > 64) {                                                               \
+      uint32_t bl = (p_bf)->lower;                                                              \
+      uint32_t bu = (p_bf)->upper;                                                              \
       sprintf(                                                                                  \
           temp_buffer, "    value = numSetBits(value, %d, %d, %s);\n", bl, bu + 1, temp_buffer1 \
       );                                                                                        \
       push_string(temp_buffer);                                                                 \
     } else {                                                                                    \
-      pushEncodingNumberN(temp_buffer1, ((uint32_t) (uint64_t) p_bf) / 8);                        \
+      pushEncodingNumberN(temp_buffer1, ((uint32_t) (uint64_t) p_bf) / 8);                      \
     }                                                                                           \
   } while (false)
 
 int32_t GenC_gen_switchable(
-    const ParseContext *context, const Array *const ident_array, Array *buffer,
+    const ParseContext *context, const Array * const ident_array, Array *buffer,
     const Switchable *switchable, BitField *p_bf, const Pattern *pattern, char_t *temp_buffer
 ) {
   char_t temp_buffer1[512] = {};
@@ -547,18 +547,18 @@ int32_t GenC_gen_layout(
 ) {
   const uint32_t pre_len = Array_length(buffer);
   switch (layout->type) {
-    case enum_Arith_0_Expr: {
+    case Machine_TOKEN_Arith_0_Expr: {
       expr_to_val(context, ident_array, layout->target, pattern, temp_buffer);
       if (width == (uint32_t) -1) {
         const Expr *expr = layout->target;
         const Evaluable *eval = expr->rhs;
         switch (eval->type) {
-          case enum_OP_WIDTH: {
+          case Machine_TOKEN_OP_WIDTH: {
             pushEncodingNumberN(temp_buffer, 1);
             push_string("    size += 1;\n");
             break;
           }
-          case enum_BIT_FIELD: {
+          case Machine_TOKEN_BIT_FIELD: {
             const BitField bf = BitField_fromUint64((uint64_t) eval->rhs);
             width = ((bf.upper - bf.lower) / 8) + 1;
             pushEncodingNumberN(temp_buffer, width);
@@ -566,7 +566,7 @@ int32_t GenC_gen_layout(
             push_string(temp_buffer);
             break;
           }
-          case enum_NUMBER: {
+          case Machine_TOKEN_NUMBER: {
             width = 0;
             uint64_t num = (uint64_t) eval->lhs;
             while (num) {
@@ -578,9 +578,11 @@ int32_t GenC_gen_layout(
             push_string(temp_buffer);
             break;
           }
-          case enum_Variable: {
+          case Machine_TOKEN_Variable: {
             char_t temp2_buffer[256] = {};
-            const Evaluable width_eval = {.type = enum_OP_WIDTH, .lhs = eval->lhs, .rhs = nullptr};
+            const Evaluable width_eval = {
+                .type = Machine_TOKEN_OP_WIDTH, .lhs = eval->lhs, .rhs = nullptr
+            };
             eval_to_val(context, ident_array, &width_eval, temp2_buffer, pattern);
             push_string("    pushEncodingNumber(");
             push_string(temp_buffer);
@@ -599,7 +601,7 @@ int32_t GenC_gen_layout(
       }
       break;
     }
-    case enum_MappingItems: {
+    case Machine_TOKEN_MappingItems: {
       MappingItems *items = layout->target;
       for (uint32_t i = 0; i < width; i += 64) {
         push_string("    value = 0;\n");
@@ -612,7 +614,7 @@ int32_t GenC_gen_layout(
       push_string(temp_buffer);
       break;
     }
-    case enum_Switchable: {
+    case Machine_TOKEN_Switchable: {
       GenC_gen_switchable(
           context, ident_array, buffer, layout->target, (void *) (uint64_t) width, pattern,
           temp_buffer
@@ -626,11 +628,11 @@ int32_t GenC_gen_layout(
 }
 
 constexpr char_t FORM_CHECK_FAULT[] = "{\n"
-    "    CURRENT_MACHINE->err_type = ERR_FORM_CHECK_FAULT;\n"
-    "    CURRENT_MACHINE->err_info[0] = -1;\n"
-    "    CURRENT_MACHINE->err_info[1] = -1;\n"
-    "    return 0;\n"
-    "  }\n";
+                                      "    CURRENT_MACHINE->err_type = ERR_FORM_CHECK_FAULT;\n"
+                                      "    CURRENT_MACHINE->err_info[0] = -1;\n"
+                                      "    CURRENT_MACHINE->err_info[1] = -1;\n"
+                                      "    return 0;\n"
+                                      "  }\n";
 
 void GenC_gen_form_check(
     const ParseContext *context, const Array *ident_array, Array *buffer, const InstrForm *form,

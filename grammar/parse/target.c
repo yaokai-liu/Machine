@@ -49,10 +49,10 @@ void releaseSwitchable(Switchable *switchable, const Allocator *allocator) {
 }
 
 void releaseMappingItem(MappingItem *item, const Allocator *allocator) {
-  if (item->type == enum_Arith_0_Expr) {
+  if (item->type == Machine_TOKEN_Arith_0_Expr) {
     releaseExpr(item->target, allocator);
     allocator->free(item->target);
-  } else if (item->type == enum_Switchable) {
+  } else if (item->type == Machine_TOKEN_Switchable) {
     releaseSwitchable(item->target, allocator);
     allocator->free(item->target);
   }
@@ -67,15 +67,15 @@ void releaseMappingItems(MappingItems *items, const Allocator *allocator) {
 
 void releaseLayout(Layout *layout, const Allocator *allocator) {
   switch (layout->type) {
-    case enum_Arith_0_Expr: {
+    case Machine_TOKEN_Arith_0_Expr: {
       releaseExpr(layout->target, allocator);
       break;
     }
-    case enum_MappingItems: {
+    case Machine_TOKEN_MappingItems: {
       releaseMappingItems(layout->target, allocator);
       break;
     }
-    case enum_Switchable: {
+    case Machine_TOKEN_Switchable: {
       releaseSwitchable(layout->target, allocator);
       break;
     }
@@ -129,19 +129,19 @@ void releaseExpr(CondExpr *expr, const Allocator *allocator) {
   switch (expr->type) {
     case AS_ID:
     case AS_INV:
-    case enum_BOOL_NOT: {
+    case Machine_TOKEN_BOOL_NOT: {
       releaseExpr(expr->rhs, allocator);
       allocator->free(expr->rhs);
       break;
     }
     case CB_IN:
-    case enum_OP_WIDTH:
-    case enum_Variable:
-    case enum_BIT_FIELD: {
+    case Machine_TOKEN_OP_WIDTH:
+    case Machine_TOKEN_Variable:
+    case Machine_TOKEN_BIT_FIELD: {
       allocator->free(expr->lhs);
       break;
     }
-    case enum_NUMBER: {
+    case Machine_TOKEN_NUMBER: {
       break;
     }
     default: {

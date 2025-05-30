@@ -49,7 +49,7 @@ int32_t codegen(Generator *generator, const Machine *machine) {
       GenC_gen_enum_item(generator, machine);
       GenC_gen_instr_exec(generator, machine);
       GenC_gen_set_grp_jump_table(generator, machine);
-//      GenC_gen_reg_grp_table(generator, machine);
+      //    GenC_gen_reg_grp_table(generator, machine);
       GenC_gen_driver(generator, machine);
       break;
     }

@@ -34,10 +34,10 @@
   case a: {                                                 \
     expr->type = b;                                         \
     CondExpr *lhs = allocator->calloc(1, sizeof(CondExpr)); \
-    lhs->type = enum_BOOL_NOT;                              \
+    lhs->type = Machine_TOKEN_BOOL_NOT;                     \
     lhs->lhs = nullptr;                                     \
     lhs->rhs = rhs->lhs;                                    \
-    rhs->type = enum_BOOL_NOT;                              \
+    rhs->type = Machine_TOKEN_BOOL_NOT;                     \
     rhs->lhs = nullptr;                                     \
     lhs = optimize_not_expr(lhs, allocator);                \
     rhs = optimize_not_expr(rhs, allocator);                \
@@ -57,7 +57,7 @@
 CondExpr *optimize_not_expr(CondExpr *expr, const Allocator *allocator) {
   SingleCondExpr *rhs = expr->rhs;
   switch (rhs->type) {
-    case enum_BOOL_NOT: {
+    case Machine_TOKEN_BOOL_NOT: {
       CondExpr *r_rhs = optimize_not_expr(expr, allocator);
       expr->rhs = r_rhs->rhs;
       expr->lhs = r_rhs->lhs;
@@ -65,8 +65,8 @@ CondExpr *optimize_not_expr(CondExpr *expr, const Allocator *allocator) {
       allocator->free(r_rhs);
       break;
     }
-      bool_inverse_case_item(enum_BOOL_AND, enum_BOOL_OR)
-      bool_inverse_case_item(enum_BOOL_OR, enum_BOOL_AND)
+      bool_inverse_case_item(Machine_TOKEN_BOOL_AND, Machine_TOKEN_BOOL_OR)
+      bool_inverse_case_item(Machine_TOKEN_BOOL_OR, Machine_TOKEN_BOOL_AND)
       cb_inverse_case_item(CB_LT, CB_GE)
       cb_inverse_case_item(CB_LE, CB_GT)
       cb_inverse_case_item(CB_GT, CB_LE)

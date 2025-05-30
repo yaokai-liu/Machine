@@ -34,10 +34,10 @@
 #include "terminal.h"
 
 enum PARSE_SPECIFIED_OBJECT_ENUM : uint32_t {
-  enum_Record = MAX_TOTAL_TOKEN + 1,
-  enum_JumpKey,
-  enum_JumpState,
-  enum_VInstrFormIndex,
+  Machine_TOKEN_Record = MAX_TOTAL_TOKEN + 1,
+  Machine_TOKEN_JumpKey,
+  Machine_TOKEN_JumpState,
+  Machine_TOKEN_VInstrFormIndex,
 };
 
 typedef struct GrammarEntry {
@@ -184,7 +184,7 @@ typedef struct RecordSet {
 typedef struct List {
   Identifier *name;
   SetItems *items;
-  uint64_t  width;
+  uint64_t width;
 } List;
 
 #include "allocator.h"

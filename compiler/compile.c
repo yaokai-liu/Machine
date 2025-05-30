@@ -133,8 +133,8 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "failed to close file.\n");
     return -2;
   }
-  Array *ident_array = Array_new(sizeof(Identifier), enum_IDENTIFIER, &STDAllocator);
-  Tokenizer *const tokenizer = Tokenizer_new(text, ident_array, &STDAllocator);
+  Array *ident_array = Array_new(sizeof(Identifier), Machine_TOKEN_IDENTIFIER, &STDAllocator);
+  Tokenizer * const tokenizer = Tokenizer_new(text, ident_array, &STDAllocator);
   CGenerator *generator = Generator_new_C(ident_array, &STDAllocator);
 
   clock_t start = clock();
@@ -190,27 +190,13 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-extern const char_t * MACHINE_TERMINAL_STRINGS[];
+extern const char_t *MACHINE_TERMINAL_STRINGS[];
 const char_t *ARITH_SYMBOLS[] = {
-    [AB_ADD - 128] = "+",
-    [AB_SUB - 128] = "-",
-    [AB_MUL - 128] = "*",
-    [AB_DIV - 128] = "/",
-    [AB_MOD - 128] = "%",
-    [AB_OR - 128] = "|",
-    [AB_AND - 128] = "&",
-    [AB_XOR - 128] = "^",
-    [AB_LSH - 128] = "<<",
-    [AB_RSH - 128] = ">>",
-    [AS_INV - 128] = "~",
-    [CB_LT - 128] = "<",
-    [CB_LE - 128] = "<=",
-    [CB_GT - 128] = ">",
-    [CB_GE - 128] = ">=",
-    [CB_EQ - 128] = "==",
-    [CB_NE - 128] = "!=",
-    [AS_ID - 128] = "",
-    [CB_IN - 128] = "in",
+    [AB_ADD - 128] = "+",  [AB_SUB - 128] = "-",  [AB_MUL - 128] = "*", [AB_DIV - 128] = "/",
+    [AB_MOD - 128] = "%",  [AB_OR - 128] = "|",   [AB_AND - 128] = "&", [AB_XOR - 128] = "^",
+    [AB_LSH - 128] = "<<", [AB_RSH - 128] = ">>", [AS_INV - 128] = "~", [CB_LT - 128] = "<",
+    [CB_LE - 128] = "<=",  [CB_GT - 128] = ">",   [CB_GE - 128] = ">=", [CB_EQ - 128] = "==",
+    [CB_NE - 128] = "!=",  [AS_ID - 128] = "",    [CB_IN - 128] = "in",
 };
 int expand_macro(char_t *srcpath, char_t *output_path) {
   FILE *file = fopen(srcpath, "r");
@@ -230,53 +216,48 @@ int expand_macro(char_t *srcpath, char_t *output_path) {
   file = fopen(output_path, "w");
   if (!file) { return -1; }
 
-  Array *ident_array = Array_new(sizeof(Identifier), enum_IDENTIFIER, &STDAllocator);
+  Array *ident_array = Array_new(sizeof(Identifier), Machine_TOKEN_IDENTIFIER, &STDAllocator);
   Tokenizer *tokenizer = Tokenizer_new(text, ident_array, &STDAllocator);
-  Token token = {}; ErrInfo errInfo = {};
+  Token token = {};
+  ErrInfo errInfo = {};
   do {
     Tokenizer_next(tokenizer, &token, &errInfo);
-    if (token.type == enum_NUMBER) {
+    if (token.type == Machine_TOKEN_NUMBER) {
       fprintf(file, " %llu ", (uint64_t) token.value);
-    }
-    else if (token.type == enum_WIDTH) {
+    } else if (token.type == Machine_TOKEN_WIDTH) {
       fprintf(file, " [%llu] ", (uint64_t) token.value);
-    }
-    else if (token.type == enum_BIT_FIELD) {
+    } else if (token.type == Machine_TOKEN_BIT_FIELD) {
       uint32_t upper = (uint64_t) token.value;
       uint32_t lower = (uint64_t) token.value >> 32;
       fprintf(file, " [%llu-%llu] ", upper, lower);
-    }
-    else if (token.type == enum_TIME_TICK) {
+    } else if (token.type == Machine_TOKEN_TIME_TICK) {
       fprintf(file, " (%llu) ", (uint64_t) token.value);
-    }
-    else if (token.type == enum_IDENTIFIER) {
-      char_t * ident = Array_virt2real(ident_array, token.value);
+    } else if (token.type == Machine_TOKEN_IDENTIFIER) {
+      char_t *ident = Array_virt2real(ident_array, token.value);
       fprintf(file, " %s ", ident);
-    }
-    else if (token.type < MAX_REAL_TOKEN && MACHINE_TERMINAL_STRINGS[token.type]) {
+    } else if (token.type < MAX_REAL_TOKEN && MACHINE_TERMINAL_STRINGS[token.type]) {
       fprintf(file, " %s ", MACHINE_TERMINAL_STRINGS[token.type]);
-    }
-    else {
+    } else {
       switch (token.type) {
-        case enum_COND_BIN_OP:
-        case enum_COND_SIN_OP:
-        case enum_ARITH_0_BIN_OP:
-        case enum_ARITH_0_SIN_OP:
-        case enum_ARITH_1_BIN_OP:
-        case enum_ARITH_1_SIN_OP:
-        case enum_ARITH_2_BIN_OP:
-        case enum_ARITH_2_SIN_OP:
-        case enum_ARITH_3_SIN_OP:{
+        case Machine_TOKEN_COND_BIN_OP:
+        case Machine_TOKEN_COND_SIN_OP:
+        case Machine_TOKEN_ARITH_0_BIN_OP:
+        case Machine_TOKEN_ARITH_0_SIN_OP:
+        case Machine_TOKEN_ARITH_1_BIN_OP:
+        case Machine_TOKEN_ARITH_1_SIN_OP:
+        case Machine_TOKEN_ARITH_2_BIN_OP:
+        case Machine_TOKEN_ARITH_2_SIN_OP:
+        case Machine_TOKEN_ARITH_3_SIN_OP: {
           uint32_t a_type = (uint64_t) token.value;
           fprintf(file, " %s ", ARITH_SYMBOLS[a_type - 128]);
           break;
         }
-        default:{
+        default: {
           fprintf(file, " □ ");
         }
       }
     }
-  } while (token.type != enum_TERMINATOR);
+  } while (token.type != Machine_TOKEN_TERMINATOR);
   fclose(file);
   return 0;
 }

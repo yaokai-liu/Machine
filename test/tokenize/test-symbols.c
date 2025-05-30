@@ -44,10 +44,10 @@
     ck_assert_uint_eq(cost, 1);                                              \
     ck_assert_uint_eq(n_tokens, 2);                                          \
     ck_assert_ptr_ne(terminals, nullptr);                                    \
-    ck_assert_uint_eq(terminals[0].type, enum_##_name);                      \
+    ck_assert_uint_eq(terminals[0].type, Machine_TOKEN_##_name);             \
     ck_assert_ptr_eq(terminals[0].value, (void *) (uint64_t) (_value));      \
     ck_assert_str_eq(get_name(terminals[0].type), string_t(#_name));         \
-    ck_assert_uint_eq(terminals[1].type, enum_TERMINATOR);                   \
+    ck_assert_uint_eq(terminals[1].type, Machine_TOKEN_TERMINATOR);          \
     ck_assert_ptr_eq(terminals[1].value, 0);                                 \
     ck_assert_str_eq(get_name(terminals[1].type), string_t("TERMINATOR"));   \
     STDAllocator.free((void *) terminals);                                   \

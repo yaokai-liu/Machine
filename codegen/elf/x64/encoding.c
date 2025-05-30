@@ -59,7 +59,7 @@ void gen_elf_encoding_enter_block(
     Array_append(rel_ro, &rel, 1);        \
   } while (false)
 //
-//void GenElf_gen_encoding(Elf64Generator *generator, const Machine *machine) {
+// void GenElf_gen_encoding(Elf64Generator *generator, const Machine *machine) {
 //  const ParseContext * const context = machine->context;
 //  const Array * const ident_array = ((Generator *) generator)->ident_array;
 //  const AVLTree * const enum_tree = Elf64Generator_getEnumTree(generator);
@@ -82,7 +82,8 @@ void gen_elf_encoding_enter_block(
 //    const uint32_t n_forms = Array_length(instrs[i].forms);
 //    const InstrForm *forms = Array_first_real(instrs[i].forms);
 //    for (uint32_t j = 0; j < n_forms; j++) {
-//      gen_elf_encoding_enter_block(text_sec, &forms[i], context, enum_tree, enum_array, alloc_tree);
+//      gen_elf_encoding_enter_block(text_sec, &forms[i], context, enum_tree, enum_array,
+//      alloc_tree);
 //    }
 //    const uint32_t size = Elf64_curr_offset(compositor, (uint8_t *) TEXT_TAG) - offset;
 //    sprintf(name_buffer, "encoding_%s_%u", name, i);
@@ -90,23 +91,23 @@ void gen_elf_encoding_enter_block(
 //  }
 //  x64Machine_destroy(x64_machine);
 //}
-//struct spill_record {
+// struct spill_record {
 //  uint32_t offset;
 //  uint32_t need_rescure;
 //  const Entry * const *p_entry;
 //};
-//const Entry *const *REX_REGS[8] = {
+// const Entry *const *REX_REGS[8] = {
 //    &REG_r8, &REG_r9, &REG_r10, &REG_r11,
 //    &REG_r12, &REG_r13, &REG_r14, &REG_r15
 //};
-//#define min(a, b)   ((a) < (b) ? (a) : (b))
-//#define align_to(a, m)  ((a) ? (((a) - 1) / (m) + 1) * (m) : 0)
+// #define min(a, b)   ((a) < (b) ? (a) : (b))
+// #define align_to(a, m)  ((a) ? (((a) - 1) / (m) + 1) * (m) : 0)
 //
-//void gen_elf_encoding_enter_block(
+// void gen_elf_encoding_enter_block(
 //    Array *buffer, const InstrForm *form, const ParseContext *, const AVLTree *, const Array *,
 //    AVLTree *alloc_tree
 //) {
-//#define PROG_INSTR_BUFFER buffer
+// #define PROG_INSTR_BUFFER buffer
 //  push(REG_rbp);
 //  mov(REG_rbp, REG_rsp);
 //  push(REG_rdi);
@@ -131,6 +132,6 @@ void gen_elf_encoding_enter_block(
 //  }
 //  mov(REG_rsp, REG_rbp);
 //  pop(REG_rbp);
-//#undef PROG_INSTR_BUFFER
+// #undef PROG_INSTR_BUFFER
 //}
 

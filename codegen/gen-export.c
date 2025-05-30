@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define lenof(a)  (sizeof(a) / sizeof(a[0]))
+#define lenof(a)            (sizeof(a) / sizeof(a[0]))
 #define ctx_ident_real(ptr) Array_virt2real(ident_array, ptr)
 
 constexpr char_t EXPORT_HEADER_FMT[] = "#ifndef MACHINE_%s_H\n"
@@ -82,7 +82,7 @@ constexpr char_t EXPORT_DECLARE_FMT[] = "typedef struct %sMachine %sMachine;\n"
 
 constexpr char_t MACHINE_NEW_DEC_FMT[] = "%sMachine *%sMachine_new(const Allocator *allocator);\n";
 constexpr char_t MACHINE_DESTROY_DEC_FMT[] = "void %sMachine_destroy(%sMachine *machine);\n";
-const char_t* MACHINE_FUNCTION_FMTS[] = {
+const char_t *MACHINE_FUNCTION_FMTS[] = {
     "void useMachine(%sMachine *machine);\n",
     "int32_t activateReg(%sMachine *machine, const Entry *reg_entry);\n",
     "int32_t inactivateReg(%sMachine *machine, const Entry *reg_entry);\n",
@@ -232,7 +232,7 @@ inline void gen_mem_dec_sprintf(
     const Identifier *ident = ctx_ident_real(items[i].name);
     if (items[i].type) {
       const Record *record = GContext_findRecord(context, items[i].type);
-      if (record->typeid == enum_Immediate) {
+      if (record->typeid == Machine_TOKEN_Immediate) {
         sprintf(temp_buffer, "uint64_t *%s", ident);
       } else {
         sprintf(temp_buffer, "const Entry *%s", ident);

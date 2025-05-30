@@ -32,7 +32,7 @@
 MacroContext *MacroContext_new(const Allocator *allocator) {
   MacroContext *context = allocator->calloc(1, sizeof(MacroContext));
   context->allocator = allocator;
-  context->macroArray = Array_new(sizeof(Macro), enum_Macro, allocator);
+  context->macroArray = Array_new(sizeof(Macro), Machine_TOKEN_Macro, allocator);
   context->macroTree = AVLTree_new(allocator, nullptr);
   context->current_concatArray = nullptr;
   context->current_params = nullptr;
@@ -117,7 +117,7 @@ void set_in_parse_false_end_parse_true(MacroContext *context, void *) {
 }
 
 void create_current_concat_array(MacroContext *context, void *) {
-  context->current_concatArray = Array_new(sizeof_array, enum_Concat, context->allocator);
+  context->current_concatArray = Array_new(sizeof_array, Machine_TOKEN_Concat, context->allocator);
   set_in_parse_true(context, nullptr);
 }
 

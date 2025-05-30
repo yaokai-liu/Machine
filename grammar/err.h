@@ -33,7 +33,7 @@
 typedef struct {
   TokenPos pos;
   uint32_t code;
-  int32_t  state;
+  int32_t state;
   uint32_t token;
   uint32_t stage;
 } ErrInfo;

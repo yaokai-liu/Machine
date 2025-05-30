@@ -38,8 +38,8 @@
 extern fn_parse_reduce * const MACHINE_PRODUCTS[];
 
 #define MAX_ARGC 0x10
-Machine *parse(Tokenizer *const tokenizer, ErrInfo * const err_info, const Allocator *allocator) {
-  int32_t state = 0;
+Machine *parse(Tokenizer * const tokenizer, ErrInfo * const err_info, const Allocator *allocator) {
+  int32_t state = Parse_state_;
   Token token = {}, result = {};
   Token args[MAX_ARGC] = {};
   int32_t states[MAX_ARGC] = {};
@@ -102,7 +102,7 @@ Machine *parse(Tokenizer *const tokenizer, ErrInfo * const err_info, const Alloc
       Stack_push(state_stack, &state, sizeof(int32_t));
       fn_parse_ctx_act *ctx_act = get_after_reduce_actions(state);
       if (ctx_act) { ctx_act(context, token.value); }
-      if (act->offset == enum_Parse_Machine_EXT) { break; }
+      if (act->offset == Parse_RULE_Machine_EXT) { break; }
     } else {
       // never be touched
     }

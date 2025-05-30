@@ -62,9 +62,10 @@ int main() {
   //  clock_t start = clock();
 
   //    const char_t * str = string_t("machine macro masdafa");
-  Token terminal = {}; ErrInfo err_info;
-  Tokenizer *const tokenizer = Tokenizer_new(testString, nullptr, &STDAllocator);
-  while (terminal.type != enum_TERMINATOR) {
+  Token terminal = {};
+  ErrInfo err_info;
+  Tokenizer * const tokenizer = Tokenizer_new(testString, nullptr, &STDAllocator);
+  while (terminal.type != Machine_TOKEN_TERMINATOR) {
     Tokenizer_next(tokenizer, &terminal, &err_info);
     uint32_t t_line = terminal.position[0].lineno;
     uint32_t t_start = terminal.position[0].column;
@@ -76,7 +77,7 @@ int main() {
   }
 
   //  const Terminal *terminals = tokenize(testString, &cost, &n_tokens, &lineno, &column,
-  //  &STDAllocator); if (terminals[n_tokens - 1].type != enum_TERMINATOR) {
+  //  &STDAllocator); if (terminals[n_tokens - 1].type != Machine_TOKEN_TERMINATOR) {
   //    printf("failed to lex %s:%u:%u\n", filepath, lineno, column);
   //    printf("unknown character '%c'\n", str[cost]);
   //    STDAllocator.free((void *) terminals);

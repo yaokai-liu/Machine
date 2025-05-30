@@ -37,7 +37,7 @@ void MacroCallFrame_init(MacroCallFrame *frame) {
 }
 
 void releaseMacro(Macro *macro, const Allocator *) {
-  if ((uint64_t) macro->params > enum_MacroParams) { releasePrimeArray(macro->params); }
+  if ((uint64_t) macro->params > Machine_TOKEN_MacroParams) { releasePrimeArray(macro->params); }
   releasePrimeArray(macro->tokens);
   if (macro->concatArray) {
     Array_reset(macro->concatArray, (destruct_t *) releaseConcat);
@@ -46,7 +46,7 @@ void releaseMacro(Macro *macro, const Allocator *) {
 }
 
 void releaseMacroArg(MacroArg *arg, const Allocator *allocator) {
-  if (arg->type == enum_Tokens) {
+  if (arg->type == Machine_TOKEN_Tokens) {
     releasePrimeArray(arg->target);
   } else {
     allocator->free(arg->target);
@@ -56,18 +56,18 @@ void releaseMacroArg(MacroArg *arg, const Allocator *allocator) {
 
 void releaseMacroToken(Token *token, const Allocator *allocator) {
   switch (token->type) {
-    case enum_Macro: {
+    case Machine_TOKEN_Macro: {
       releaseMacro(token->value, allocator);
       allocator->free(token->value);
       break;
     }
-    case enum_Concat:
-    case enum_Tokens:
-    case enum_MacroParams: {
+    case Machine_TOKEN_Concat:
+    case Machine_TOKEN_Tokens:
+    case Machine_TOKEN_MacroParams: {
       releasePrimeArray(token->value);
       break;
     }
-    case enum_MacroArgs: {
+    case Machine_TOKEN_MacroArgs: {
       Array_reset(token->value, (destruct_t *) releaseMacroArg);
       Array_destroy(token->value);
     }

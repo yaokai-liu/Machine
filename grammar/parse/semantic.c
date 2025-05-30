@@ -44,34 +44,34 @@ int32_t check_mapping_item(ParseContext *context, BitField *bit_field, const Ari
 int32_t check_mapping_item_evaluable(
     ParseContext *context, BitField *bit_field, const Evaluable *evaluable
 ) {
-  if (!bit_field) { return (evaluable->type == enum_NUMBER) ? 0 : -1; }
+  if (!bit_field) { return (evaluable->type == Machine_TOKEN_NUMBER) ? 0 : -1; }
   const uint32_t l_width = (bit_field->upper - bit_field->lower + 1);
 
   uint32_t width = 0;
   switch (evaluable->type) {
-    case enum_Variable: {
+    case Machine_TOKEN_Variable: {
       const Variable *var = evaluable->lhs;
-      if (var->type == enum_IDENTIFIER) {
+      if (var->type == Machine_TOKEN_IDENTIFIER) {
         const Parameter *param = GContext_findParameter(context, var->lhs);
         const Record *record = GContext_findRecord(context, param->type);
-        if (record->typeid == enum_Immediate) {
+        if (record->typeid == Machine_TOKEN_Immediate) {
           width = GContext_getImmediate(context, record->offset)->width;
         } else {
           // means it's a register
           return 0;
         }
-      } else if (var->type == enum_MemItem) {
+      } else if (var->type == Machine_TOKEN_MemItem) {
         const MemItem *item = var->rhs;
         width = item->width;
       }
       break;
     }
-    case enum_BIT_FIELD: {
+    case Machine_TOKEN_BIT_FIELD: {
       BitField bf = BitField_fromUint64((uint64_t) evaluable->rhs);
-      width = bf.upper -  bf.lower + 1;
+      width = bf.upper - bf.lower + 1;
       break;
     }
-    case enum_NUMBER: {
+    case Machine_TOKEN_NUMBER: {
       return 0;
     }
   }

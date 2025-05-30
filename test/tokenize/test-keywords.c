@@ -45,13 +45,13 @@
     ck_assert_uint_eq(cost, lenof(_value));                                  \
     ck_assert_uint_eq(n_tokens, 2);                                          \
     ck_assert_ptr_ne(terminals, nullptr);                                    \
-    ck_assert_uint_eq(terminals[0].type, enum_##_name);                      \
+    ck_assert_uint_eq(terminals[0].type, Machine_TOKEN_##_name);             \
     ck_assert_ptr_eq(terminals[0].value, 0);                                 \
     ck_assert_uint_eq(terminals[0].lineno, 0);                               \
     ck_assert_uint_eq(terminals[0].column, 0);                               \
     ck_assert_uint_eq(terminals[0].length, lenof(_value));                   \
     ck_assert_str_eq(get_name(terminals[0].type), string_t(#_name));         \
-    ck_assert_uint_eq(terminals[1].type, enum_TERMINATOR);                   \
+    ck_assert_uint_eq(terminals[1].type, Machine_TOKEN_TERMINATOR);          \
     ck_assert_ptr_eq(terminals[1].value, 0);                                 \
     ck_assert_uint_eq(terminals[1].lineno, 0);                               \
     ck_assert_uint_eq(terminals[1].column, lenof(_value));                   \

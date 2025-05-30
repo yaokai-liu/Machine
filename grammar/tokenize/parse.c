@@ -47,8 +47,9 @@ void tokenizer_clean_parse_stack(
 );
 
 #define MAX_ARGC 0x10
-inline uint32_t Tokenizer_parse(Tokenizer *const tokenizer, Token * const token, ErrInfo * const err_info) {
-  int32_t state = 0;
+inline uint32_t
+    Tokenizer_parse(Tokenizer * const tokenizer, Token * const token, ErrInfo * const err_info) {
+  int32_t state = Macro_state_;
   Token result = {};
   Token args[MAX_ARGC] = {};
   int32_t states[MAX_ARGC] = {};
@@ -114,7 +115,7 @@ inline uint32_t Tokenizer_parse(Tokenizer *const tokenizer, Token * const token,
       }
       fn_macro_ctx_act *ctx_act = macro_get_after_reduce_action(state);
       if (ctx_act) { ctx_act(context, result.value); }
-      if (act->offset == enum_Macro_MacroEntry_EXT) { break; }
+      if (act->offset == Macro_RULE_MacroEntry_EXT) { break; }
       Stack_push(token_stack, &result, sizeof(Token));
       Stack_push(state_stack, &state, sizeof(int32_t));
     } else {

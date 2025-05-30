@@ -103,11 +103,11 @@ void GenC_gen_enum_item(Generator *generator, const Machine *machine) {
 
 const char_t *type_string(uint32_t id) {
   switch (id) {
-    case enum_Immediate: return "IMM";
-    case enum_Memory: return "MEM";
-    case enum_Register: return "REG";
-    case enum_RegisterGroup: return "GRP";
-    case enum_RecordSet: return "SET";
+    case Machine_TOKEN_Immediate: return "IMM";
+    case Machine_TOKEN_Memory: return "MEM";
+    case Machine_TOKEN_Register: return "REG";
+    case Machine_TOKEN_RegisterGroup: return "GRP";
+    case Machine_TOKEN_RecordSet: return "SET";
     default: return nullptr;
   }
 }
@@ -132,7 +132,7 @@ void GenC_gen_mem_def_sprintf(
   for (uint32_t i = 0; i < n_items; i++) {
     if (items[i].type) {
       const Record *record = GContext_findRecord(context, items[i].type);
-      if (record->typeid != enum_Immediate) {
+      if (record->typeid != Machine_TOKEN_Immediate) {
         const char_t *t_kind = type_string(record->typeid);
         const char_t *t_name = ctx_ident_real(items[i].type);
         sprintf(temp_buffer, ENTRY_TYPE_CHECK_FMT, t_kind, t_name, ctx_ident_real(items[i].name));
@@ -218,7 +218,7 @@ constexpr char_t SET_GRP_VAL_TABLE_HEAD_FMT[] = "static const enum ENTRY_TYPE_EN
 constexpr char_t SET_GRP_STATE_TABLE_HEAD_FMT[] = "static const struct set_grp_jump_state\n"
                                                   "SET_GRP_STATE_TABLE[] = {\n";
 #define val_case_item(Type, var, FMT)                                         \
-  case enum_##Type: {                                                         \
+  case Machine_TOKEN_##Type: {                                                \
     const Type *var = Array_real_addr(context->var##Array, record->offset);   \
     sprintf(temp_buffer, "  enum_" #FMT "_%s,\n", ctx_ident_real(var->name)); \
     _push_string(val_buffer, temp_buffer);                                    \
@@ -290,7 +290,7 @@ void GenC_gen_reg_grp_table(Generator *generator, const Machine *machine) {
   _push_string(buffer, REG_GRP_TABLE_HEAD);
   const Register *regs = Array_first_real(context->regArray);
   const uint32_t n_regs = Array_length(context->regArray);
-  for (uint32_t i = 0; i < n_regs; i ++) {
+  for (uint32_t i = 0; i < n_regs; i++) {
     const char_t *reg_name = Array_virt2real(ident_array, regs[i].name);
     const RegisterGroup *grp = Array_virt2real(context->grpArray, regs[i].group);
     const char_t *grp_name = Array_virt2real(ident_array, grp->name);

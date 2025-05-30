@@ -36,11 +36,11 @@ enum IMMEDIATE_TYPE {
 };
 
 enum VAR_TYPE {
-  VT_IDENTIFIER = enum_IDENTIFIER,
-  VT_MEM_ITEM = enum_MemItem,
-  VT_REGISTER = enum_Register,
-  VT_IMMEDIATE = enum_Immediate,
-  VT_MEMORY = enum_Memory,
+  VT_IDENTIFIER = Machine_TOKEN_IDENTIFIER,
+  VT_MEM_ITEM = Machine_TOKEN_MemItem,
+  VT_REGISTER = Machine_TOKEN_Register,
+  VT_IMMEDIATE = Machine_TOKEN_Immediate,
+  VT_MEMORY = Machine_TOKEN_Memory,
 };
 
 enum ENUM_OP {
