@@ -1200,7 +1200,8 @@ SetItems *Parse_SetItems_1(
     errInfo->token = Machine_TOKEN_IDENTIFIER;
     return nullptr;
   }
-  SetItems *items = Set_new(Machine_TOKEN_IDENTIFIER, allocator, nullptr);
+  SetItems *items = Set_new(sizeof(REFER(Identifier)), Machine_TOKEN_IDENTIFIER,
+                            nullptr, nullptr, allocator);
   switch (record->typeid) {
     case Machine_TOKEN_RegisterGroup: {
       const RegisterGroup *grp = GContext_getRegisterGroup(context, record->offset);
@@ -1269,7 +1270,8 @@ SetExpr *Parse_SetExpr_1(
     errInfo->token = Machine_TOKEN_IDENTIFIER;
     return nullptr;
   }
-  SetItems *items = Set_new(Machine_TOKEN_IDENTIFIER, allocator, nullptr);
+  SetItems *items = Set_new(sizeof(REFER(Identifier)), Machine_TOKEN_IDENTIFIER,
+                            nullptr, nullptr, allocator);
   record_translate_to_set(record);
 
   switch (optype) {
@@ -1347,7 +1349,8 @@ SetExpr *Parse_SetExpr_4(
     errInfo->token = Machine_TOKEN_IDENTIFIER;
     return nullptr;
   }
-  SetItems *items = Set_new(Machine_TOKEN_IDENTIFIER, allocator, nullptr);
+  SetItems *items = Set_new(sizeof(REFER(Identifier)), Machine_TOKEN_IDENTIFIER,
+                            nullptr, nullptr, allocator);
   record_translate_to_set(record);
 
   SetExpr *expr = allocator->calloc(1, sizeof(SetExpr));
