@@ -1173,7 +1173,7 @@ SetItems *
       Array *reg_array = grp->registers;
       const Register *regs = Array_first_real(reg_array);
       const uint32_t count = Array_length(reg_array);
-      for (uint32_t i = 0; i < count; i++) { Set_add(items, regs->name); }
+      for (uint32_t i = 0; i < count; i++) { Set_add(items, &regs->name); }
       break;
     }
     case Machine_TOKEN_RecordSet: {
@@ -1182,7 +1182,7 @@ SetItems *
       break;
     }
     default: {
-      Set_add(items, ident);
+      Set_add(items, &ident);
     }
   }
   return items;
@@ -1208,7 +1208,7 @@ SetItems *Parse_SetItems_1(
       Array *reg_array = grp->registers;
       const Register *regs = Array_first_real(reg_array);
       const uint32_t count = Array_length(reg_array);
-      for (uint32_t i = 0; i < count; i++) { Set_add(items, regs->name); }
+      for (uint32_t i = 0; i < count; i++) { Set_add(items, &regs->name); }
       break;
     }
     case Machine_TOKEN_RecordSet: {
@@ -1217,7 +1217,7 @@ SetItems *Parse_SetItems_1(
       break;
     }
     default: {
-      Set_add(items, ident);
+      Set_add(items, &ident);
     }
   }
   return items;
@@ -1235,12 +1235,12 @@ SetItems *Parse_SetItems_1(
         const RegisterGroup *grp = GContext_getRegisterGroup(context, record->offset); \
         const Register *regs = Array_first_real(grp->registers);                       \
         const uint32_t count = Array_length(grp->registers);                           \
-        for (uint32_t i = 0; i < count; i++) { Set_add(items, regs[i].name); }         \
+        for (uint32_t i = 0; i < count; i++) { Set_add(items, &regs[i].name); }        \
         break;                                                                         \
       }                                                                                \
       case Machine_TOKEN_Register: {                                                   \
         const Register *reg = GContext_getRegister(context, record->offset);           \
-        Set_add(items, reg->name);                                                     \
+        Set_add(items, &reg->name);                                                    \
         break;                                                                         \
       }                                                                                \
       default: {                                                                       \
