@@ -31,20 +31,8 @@
 #include "array.h"
 #include "avl-tree.h"
 #include "char_t.h"
-#include "elf/compositor.h"
-#include <stdbool.h>
 #include <stdint.h>
-
-typedef struct Generator {
-  const Allocator *allocator;
-  const Array *ident_array;
-  const char_t *outname;
-  const char_t *headpath;
-  const char_t *libpath;
-  const char_t *cr_holder;
-  const char_t *year;
-  uint32_t gen_type;
-} Generator;
+#include <stdio.h>
 
 enum GEN_TYPE_ENUM {
   GT_C,
@@ -79,26 +67,49 @@ enum GenElf_ByteBuffer {
   GenElf_strtab
 };
 
-typedef struct Generator Generator;
+typedef struct Generator {
+  const Allocator *allocator;
+  const Array *ident_array;
+  const char_t *outname;
+  const char_t *headpath;
+  const char_t *libpath;
+  const char_t *cr_holder;
+  const char_t *year;
+
+  FILE *ostream_head;
+  FILE *ostream_lib;
+
+  uint32_t gen_type;
+} Generator;
+
 typedef struct CGenerator CGenerator;
 typedef struct Elf64Generator Elf64Generator;
 
-CGenerator *Generator_new_C(const Array *ident_array, const Allocator *allocator);
-Elf64Generator *Generator_new_elf64(const Array *ident_array, const Allocator *allocator);
-
 void Generator_setCopyright(
-    Generator *generator, const char_t *outname, const char_t *headpath, const char_t *libpath,
-    const char_t *cr_holder, const char_t *year
+    Generator *generator, const char_t *outname, const char_t *cr_holder, const char_t *year
 );
 void Generator_destroy(Generator *generator);
 
-Array *CGenerator_getOutputBuffer(CGenerator *generator, uint32_t index);
-AVLTree *Elf64Generator_getInstrFormTree(Elf64Generator *generator);
-AVLTree *Elf64Generator_getEnumTree(Elf64Generator *generator);
-Array *Elf64Generator_getEnumArray(Elf64Generator *generator);
-Elf64Compositor *Elf64Generator_getCompositor(Elf64Generator *generator);
+#ifndef MACHINE_GENERATE_FORM_ELF
+CGenerator *Generator_new_C(
+  const Array *ident_array, const char_t *headpath, const char_t *libpath,
+  const Allocator *allocator
+);
+
+#else
+#include <elf/compositor.h>
+
+Elf64Generator *Generator_new_elf64(const Array *ident_array, const Allocator *allocator);
+
+AVLTree *Elf64Generator_getInstrFormTree(const Elf64Generator *generator);
+AVLTree *Elf64Generator_getEnumTree(const Elf64Generator *generator);
+Array *Elf64Generator_getEnumArray(const Elf64Generator *generator);
 void Elf64Generator_set_cose(Elf64Generator *generator, uint32_t val);
 void Elf64Generator_set_cote(Elf64Generator *generator, uint32_t val);
+Elf64Compositor *Elf64Generator_getCompositor(const Elf64Generator *generator);
+void Elf64Generator_setCompositor(Elf64Generator *generator, Elf64Compositor *compositor);
 uint32_t Elf64Generator_get_sym_index(Elf64Generator *generator, uint64_t v_form_ndx);
+
+#endif
 
 #endif  // MACHINE_GENERATOR_H

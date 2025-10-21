@@ -30,7 +30,9 @@
 
 #include "gen-export.h"
 
-void GenC_gen_static_definitions(Generator *generator, const Machine *machine);
+void GenC_gen_source_license(const Generator *generator, const Machine *);
+void GenC_gen_includes_and_macros(const Generator *generator, const Machine *machine);
+void GenC_gen_static_definitions(const Generator *generator, const Machine *machine);
 void GenC_gen_driver(Generator *generator, const Machine *machine);
 
 #endif  // MACHINE_STATIC_H

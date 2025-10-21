@@ -29,11 +29,14 @@
 #define MACHINE_GEN_EXPORT_H
 
 #include "generate.h"
+#include <stdio.h>
 
-void gen_license(Generator *generator, Array *buffer, const char_t *filename);
-void gen_export_header(Generator *generator, const Machine *machine);
-void gen_export_instr_macro(Generator *generator, const Machine *machine);
+void gen_license(
+    const char_t *cr_holder, const char_t *year, const char_t *filename, FILE *ostream
+);
+void gen_export_header(const Generator *generator, const Machine *machine);
+void gen_export_instr_macro(const Generator *generator, const Machine *machine);
 void gen_export_record_declare(Generator *generator, const Machine *machine);
-void gen_export_tail(Generator *generator, const Machine *machine);
+void gen_export_tail(const Generator *generator, const Machine *machine);
 
 #endif  // MACHINE_GEN_EXPORT_H

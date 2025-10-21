@@ -105,30 +105,18 @@ constexpr char_t EXPORT_TAIL_FMT[] = "enum MACHINE_ERROR_TYPE {\n"
                                      "};\n"
                                      "#endif  // MACHINE_%s_H\n";
 
-#define ctx_push_string(type, s)                                                                   \
-  do {                                                                                             \
-    Array_append(CGenerator_getOutputBuffer((CGenerator *) generator, GenC_##type), s, strlen(s)); \
-  } while (false)
-
-#define push_string(s) \
-  do { Array_append(buffer, s, strlen(s)); } while (false)
-
-void gen_license(Generator *generator, Array *buffer, const char_t *filename) {
-  if (!generator->year || !generator->cr_holder) {
+void gen_license(
+    const char_t *cr_holder, const char_t *year, const char_t *filename, FILE *ostream
+) {
+  if (!year || !cr_holder) {
     printf("no year or cr_holder.\n");
     return;
   }
-  const char_t *year = generator->year;
-  const char_t *cr_holder = generator->cr_holder;
-  char_t temp_buffer[2048] = {};
-  sprintf(temp_buffer, LICENSE_FMT, filename, year, cr_holder);
-  push_string(temp_buffer);
+  fprintf(ostream, LICENSE_FMT, filename, year, cr_holder);
 }
 
-void gen_export_header(Generator *generator, const Machine *machine) {
-  char_t temp_buffer[256];
-  Array * const out_buffer = CGenerator_getOutputBuffer((CGenerator *) generator, GenC_exports);
-  const char_t * const name = Array_virt2real(generator->ident_array, machine->name);
+void gen_export_header(const Generator *generator, const Machine *machine) {
+
   const char_t *filename;
   if (generator->headpath) {
     filename = strrchr(generator->headpath, '/');
@@ -136,96 +124,83 @@ void gen_export_header(Generator *generator, const Machine *machine) {
   } else {
     filename = "";
   }
-  gen_license(generator, out_buffer, filename);
-  sprintf(temp_buffer, EXPORT_HEADER_FMT, name, name);
-  ctx_push_string(exports, temp_buffer);
-  ctx_push_string(exports, EXPORT_INCLUDES);
-  sprintf(temp_buffer, EXPORT_DECLARE_FMT, name, name);
-  ctx_push_string(exports, temp_buffer);
-  sprintf(temp_buffer, MACHINE_NEW_DEC_FMT, name, name);
-  ctx_push_string(exports, temp_buffer);
-  sprintf(temp_buffer, MACHINE_DESTROY_DEC_FMT, name, name);
-  ctx_push_string(exports, temp_buffer);
+  gen_license(generator->cr_holder, generator->year, filename, generator->ostream_head);
+
+  const char_t * const machine_name = Array_virt2real(generator->ident_array, machine->name);
+  fprintf(generator->ostream_head, EXPORT_HEADER_FMT, machine_name, machine_name);
+  fputs(EXPORT_INCLUDES, generator->ostream_head);
+  fprintf(generator->ostream_head, EXPORT_DECLARE_FMT, machine_name, machine_name);
+  fprintf(generator->ostream_head, MACHINE_NEW_DEC_FMT, machine_name, machine_name);
+  fprintf(generator->ostream_head, MACHINE_DESTROY_DEC_FMT, machine_name, machine_name);
   for (uint32_t i = 0; i < lenof(MACHINE_FUNCTION_FMTS); i++) {
-    sprintf(temp_buffer, MACHINE_FUNCTION_FMTS[i], name);
-    ctx_push_string(exports, temp_buffer);
+    fprintf(generator->ostream_head, MACHINE_FUNCTION_FMTS[i], machine_name);
   }
-  ctx_push_string(exports, ENCODING_INSTR_DEC);
+  fputs(ENCODING_INSTR_DEC, generator->ostream_head);
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
   const uint32_t n_instr = Array_length(context->instrArray);
   const Instruction *instructions = Array_real_addr(context->instrArray, 0);
-  ctx_push_string(exports, INSTR_ENUM_HEAD);
+  fputs(INSTR_ENUM_HEAD, generator->ostream_head);
   for (uint32_t i = 0; i < n_instr; i++) {
-    sprintf(
-        temp_buffer, INSTR_ENUM_ITEM_FNT, ctx_ident_real(instructions[i].name),
+    fprintf(
+        generator->ostream_head, INSTR_ENUM_ITEM_FNT, ctx_ident_real(instructions[i].name),
         instructions[i].entry_offset
     );
-    ctx_push_string(exports, temp_buffer);
   }
-  ctx_push_string(exports, INSTR_ENUM_TAIL);
+  fputs(INSTR_ENUM_TAIL, generator->ostream_head);
 }
-const char_t IF_USING_INSTR_DIRECTLY[] = "\n#ifdef USING_INSTR_DIRECTLY\n";
-const char_t END_IF[] = "#endif\n";
-const char_t INSTR_EXEC_DEC[] =
+
+constexpr char_t IF_USING_INSTR_DIRECTLY[] = "\n#ifdef USING_INSTR_DIRECTLY\n";
+constexpr char_t END_IF[] = "#endif\n";
+constexpr char_t INSTR_EXEC_DEC[] =
     "#define %s(...)  encodingInstr(PROG_INSTR_BUFFER, INSTR_%s, __VA_ARGS__, EOI)\n";
-void gen_export_instr_macro(Generator *generator, const Machine *machine) {
-  char_t temp_buffer[512] = {};
+void gen_export_instr_macro(const Generator *generator, const Machine *machine) {
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
   const uint32_t n_instr = Array_length(context->instrArray);
   const Instruction *instructions = Array_real_addr(context->instrArray, 0);
-  ctx_push_string(exports, IF_USING_INSTR_DIRECTLY);
+  fputs(IF_USING_INSTR_DIRECTLY, generator->ostream_head);
   for (uint32_t i = 0; i < n_instr; i++) {
     const char_t *instr_name = ctx_ident_real(instructions[i].name);
-    sprintf(temp_buffer, INSTR_EXEC_DEC, instr_name, instr_name);
-    ctx_push_string(exports, temp_buffer);
+    fprintf(generator->ostream_head, INSTR_EXEC_DEC, instr_name, instr_name);
   }
-  ctx_push_string(exports, END_IF);
+  fputs(END_IF, generator->ostream_head);
 }
 
-void gen_export_tail(Generator *generator, const Machine *machine) {
-  char_t temp_buffer[256];
+void gen_export_tail(const Generator *generator, const Machine *machine) {
   const char_t * const name = Array_virt2real(generator->ident_array, machine->name);
-  sprintf(temp_buffer, EXPORT_TAIL_FMT, name);
-  ctx_push_string(exports, temp_buffer);
+  fprintf(generator->ostream_head, EXPORT_TAIL_FMT, name);
 }
 
-void gen_mem_dec(const ParseContext *context, const Array *ident_array, Array *buffer);
-void gen_mem_dec_sprintf(
-    const Memory *mem, const ParseContext *context, const Array *ident_array, char_t *temp_buffer,
-    Array *buffer
+void gen_mem_dec(Generator *generator, const ParseContext *context, const Array *ident_array);
+void gen_mem_dec_fprintf(
+    FILE *ostream, const Memory *mem, const ParseContext *context, const Array *ident_array
 );
-#define gen_record_sprintf(Type, var, ...)                         \
+#define gen_record_fprintf(ostream, Type, var, ...)                \
   do {                                                             \
     const uint32_t count = Array_length(context->var##Array);      \
     const Type *entries = Array_real_addr(context->var##Array, 0); \
     for (uint32_t i = 0; i < count; i++) {                         \
-      sprintf(temp_buffer, __VA_ARGS__);                           \
-      push_string(temp_buffer);                                    \
+      fprintf(ostream, __VA_ARGS__);                               \
     }                                                              \
   } while (false)
 
-#define gen_imm_sprintf(...) gen_record_sprintf(Immediate, imm, __VA_ARGS__)
-#define gen_reg_sprintf(...) gen_record_sprintf(Register, reg, __VA_ARGS__)
+#define gen_imm_sprintf(ostream, ...) gen_record_fprintf(ostream, Immediate, imm, __VA_ARGS__)
+#define gen_reg_sprintf(ostream, ...) gen_record_fprintf(ostream, Register, reg, __VA_ARGS__)
 void gen_export_record_declare(Generator *generator, const Machine *machine) {
-  char_t temp_buffer[512] = {};
   const ParseContext *context = machine->context;
   const Array *ident_array = generator->ident_array;
-  Array *buffer = CGenerator_getOutputBuffer((CGenerator *) generator, GenC_exports);
-  push_string("extern const Entry *const EOI;\n");
-  gen_mem_dec(context, ident_array, buffer);
-  gen_imm_sprintf(IMM_DEC_FMT, ctx_ident_real(entries[i].name));
-  gen_reg_sprintf(REG_DEC_FMT, ctx_ident_real(entries[i].name));
+  fputs("extern const Entry *const EOI;\n", generator->ostream_head);
+  gen_mem_dec(generator, context, ident_array);
+  gen_imm_sprintf(generator->ostream_head, IMM_DEC_FMT, ctx_ident_real(entries[i].name));
+  gen_reg_sprintf(generator->ostream_head, REG_DEC_FMT, ctx_ident_real(entries[i].name));
 }
 
-inline void gen_mem_dec_sprintf(
-    const Memory *mem, const ParseContext *context, const Array *ident_array, char_t *temp_buffer,
-    Array *buffer
+inline void gen_mem_dec_fprintf(
+    FILE *ostream, const Memory *mem, const ParseContext *context, const Array *ident_array
 ) {
-  sprintf(temp_buffer, MEM_DEC_NAME_FMT, ctx_ident_real(mem->name));
-  push_string(temp_buffer);
-  push_string("(");
+  fprintf(ostream, MEM_DEC_NAME_FMT, ctx_ident_real(mem->name));
+  fputs("(", ostream);
   const uint32_t n_items = Array_length(mem->items);
   const MemItem *items = Array_real_addr(mem->items, 0);
   for (uint32_t i = 0; i < n_items; i++) {
@@ -233,29 +208,23 @@ inline void gen_mem_dec_sprintf(
     if (items[i].type) {
       const Record *record = GContext_findRecord(context, items[i].type);
       if (record->typeid == Machine_TOKEN_Immediate) {
-        sprintf(temp_buffer, "uint64_t *%s", ident);
+        fprintf(ostream, "uint64_t *%s", ident);
       } else {
-        sprintf(temp_buffer, "const Entry *%s", ident);
+        fprintf(ostream, "const Entry *%s", ident);
       }
     } else {
-      sprintf(temp_buffer, "uint64_t %s", ident);
+      fprintf(ostream, "uint64_t %s", ident);
     }
-    push_string(temp_buffer);
-    if (i < n_items - 1) {
-      push_string(", ");
-    } else {
-      push_string(")");
-    }
+    fputs((i < n_items - 1) ? ", " : ")", ostream);
   }
 }
 
-void gen_mem_dec(const ParseContext *context, const Array *ident_array, Array *buffer) {
-  char_t temp_buffer[512] = {};
+void gen_mem_dec(Generator *generator, const ParseContext *context, const Array *ident_array) {
   const uint32_t count = Array_length(context->memArray);
   const Memory *memories = Array_real_addr(context->memArray, 0);
   for (uint32_t i = 0; i < count; i++) {
     const Memory *mem = &memories[i];
-    gen_mem_dec_sprintf(mem, context, ident_array, temp_buffer, buffer);
-    push_string(";\n");
+    gen_mem_dec_fprintf(generator->ostream_head, mem, context, ident_array);
+    fputs(";\n", generator->ostream_head);
   }
 }

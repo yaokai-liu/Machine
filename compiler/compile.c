@@ -52,9 +52,9 @@
 
 int expand_macro(char_t *srcpath, char_t *output_path);
 
-int main(int argc, char *argv[]) {
-  char_t *srcname;
-  char_t *outname;
+int main(const int argc, char *argv[]) {
+  char_t *srcname = nullptr;
+  char_t *outname = nullptr;
   char_t srcpath[1024] = {};
   char_t headpath[1024] = {};
   char_t libpath[1024] = {};
@@ -135,9 +135,9 @@ int main(int argc, char *argv[]) {
   }
   Array *ident_array = Array_new(sizeof(Identifier), Machine_TOKEN_IDENTIFIER, &STDAllocator);
   Tokenizer * const tokenizer = Tokenizer_new(text, ident_array, &STDAllocator);
-  CGenerator *generator = Generator_new_C(ident_array, &STDAllocator);
+  CGenerator *c_generator = Generator_new_C(ident_array, headpath, libpath, &STDAllocator);
 
-  clock_t start = clock();
+  const clock_t start = clock();
 
   ErrInfo err_info = {};
   const Machine *machine = parse(tokenizer, &err_info, &STDAllocator);
@@ -157,32 +157,18 @@ int main(int argc, char *argv[]) {
     STDAllocator.free(text);
     return 0;
   }
-  Generator_setCopyright((Generator *) generator, outname, headpath, libpath, cr_holder, year);
-  codegen((Generator *) generator, machine);
 
-  clock_t end = clock();
+  Generator_setCopyright((Generator *) c_generator, outname, cr_holder, year);
+  codegen((Generator *) c_generator, machine);
 
-  file = fopen(headpath, "w");
-  if (!file) { return -1; }
-  print(GenC_exports);
-  fclose(file);
-
-  file = fopen(libpath, "w");
-  if (!file) { return -1; }
-  print(GenC_includes);
-  print(GenC_macros);
-  print(GenC_enums);
-  print(GenC_types);
-  print(GenC_declares);
-  print(GenC_definitions);
-  print(GenC_tables);
-  fclose(file);
+  const clock_t end = clock();
 
   fprintf(stdout, "time cost: %fms\n", (double) (end - start) / CLOCKS_PER_SEC * 1000);
 
+
   releaseMachine((Machine *) machine, &STDAllocator);
   STDAllocator.free((void *) machine);
-  Generator_destroy((Generator *) generator);
+  Generator_destroy((Generator *) c_generator);
   releasePrimeArray(ident_array);
   Tokenizer_destroy(tokenizer);
   STDAllocator.free(text);

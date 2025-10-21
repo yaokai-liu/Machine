@@ -32,6 +32,7 @@
 #include "err.h"
 #include "expr-reduce.h"
 #include "generated/tokens.gen.h"
+#include "meman-utils.h"
 #include "semantic.h"
 #include "target.h"
 #include "terminal.h"
@@ -1201,7 +1202,7 @@ SetItems *Parse_SetItems_1(
     return nullptr;
   }
   SetItems *items = Set_new(sizeof(REFER(Identifier)), Machine_TOKEN_IDENTIFIER,
-                            nullptr, nullptr, allocator);
+                            (key_t *) refer2u64, nullptr, allocator);
   switch (record->typeid) {
     case Machine_TOKEN_RegisterGroup: {
       const RegisterGroup *grp = GContext_getRegisterGroup(context, record->offset);
@@ -1271,7 +1272,7 @@ SetExpr *Parse_SetExpr_1(
     return nullptr;
   }
   SetItems *items = Set_new(sizeof(REFER(Identifier)), Machine_TOKEN_IDENTIFIER,
-                            nullptr, nullptr, allocator);
+                            (key_t *) refer2u64, nullptr, allocator);
   record_translate_to_set(record);
 
   switch (optype) {
@@ -1350,7 +1351,7 @@ SetExpr *Parse_SetExpr_4(
     return nullptr;
   }
   SetItems *items = Set_new(sizeof(REFER(Identifier)), Machine_TOKEN_IDENTIFIER,
-                            nullptr, nullptr, allocator);
+                            (key_t *) refer2u64, nullptr, allocator);
   record_translate_to_set(record);
 
   SetExpr *expr = allocator->calloc(1, sizeof(SetExpr));

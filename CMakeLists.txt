@@ -42,19 +42,22 @@ add_library(grammar ${GRAMMAR_SRC})
 
 aux_source_directory(codegen CODEGEN_SRC)
 
-aux_source_directory(codegen/C CODEGEN_C_SRC)
-add_library(codegen_C ${CODEGEN_SRC} ${CODEGEN_C_SRC})
-target_include_directories(codegen_C PRIVATE codegen codegen/C)
-
-aux_source_directory(codegen/elf CODEGEN_ELF_SRC)
-
-aux_source_directory(codegen/elf/x64 CODEGEN_x86_64_SRC)
-add_library(codegen_elf_x86_64 ${CODEGEN_SRC} ${CODEGEN_ELF_SRC} ${CODEGEN_x86_64_SRC})
-target_include_directories(codegen_elf_x86_64 PRIVATE codegen codegen/elf codegen/elf/x64)
-
 add_executable(machine compiler/compile.c)
-target_link_libraries(machine PRIVATE grammar codegen_C codegen_elf_x86_64)
-target_include_directories(machine PRIVATE codegen codegen/C codegen/elf codegen/elf/x64)
+target_link_libraries(machine PRIVATE grammar)
+target_include_directories(machine PRIVATE codegen)
+
+if (MACHINE_GENERATE_FORM_ELF)
+    aux_source_directory(codegen/elf CODEGEN_ELF_SRC)
+    aux_source_directory(codegen/elf/x64 CODEGEN_x86_64_SRC)
+    add_library(codegen_elf_x86_64 ${CODEGEN_SRC} ${CODEGEN_ELF_SRC} ${CODEGEN_x86_64_SRC})
+    target_include_directories(codegen_elf_x86_64 PRIVATE codegen codegen/elf codegen/elf/x64)
+    target_link_libraries(machine PRIVATE codegen_elf_x86_64)
+else ()
+    aux_source_directory(codegen/C CODEGEN_C_SRC)
+    add_library(codegen_C ${CODEGEN_SRC} ${CODEGEN_C_SRC})
+    target_include_directories(codegen_C PRIVATE codegen codegen/C)
+    target_link_libraries(machine PRIVATE codegen_C)
+endif ()
 
 add_executable(debug test/debug.c)
 target_link_libraries(debug PRIVATE grammar)

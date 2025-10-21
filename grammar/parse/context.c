@@ -258,7 +258,7 @@ inline const Parameter *
 Trie /*<REFER(Record), uint64_t>*/ *
     GContext_build_args_trie(ParseContext *context, const Instruction *instr) {
   Trie /*<REFER(Record), uint64_t>*/ *args_trie =
-      Trie_new(sizeof(void *), (fn_key_t *) get_v_record, context->allocator);
+      Trie_new(sizeof(void *), (key_t *) get_v_record, context->allocator);
   const uint32_t n_forms = Array_length(instr->forms);
   const InstrForm *forms = Array_real_addr(instr->forms, 0);
   REFER(Record) *v_record_array = nullptr;

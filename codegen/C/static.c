@@ -27,7 +27,7 @@
 
 #include "static.h"
 #include "gen-export.h"
-#include "generate.h"
+#include "define.h"
 #include "generator.h"
 #include <stdio.h>
 #include <string.h>
@@ -162,51 +162,40 @@ constexpr char_t CONVERT_INSTR_TO_BYTES_DEF[] =
     "  return state->fn_encoding(buffer, entries);\n"
     "}\n";
 
-#define ctx_push_string(type, s)                                                                   \
-  do {                                                                                             \
-    Array_append(CGenerator_getOutputBuffer((CGenerator *) generator, GenC_##type), s, strlen(s)); \
-  } while (false)
-
-#define push_string(s) \
-  do { Array_append(buffer, s, strlen(s)); } while (false)
-
-void GenC_gen_static_definitions(Generator *generator, const Machine *machine) {
-  char_t temp_buffer[256];
-  const char_t *name = Array_virt2real(generator->ident_array, machine->name);
-  sprintf(temp_buffer, INCLUDES, name);
-  Array * const out_buffer = CGenerator_getOutputBuffer((CGenerator *) generator, GenC_includes);
+void GenC_gen_source_license(const Generator *generator, const Machine *) {
   const char_t *filename = "";
   if (generator->headpath) {
     filename = strrchr(generator->headpath, '/');
     filename = filename ? filename + 1 : generator->headpath;
   }
-  gen_license(generator, out_buffer, filename);
-  ctx_push_string(includes, temp_buffer);
-  ctx_push_string(macros, MACROS);
-  sprintf(temp_buffer, TYPEDEF_ENTRY_FMT, machine->context->maxFieldCount);
-  ctx_push_string(types, temp_buffer);
-  sprintf(temp_buffer, TYPEDEF_MACHINE_FMT, name, machine->context->maxArgCount, name);
-  ctx_push_string(types, temp_buffer);
-  ctx_push_string(types, STRUCT_JUMP_ITEM);
-  ctx_push_string(types, STRUCT_JUMP_STATE);
-  ctx_push_string(types, STRUCT_SET_GRP_JUMP_STATE);
-  sprintf(temp_buffer, CURRENT_MACHINE_FMT, name);
-  ctx_push_string(declares, temp_buffer);
-  ctx_push_string(declares, MAX_ARGS_DECLARE);
-  ctx_push_string(declares, ENTRY_TYPE_CHECK_DEC);
-  ctx_push_string(declares, CONVERT_INSTR_TO_BYTES_DEC);
+  gen_license(generator->cr_holder, generator->year, filename, generator->ostream_lib);
+}
+
+void GenC_gen_includes_and_macros(const Generator *generator, const Machine *machine) {
+  const char_t *machine_name = Array_virt2real(generator->ident_array, machine->name);
+  fprintf(generator->ostream_lib, INCLUDES, machine_name);
+  fputs(MACROS, generator->ostream_lib);
+}
+
+void GenC_gen_static_definitions(const Generator *generator, const Machine *machine) {
+  const char_t *machine_name = Array_virt2real(generator->ident_array, machine->name);
+  fprintf(generator->ostream_lib, TYPEDEF_ENTRY_FMT, machine->context->maxFieldCount);
+  fprintf(generator->ostream_lib, TYPEDEF_MACHINE_FMT, machine_name, machine->context->maxArgCount, machine_name);
+  fputs(STRUCT_JUMP_ITEM, generator->ostream_lib);
+  fputs(STRUCT_JUMP_STATE, generator->ostream_lib);
+  fputs(STRUCT_SET_GRP_JUMP_STATE, generator->ostream_lib);
+  fprintf(generator->ostream_lib, CURRENT_MACHINE_FMT, machine_name);
+  fputs(MAX_ARGS_DECLARE, generator->ostream_lib);
+  fputs(ENTRY_TYPE_CHECK_DEC, generator->ostream_lib);
+  fputs(CONVERT_INSTR_TO_BYTES_DEC, generator->ostream_lib);
+  GenC_gen_context_dec(generator, machine);
 }
 void GenC_gen_driver(Generator *generator, const Machine *machine) {
-  char_t temp_buffer[256];
   const char_t *name = Array_virt2real(generator->ident_array, machine->name);
-  sprintf(temp_buffer, MAX_ARGS_FMT, machine->context->maxArgCount);
-  ctx_push_string(definitions, temp_buffer);
-  sprintf(temp_buffer, MACHINE_NEW_DEF_FMT, name, name, name, name);
-  ctx_push_string(definitions, temp_buffer);
-  sprintf(temp_buffer, MACHINE_DESTROY_DEF_FMT, name, name);
-  ctx_push_string(definitions, temp_buffer);
-  sprintf(temp_buffer, USE_MACHINE_DEF_FMT, name);
-  ctx_push_string(definitions, temp_buffer);
-  ctx_push_string(definitions, ENTRY_TYPE_CHECK_DEF);
-  ctx_push_string(definitions, CONVERT_INSTR_TO_BYTES_DEF);
+  fprintf(generator->ostream_lib, MAX_ARGS_FMT, machine->context->maxArgCount);
+  fprintf(generator->ostream_lib, MACHINE_NEW_DEF_FMT, name, name, name, name);
+  fprintf(generator->ostream_lib, MACHINE_DESTROY_DEF_FMT, name, name);
+  fprintf(generator->ostream_lib, USE_MACHINE_DEF_FMT, name);
+  fputs(ENTRY_TYPE_CHECK_DEF, generator->ostream_lib);
+  fputs(CONVERT_INSTR_TO_BYTES_DEF, generator->ostream_lib);
 }

@@ -35,52 +35,54 @@
 #include "terminal.h"
 #include <stdint.h>
 
-int32_t GenC_gen_instr_encoding_dec(
-    const ParseContext *context, const Array *ident_array, Array *buffer, const char_t *instr_op,
-    const InstrForm forms[], uint32_t n_forms
-);
-int32_t GenC_gen_instr_encoding_def(
-    const ParseContext *context, const Array *ident_array, Array *buffer, const char_t *instr_op,
-    const InstrForm forms[], uint32_t n_forms
-);
-void GenC_gen_instr_exec(Generator *generator, const Machine *machine);
+void GenC_gen_instr_dec(const Generator *generator, const Machine *machine);
+void GenC_gen_instr_def(const Generator *generator, const Machine *machine);
 
-void GenC_gen_jump_table_dec(Generator *generator, const Machine *machine);
-void GenC_gen_jump_table_def(
-    Generator *generator, const Machine *machine, Array *key_buffer, Array *state_buffer
-);
+void GenC_gen_jump_table_dec(const Generator *generator, const Machine *machine);
+void GenC_gen_jump_table_def(const Generator *generator, const Machine *machine);
 
+void GenC_gen_instr_encoding_dec(
+    const ParseContext *context, const Array *ident_array, const char_t *instr_op,
+    const InstrForm forms[], uint32_t n_forms, FILE *ostream
+);
+void GenC_gen_instr_encoding_def(
+    const ParseContext *context, const Array *ident_array, const char_t *instr_op,
+    const InstrForm forms[], uint32_t n_forms, FILE *ostream
+);
 int32_t GenC_gen_instr_form(
-    const ParseContext *context, const Array *ident_array, Array *buffer, const InstrForm *form
+    const ParseContext *context, const Array *ident_array, const InstrForm *form, FILE *ostream
 );
 void GenC_gen_form_check(
-    const ParseContext *context, const Array *ident_array, Array *buffer, const InstrForm *form,
-    char_t *temp_buffer
+    const ParseContext *context, const Array *ident_array, const InstrForm *form, FILE *ostream
 );
 int32_t GenC_gen_instr_part(
-    const ParseContext *context, const Array *ident_array, Array *buffer, const InstrForm *form,
-    const InstrPart *part, char_t *temp_buffer
+    const ParseContext *context, const Array *ident_array, const InstrForm *form,
+    const InstrPart *part, FILE *ostream
 );
-int32_t GenC_gen_layout(
-    const ParseContext *context, const Array *ident_array, Array *buffer, const Layout *layout,
-    uint32_t width, const Pattern *pattern, char_t *temp_buffer
+void GenC_gen_layout(
+    const ParseContext *context, const Array *ident_array, const Layout *layout, uint32_t width,
+    const Pattern *pattern, FILE *ostream
 );
-int32_t GenC_gen_switchable(
-    const ParseContext *context, const Array *ident_array, Array *buffer,
-    const Switchable *switchable, BitField *p_bf, const Pattern *pattern, char_t *temp_buffer
+void GenC_gen_switchable(
+    const ParseContext *context, const Array *ident_array, const Switchable *switchable,
+    BitField *p_bf, const Pattern *pattern, FILE *ostream
 );
-int32_t GenC_gen_mapping_item(
-    const ParseContext *context, const Array *ident_array, Array *buffer, MappingItems *items,
-    const BitField *bit_field, const Pattern *pattern, char_t *temp_buffer
+void GenC_gen_mapping_item(
+    const ParseContext *context, const Array *ident_array, MappingItems *items,
+    const BitField *bit_field, const Pattern *pattern, FILE *ostream
 );
 
 int32_t expr_to_val(
     const ParseContext *context, const Array *ident_array, const CondExpr *expr,
-    const Pattern *pattern, char_t *buffer
+    const Pattern *pattern, FILE *ostream
 );
 int32_t eval_to_val(
     const ParseContext *context, const Array *ident_array, const Evaluable *evaluable,
-    char_t *buffer, const Pattern *pattern
+    const Pattern *pattern, FILE *ostream
+);
+void type_to_val(
+    const ParseContext *context, const Array *ident_array, const Identifier *ident,
+    const Pattern *pattern, FILE *ostream
 );
 
 #endif  // MACHINE_ENCODING_H
