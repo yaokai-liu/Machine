@@ -21,14 +21,76 @@ if (ENABLE_GPROF)
     add_link_options("-pg")
 endif ()
 
-set(GENERATED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/grammar/generated")
-
-if(NOT EXISTS ${GENERATED_DIR})
-    message(STATUS "${GENERATED_DIR} doesn't exist, generate grammar action table.")
-    execute_process(COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/codegen.sh
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+if (WIN32)
+    find_program(POWERSHELL_PATH
+            NAMES pwsh powershell.exe
+            PATHS "C:/Program Files/PowerShell"
+            "C:/Windows/System32/WindowsPowerShell")
+    set(EXECUTOR_PATH ${POWERSHELL_PATH})
+    set(CMD_HINT "-command")
 else()
-    message(STATUS "${GENERATED_DIR} exists, skip to generate grammar action table.")
+    find_program(SHELL_PATH NAMES bash)
+    set(EXECUTOR_PATH ${SHELL_PATH})
+    set(CMD_HINT "-c")
+endif()
+find_package(Python 3.8 REQUIRED)
+
+set(AUTOMATON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/json")
+set(GENERATED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/grammar/generated")
+set(PROJECT_TEMPLATE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/template")
+set(AUTOMATON_GENERATOR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/liu-machine")
+set(SOURCE_GENERATOR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/xnf-json2C")
+
+list(APPEND PROJECT_AUTOMATONS "machine" "macro")
+list(APPEND AUTOMATON_FILES
+        "automaton.json"
+        "first_set.json"
+        "follow_set.json"
+        "lr_items.json"
+        "rules.json"
+        "tokens.json")
+# create automaton and source directories
+foreach(AUTOMATON IN LISTS PROJECT_AUTOMATONS)
+    if (NOT EXISTS "${AUTOMATON_DIR}/${AUTOMATON}")
+        message(STATUS "${AUTOMATON}'s automaton directory does not exist, make the directory.")
+        file(MAKE_DIRECTORY "${AUTOMATON_DIR}/${AUTOMATON}")
+    else()
+        message(STATUS "${AUTOMATON}'s automaton directory exists, skip.")
+    endif ()
+    if (NOT EXISTS "${GENERATED_DIR}/${AUTOMATON}")
+        message(STATUS "${AUTOMATON}'s automaton source directory does not exist, make the directory.")
+        file(MAKE_DIRECTORY "${GENERATED_DIR}/${AUTOMATON}")
+    else()
+        message(STATUS "${AUTOMATON}'s automaton source directory exists, skip.")
+    endif ()
+endforeach()
+# generate automaton files
+execute_process(COMMAND ${Python_EXECUTABLE}
+        "${AUTOMATON_GENERATOR_DIR}/generate.py" "${AUTOMATON_DIR}"
+        RESULT_VARIABLE PS_RESULT
+        OUTPUT_VARIABLE PS_OUTPUT
+        ERROR_VARIABLE PS_ERROR
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+if (NOT "${PS_OUTPUT}" STREQUAL "")
+    message("   ${PS_OUTPUT}")
+endif()
+if (NOT "${PS_ERROR}" STREQUAL "")
+    message(SEND_ERROR "${PS_ERROR}")
+endif()
+# generate source files
+execute_process(COMMAND ${Python_EXECUTABLE}
+        "${SOURCE_GENERATOR_DIR}/codegen.py" "${AUTOMATON_DIR}" "${PROJECT_TEMPLATE_DIR}" "${GENERATED_DIR}"
+        RESULT_VARIABLE PS_RESULT
+        OUTPUT_VARIABLE PS_OUTPUT
+        ERROR_VARIABLE PS_ERROR
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+if (NOT "${PS_OUTPUT}" STREQUAL "")
+    message("   ${PS_OUTPUT}")
+endif()
+if (NOT "${PS_ERROR}" STREQUAL "")
+    message(SEND_ERROR "${PS_ERROR}")
 endif()
 
 aux_source_directory(meman CTR_SRC)

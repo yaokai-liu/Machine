@@ -24,11 +24,11 @@ and your C compiler supports cstd-23.
 Then run command:
 ```shell
 cmake -B <cmake-output-dir> -S <this-project-root-dir> -DCMAKE_C_COMPILER=<your-compiler>
-cmake build <cmake-output-dir> --target machine-c --parallel <your-cpu-core-count>
+cmake build <cmake-output-dir> --target machine --parallel <your-cpu-core-count>
 ```
 
 Without any error, there is a directory named `output` in the `<this-project-root-dir>`
-and an executable file named `machine-c` in it.
+and an executable file named `machine` in it.
 
 Then write some script to experience it!
 
