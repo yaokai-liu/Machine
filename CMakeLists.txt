@@ -45,6 +45,7 @@ list(APPEND PROJECT_AUTOMATONS "machine" "macro")
 list(APPEND AUTOMATON_FILES
         "automaton.json"
         "first_set.json"
+        "folded_states.json"
         "follow_set.json"
         "lr_items.json"
         "rules.json"

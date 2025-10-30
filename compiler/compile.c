@@ -221,7 +221,7 @@ int expand_macro(char_t *srcpath, char_t *output_path) {
     } else if (token.type == Machine_TOKEN_IDENTIFIER) {
       char_t *ident = Array_virt2real(ident_array, token.value);
       fprintf(file, " %s ", ident);
-    } else if (token.type < MAX_REAL_TOKEN && MACHINE_TERMINAL_STRINGS[token.type]) {
+    } else if (token.type < MAX_TOTAL_TOKEN && MACHINE_TERMINAL_STRINGS[token.type]) {
       fprintf(file, " %s ", MACHINE_TERMINAL_STRINGS[token.type]);
     } else {
       switch (token.type) {
