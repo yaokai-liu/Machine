@@ -66,8 +66,28 @@ foreach(AUTOMATON IN LISTS PROJECT_AUTOMATONS)
     endif ()
 endforeach()
 # generate automaton files
+set(GRAMMARS
+        "machine.xnf:Machine:;macro.xnf:MacroEntry:"
+)
+foreach(GRAMMAR_TRIPLE IN LISTS GRAMMARS)
+string(FIND "${GRAMMAR_TRIPLE}" ":" pos)
+string(SUBSTRING "${GRAMMAR_TRIPLE}" 0 "${pos}" GRAMMAR_FILE)
+math(EXPR pos "${pos} + 1")  # Skip the separator
+string(SUBSTRING "${GRAMMAR_TRIPLE}" "${pos}" -1 GRAMMAR_PAIR)
+
+string(FIND "${GRAMMAR_PAIR}" ":" pos)
+string(SUBSTRING "${GRAMMAR_PAIR}" 0 "${pos}" GRAMMAR_ENTRY)
+math(EXPR pos "${pos} + 1")  # Skip the separator
+string(SUBSTRING "${GRAMMAR_PAIR}" "${pos}" -1 GRAMMAR_ENVS)
+
+string(FIND "${GRAMMAR_FILE}" ".xnf" pos)
+string(SUBSTRING "${GRAMMAR_FILE}" 0 "${pos}" GRAMMAR_NAME)
 execute_process(COMMAND ${Python_EXECUTABLE}
-        "${AUTOMATON_GENERATOR_DIR}/generate.py" "${AUTOMATON_DIR}"
+        "${AUTOMATON_GENERATOR_DIR}/generate.py"
+        "${AUTOMATON_GENERATOR_DIR}/${GRAMMAR_FILE}"
+        "${GRAMMAR_ENTRY}"
+        "--environments=${GRAMMAR_ENVS}"
+        "--output-directory=${AUTOMATON_DIR}/${GRAMMAR_NAME}"
         RESULT_VARIABLE PS_RESULT
         OUTPUT_VARIABLE PS_OUTPUT
         ERROR_VARIABLE PS_ERROR
@@ -79,6 +99,7 @@ endif()
 if (NOT "${PS_ERROR}" STREQUAL "")
     message(SEND_ERROR "${PS_ERROR}")
 endif()
+endforeach ()
 # generate source files
 execute_process(COMMAND ${Python_EXECUTABLE}
         "${SOURCE_GENERATOR_DIR}/codegen.py" "${AUTOMATON_DIR}" "${PROJECT_TEMPLATE_DIR}" "${GENERATED_DIR}"
