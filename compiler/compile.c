@@ -56,6 +56,7 @@ int main(const int argc, char *argv[]) {
   char_t *srcname = nullptr;
   char_t *outname = nullptr;
   char_t srcpath[1024] = {};
+  char_t esrcpath[1024] = {};
   char_t headpath[1024] = {};
   char_t libpath[1024] = {};
   char_t *year = nullptr;
@@ -83,16 +84,19 @@ int main(const int argc, char *argv[]) {
   if (argc > 2 && argv[2][0] != '-') {
     outname = argv[2];
     realpath(outname, headpath);
+    realpath(outname, esrcpath);
     realpath(outname, libpath);
     arg_ndx++;
   } else {
     outname = strrchr(srcname, '/');
     outname = outname ? outname + 1 : srcname;
     realpath(outname, headpath);
+    realpath(outname, esrcpath);
     realpath(outname, libpath);
   }
   uint32_t len = strlen(headpath);
   strcpy(headpath + len, ".h");
+  strcpy(esrcpath + len, ".ms");
   strcpy(libpath + len, ".c");
   for (; arg_ndx < argc; arg_ndx++) {
     if (strcmp(argv[arg_ndx], "-y") == 0 || strcmp(argv[arg_ndx], "--year") == 0) {
@@ -112,7 +116,7 @@ int main(const int argc, char *argv[]) {
         arg_ndx++;
       }
     } else if (strcmp(argv[arg_ndx], "-E") == 0) {
-      return expand_macro(srcpath, headpath);
+      return expand_macro(srcpath, esrcpath);
     } else {
       fprintf(stderr, "wrong count of arguments.\n");
       return -1;

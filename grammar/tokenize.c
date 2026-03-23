@@ -732,32 +732,35 @@ uint32_t pass_whitespace(const char_t * const input) {
   while (*pText && stridx_o(*pText, " \t\n\f\v\r") < lenof(" \t\n\f\v\r")) { pText++; }
   return pText - input;
 }
-uint32_t
-    try_pass_comment(const char * const input, uint32_t * const lineno, uint32_t * const column) {
+uint32_t try_pass_comment(const char * const input, uint32_t * const lineno, uint32_t * const column) {
   const char *pText = input + 1;
   if (*pText == '/') {
-    do { pText++; } while (*pText != '\n');
+    do { pText++; } while (*pText != '\n' && *pText != '\0');
+    *column += pText - input;
   } else if (*pText == '*') {
-    pText++;
+    pText++; (*column) ++;
     do {
       while (*pText != '*') {
-        if (*pText == '\n') { (*lineno)++, *column = 1; }
-        pText++;
+        if (*pText == '\n') { (*lineno)++, *column = 0; }
+        if (*pText == '\0') { goto __end_of_block_comment; }
+        pText++; (*column) ++;
       }
-    } while (*(++pText) != '/');
-    pText++;
+      pText++; (*column) ++;
+    } while (*pText != '/');
+    __end_of_block_comment:
   } else {
     return 0;
   }
-  *column += pText - input;
   return pText - input;
 }
+
 uint32_t pass_space(const char * const input, uint32_t * const lineno, uint32_t * const column) {
   uint32_t l = lineno ? *lineno : 0;
   uint32_t c = column ? *column : 0;
   const char *pText = input;
   while (*pText) {
     switch (*pText) {
+      case '\v':
       case '\n': {
         l++;
         c = 1;
@@ -771,7 +774,7 @@ uint32_t pass_space(const char * const input, uint32_t * const lineno, uint32_t 
         break;
       }
       case '/': {
-        uint32_t passed = try_pass_comment(pText, &l, &c);
+        const uint32_t passed = try_pass_comment(pText, &l, &c);
         if (passed) {
           pText += passed;
           continue;
@@ -783,49 +786,10 @@ uint32_t pass_space(const char * const input, uint32_t * const lineno, uint32_t 
     }
     pText++;
   }
-__return:
+  __return:
   lineno ? *lineno = l : 0;
   column ? *column = c : 0;
   return pText - input;
-}
-
-const Terminal *tokenize(
-    const char_t * const input, uint32_t *cost, uint32_t *n_tokens, uint32_t * const lineno,
-    uint32_t * const column, const Allocator * const allocator
-) {  // NOLINT(*-easily-swappable-parameters)
-  const char_t *pText = input;
-  const uint32_t max_cost = (*cost) > 0 ? *cost : UINT32_MAX;
-  *cost = 0;
-  uint32_t l = lineno ? *lineno : 0;
-  uint32_t c = column ? *column : 0;
-  Array *terminals = Array_new(sizeof(Terminal), Machine_TOKEN_TERMINATOR, allocator);
-  Terminal terminal = {};
-  pText += pass_space(pText, &l, &c);
-  while (*pText && pText - input < max_cost) {
-    terminal.lineno = l;
-    terminal.column = c;
-    *cost = single_tokenize(pText, &terminal, allocator);
-    c += terminal.length;
-    if (0 == *cost) { break; }
-    pText += *cost;
-    pText += pass_space(pText, &l, &c);
-    Array_append(terminals, &terminal, 1);
-  }
-  if ('\0' == *pText) {
-    terminal.type = Machine_TOKEN_TERMINATOR;
-    terminal.value = nullptr;
-    terminal.lineno = l;
-    terminal.column = c;
-    terminal.length = 0;
-    Array_append(terminals, &terminal, 1);
-  }
-  *cost = (uint32_t) (pText - input);
-  *n_tokens = Array_length(terminals);
-  const Terminal *pTerminals = (*n_tokens == 0) ? nullptr : Array_real_addr(terminals, 0);
-  Array_destroy(terminals);
-  lineno ? *lineno = l : 0;
-  column ? *column = c : 0;
-  return pTerminals;
 }
 
 inline const char_t *get_name(uint16_t type) {

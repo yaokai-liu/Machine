@@ -1415,19 +1415,18 @@ void releaseToken(Token *token, const Allocator *allocator) {
       releasePrimeArray(token->value);
       break;
     }
-
-      releaseTokenCase(Condition, Condition)
-      releaseTokenCase(InstrForm, InstrForm)
-      releaseTokenCase(InstrPart, InstrPart)
-      releaseTokenCase(Instruction, Instruction)
-      releaseTokenCase(Layout, Layout)
-      releaseTokenCase(Machine, Machine)
-      releaseTokenCase(MappingItem, MappingItem)
-      releaseTokenCase(MappingItems, MappingItems)
-      releaseTokenCase(Memory, Memory)
-      releaseTokenCase(Pattern, Pattern)
-      releaseTokenCase(RegisterGroup, RegisterGroup)
-      releaseTokenCase(RecordSet, RecordSet)
+    releaseTokenCase(Condition, Condition)
+    releaseTokenCase(InstrForm, InstrForm)
+    releaseTokenCase(InstrPart, InstrPart)
+    releaseTokenCase(Instruction, Instruction)
+    releaseTokenCase(Layout, Layout)
+    releaseTokenCase(Machine, Machine)
+    releaseTokenCase(MappingItem, MappingItem)
+    releaseTokenCase(MappingItems, MappingItems)
+    releaseTokenCase(Memory, Memory)
+    releaseTokenCase(Pattern, Pattern)
+    releaseTokenCase(RegisterGroup, RegisterGroup)
+    releaseTokenCase(RecordSet, RecordSet)
     case Machine_TOKEN_Variable:
     case Machine_TOKEN_CondExpr:
     case Machine_TOKEN_Evaluable:
